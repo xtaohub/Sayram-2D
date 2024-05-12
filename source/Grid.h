@@ -1,7 +1,7 @@
 /*
  * File:        Grid.h
  * Author:      Xin Tao <xtao@ustc.edu.cn>
- * Date:        01/28/2024 
+ * Date:        05/12/2024 
  * 
  * Copyright (c) Xin Tao 
  *
@@ -11,34 +11,21 @@
 #define GRID_H_
 
 class Grid {
-  public:
-    Grid() { 
-      dt_ = 1.0;  
-      du_ = 1.0; 
-      dv_ = 1.0; 
-  
-      ncu_ = 20;
-      ncv_ = 20; 
+public:
+    Grid(int nx, int ny, double dx, double dy):
+      nx_(nx), ny_(ny), dx_(dx), dy_(dy) {}
 
-      G_.resize(ncu(), ncv());
-      G_ = 1.0; 
-    }; 
+    int nx() const { return nx_; }
+    int ny() const { return ny_; }
+    double dx() const { return dx_; }
+    double dy() const { return dy_; }
 
-    double dt() const { return dt_; }
-    double du() const { return du_; }
-    double dv() const { return dv_; }
-
-    int ncu() const { return ncu_; }
-    int ncv() const { return ncv_; }
-
-    double G(int i, int j) const { return G_(i,j); } // Jacobian
-  
-  private:
-    double dt_; 
-    double du_; 
-    double dv_; 
-    Matrix G_; 
-}; 
+private:
+    int nx_;
+    int ny_;
+    double dx_;
+    double dy_;
+};
 
 #endif /* GRID_H */
 
