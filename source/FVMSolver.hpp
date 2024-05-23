@@ -13,6 +13,7 @@
 #include "Grid.h"
 #include "D.h"
 #include "BoundaryConditions.h"
+#include "Eigen/Core"
 
 class FVMSolver {
 public:

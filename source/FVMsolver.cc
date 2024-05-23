@@ -8,7 +8,8 @@
  */
 
 
-#include "FVMSolver.h"
+#include "FVMSolver.hpp"
+#include "Parameters.hpp"
 
 FVMSolver::FVMSolver(const Grid& grid, const D& diffusion, const BoundaryConditions& boundaryConditions)
     : grid(grid), boundaryConditions(boundaryConditions) {
@@ -51,3 +52,4 @@ void FVMSolver::assembleSystem(Eigen::MatrixXd& f, const D& diffusion, double dt
         R(i) = f(i) * dt; // Example: R = f * dt
     }
 }
+

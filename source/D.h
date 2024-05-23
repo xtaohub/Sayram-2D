@@ -25,6 +25,8 @@ public:
     // Update diffusion coefficients with time
     void updateCoefficients(double t);
 
+    void constructD(double t);
+
 private:
 
     Eigen::MatrixXd Daa;

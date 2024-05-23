@@ -14,7 +14,7 @@
 
 class BoundaryConditions {
 public:
-    BoundaryConditions();
+    BoundaryConditions(int grid, float diffusion);
 
     // Apply boundary conditions to the given solution matrix f
     void applyBoundaryConditions(Eigen::MatrixXd& f);
@@ -23,6 +23,8 @@ public:
 
 private:
     // Define private members and helper functions here
+    int grid;
+    float diffusion;
 };
 
 #endif /* BOUNDARY_CONDITIONS_H */
