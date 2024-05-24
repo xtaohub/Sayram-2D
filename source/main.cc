@@ -9,6 +9,7 @@
 
 
 #include <iostream>
+#include <cassert>
 #include "Grid.h"
 #include "D.h"
 #include "BoundaryConditions.h"
@@ -109,7 +110,7 @@ int main() {
     }
 
     // Time loop for solving
-    for (int i = 0; i < 8640; ++i) {
+    for (int k = 0; k < 8640; ++k) {
         // Solve using FVM solver
         // solver.solve(f, dt);
         M_ = Eigen::MatrixXd::Zero(nx*ny, nx*ny);
@@ -256,9 +257,20 @@ int main() {
         Eigen::MatrixXd M_inv = M_Integration.inverse();
         f = M_inv * (S_ * dt / (dx * dy) + f);
 
-    //     // Output or visualize f at each time step
-    //     std::cout << "Time step: " << i << std::endl;
-    //     std::cout << f << std::endl;
+        // Output or visualize f at each time step
+        std::cout << "Time step: " << k << std::endl;
+        
+        if(k % 432 == 0){
+            string path = "../output/SMPPFV_10s/smppfv" + std::to_string(int(k / 432));
+
+            ofstream outFile(path);
+            assert(outFile);
+    
+            for (double value : f) {
+                outFile << value << std::endl;
+            }
+            outFile.close();
+        }
     }
 
     return 0;
