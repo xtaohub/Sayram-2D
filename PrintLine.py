@@ -23,12 +23,12 @@ p2 = calP(2.0)
 P_MIN = calP(E_MIN)
 P_MAX = calP(E_MAX)
 
-M = 50
-N = 50
+M = 20
+N = 20
 x1 = np.linspace(5, 90, M)
 x2 = np.linspace(5 + 85 / (2 * N), 90 - 85 / (2 * N), N)
 
-# TODO Tao's data
+# Tao's data
 with open("p80x80/p80x802") as dT01:
     dataT01_ = dT01.readlines()
 del (dataT01_[0])
@@ -42,26 +42,33 @@ y_05_0 = np.exp(-(0.5 - 0.2) / 0.1) * (np.sin(alphav * np.pi / 180) - np.sin(5.0
 y_20_0 = np.exp(-(2.0 - 0.2) / 0.1) * (np.sin(alphav * np.pi / 180) - np.sin(5.0 * np.pi / 180))
 
 
-with open("output/SMPPFV_10s/smppfv0") as raw0:
+with open("output/SMPPFV/smppfv2") as raw0:
     d0 = raw0.readlines()
+    
+with open("output/SMPPFV/smppfv20") as raw1:
+    d1 = raw1.readlines()
 
-data0 = np.zeros((50, 50))
+data0 = np.zeros((N, M))
+data1 = np.zeros((N, M))
 
-for i in range(50):
-    for j in range(50):
-        data0[i, j] = float(d0[50*i + j])
+for i in range(N):
+    for j in range(M):
+        data0[i, j] = float(d0[M*i + j])
+        data1[i, j] = float(d1[M*i + j])
 
-pos_p1 = ((p1-P_MIN - (P_MAX - P_MIN) / 100) / (P_MAX - P_MIN) * 50)
+pos_p1 = ((p1-P_MIN - (P_MAX - P_MIN) / 100) / (P_MAX - P_MIN) * M)
 loc_p1 = int(pos_p1)
 w1 = pos_p1 - loc_p1
 w2 = 1 - w1
 y_0s05 = (data0[loc_p1] * 1/w1 / (1/w1 + 1/w2) + data0[loc_p1 + 1] * 1/w2 / (1/w1 + 1/w2)) * p1**2
+y_1s05 = (data1[loc_p1] * 1/w1 / (1/w1 + 1/w2) + data1[loc_p1 + 1] * 1/w2 / (1/w1 + 1/w2)) * p1**2
 
-pos_p2 = ((p2-P_MIN - (P_MAX - P_MIN) / 100) / (P_MAX - P_MIN) * 50)
+pos_p2 = ((p2-P_MIN - (P_MAX - P_MIN) / 100) / (P_MAX - P_MIN) * M)
 loc_p2 = int(pos_p2)
 w1 = pos_p2 - loc_p2
 w2 = 1 - w1
 y_0s20 = (data0[loc_p2] * 1/w1 / (1/w1 + 1/w2) + data0[loc_p2 + 1] * 1/w2 / (1/w1 + 1/w2)) * p2**2
+y_1s20 = (data1[loc_p2] * 1/w1 / (1/w1 + 1/w2) + data1[loc_p2 + 1] * 1/w2 / (1/w1 + 1/w2)) * p2**2
 
 
 e1 = 0.5
@@ -100,7 +107,8 @@ ax1 = fig.add_subplot(1, 2, 1)
 l1, = plt.semilogy(alphav, y_05_0, color="black", label='T = 0.0day')
 l2, = plt.semilogy(alphav, y_05_t01, color="blue", label='T = 0.1day')
 l3, = plt.semilogy(alphav, y_05_t10, color="red", label='T = 1.0day')
-l4, = plt.semilogy(x2, y_0s05, "b--", label='0.0d')
+l4, = plt.semilogy(x2, y_0s05, "b--", label='0.1d')
+l5, = plt.semilogy(x2, y_1s05, "r--", label='1.0d')
 
 
 plt.title("0.5MeV", fontsize=16)
@@ -118,6 +126,7 @@ l1, = plt.semilogy(alphav, y_20_0, color="black", label='T = 0.0 day')
 l2, = plt.semilogy(alphav, y_20_t01, color="blue", label='layer method')
 l3, = plt.semilogy(alphav, y_20_t10, color="red", label='T = 1.0day')
 l4, = plt.semilogy(x2, y_0s20, "b--", label='PPFV,SM')
+l5, = plt.semilogy(x2, y_1s20, "r--", label='PPFV,SM')
 
 
 plt.title("2MeV", fontsize=16)
