@@ -14,6 +14,10 @@
 #include "D.h"
 #include "BoundaryConditions.h"
 #include "Eigen/Core"
+#include "Parameters.hpp"
+#include "Eigen/Sparse"
+
+typedef Eigen::Triplet<double>T;
 
 class FVMSolver {
 public:
@@ -21,6 +25,11 @@ public:
 
     // Solve the diffusion equation to update f
     void solve(Eigen::MatrixXd& f, const D& diffusion, double dt);
+
+    void initial(Eigen::VectorXd& f);
+    void constructAlpha_K(double (&alpha_K)[4][2][ny][nx]);
+    void timeForward(Eigen::VectorXd& f, const double (&alpha_K)[4][2][ny][nx], Eigen::VectorXd &S_, std::vector<T> &M_coefficients);
+
 
 private:
     const Grid& grid;

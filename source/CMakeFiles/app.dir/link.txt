@@ -1,0 +1,1 @@
+/usr/bin/c++ -rdynamic CMakeFiles/app.dir/D.cc.o CMakeFiles/app.dir/FVMSolver.cc.o CMakeFiles/app.dir/BoundaryConditions.cc.o CMakeFiles/app.dir/main.cc.o -o app  -lgomp -Wl,-Bstatic -lpthread -Wl,-Bdynamic 
