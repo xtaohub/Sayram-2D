@@ -30,6 +30,8 @@ typedef Eigen::Triplet<double>T;
 
 int main() {
 
+    omp_set_num_threads(20);
+
     Eigen::initParallel();
 
     #pragma omp parallel
@@ -76,6 +78,7 @@ int main() {
     Eigen::MatrixXd L, U;
     string path;
     Eigen::SparseLU<SpMat> solver;
+    Eigen::VectorXd x;
 
     // Time loop for solving
     for (int k = 0; k < steps; ++k) {
@@ -102,13 +105,16 @@ int main() {
 
         solver.analyzePattern(M);
         solver.factorize(M);
-        Eigen::VectorXd x = solver.solve(S_);
+        x = solver.solve(S_);
 
         f = x;
 
         int numThreads = Eigen::nbThreads();
 
         std::cout << "Using " << numThreads << " threads for Eigen" << std::endl;
+
+        std::cout << "OpenMP is enabled with " << omp_get_num_threads() << " threads\n";
+
 
         // Output or visualize f at each time step
         std::cout << "Time step: " << k << std::endl;
