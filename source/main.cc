@@ -6,8 +6,6 @@
  * Copyright (c) Xin Tao 
  *
  */
-#pragma GCC optimize("O3,unroll-loops")
-#pragma GCC target("avx2,bmi,bmi2,lzcnt,popcnt")
 
 #define EIGEN_USE_THREADS
 
@@ -17,7 +15,6 @@
 #define EIGEN_NO_DEBUG
 #include <iostream>
 #include <emmintrin.h>
-#include <omp.h>
 // TODO MKL
 // #include "mkl.h"
 #include <cassert>
@@ -34,22 +31,10 @@
 // #include <suitesparse/umfpack.h>
 
 
-
 typedef Eigen::SparseMatrix<double> SpMat;
-typedef Eigen::Triplet<double>T;
-
+typedef Eigen::Triplet<double> T;
 
 int main() {
-
-    omp_set_num_threads(20);
-
-    Eigen::initParallel();
-
-    #pragma omp parallel
-    {
-        Eigen::setNbThreads(20);
-    }
-
 
     // Create grid object
     Grid grid(nx, ny, dx, dy);
@@ -116,7 +101,6 @@ int main() {
 
         // suitesparse part
         M.makeCompressed();
-
         
         solver.analyzePattern(M);
         solver.factorize(M);
@@ -124,27 +108,20 @@ int main() {
 
         f = x;
 
-        int numThreads = Eigen::nbThreads();
-
-        // print the threads of Eigen and OpenMP
-        std::cout << "Using " << numThreads << " threads for Eigen" << std::endl;
-        std::cout << "OpenMP is enabled with " << omp_get_num_threads() << " threads\n";
-
-
         // Output or visualize f at each time step
-        std::cout << "Time step: " << k << std::endl;
+        // std::cout << "Time step: " << k << std::endl;
         
-        if(k % printstep == printstep - 1){
-            path = "../output/SMPPFV/smppfv" + std::to_string(int((k + 1) / printstep));
-
-            ofstream outFile(path);
-            assert(outFile);
-    
-            for (double value : f) {
-                outFile << value << std::endl;
-            }
-            outFile.close();
-        }
+    //     if(k % printstep == printstep - 1){
+    //         path = "./output/SMPPFV/smppfv" + std::to_string(int((k + 1) / printstep));
+    //
+    //         ofstream outFile(path);
+    //         assert(outFile);
+    // 
+    //         for (double value : f) {
+    //             outFile << value << std::endl;
+    //         }
+    //         outFile.close();
+    //     }
     }
     end = clock();
     cpu_time = ((double) (end - start)) / CLOCKS_PER_SEC;
