@@ -8,6 +8,7 @@
  */
 
 
+// #include "mkl.h"
 #include "FVMSolver.hpp"
 #include "Parameters.hpp"
 #include "Eigen/Sparse"

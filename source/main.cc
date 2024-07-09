@@ -10,9 +10,16 @@
 #pragma GCC target("avx2,bmi,bmi2,lzcnt,popcnt")
 
 #define EIGEN_USE_THREADS
+
+// TODO MKL
+// #define EIGEN_USE_MKL_ALL
+// #define EIGEN_VECTORIZE_SSE4_2
+#define EIGEN_NO_DEBUG
 #include <iostream>
 #include <emmintrin.h>
 #include <omp.h>
+// TODO MKL
+// #include "mkl.h"
 #include <cassert>
 #include "Grid.h"
 #include "D.h"
@@ -22,6 +29,10 @@
 #include "Eigen/Dense"
 #include "Eigen/Core"
 #include "Eigen/Sparse"
+#include <ctime>
+// TODO: Have tried suitesparse, have little contribution of speed
+// #include <suitesparse/umfpack.h>
+
 
 
 typedef Eigen::SparseMatrix<double> SpMat;
@@ -36,8 +47,9 @@ int main() {
 
     #pragma omp parallel
     {
-        Eigen::setNbThreads(Eigen::nbThreads());
+        Eigen::setNbThreads(20);
     }
+
 
     // Create grid object
     Grid grid(nx, ny, dx, dy);
@@ -77,8 +89,15 @@ int main() {
 
     Eigen::MatrixXd L, U;
     string path;
-    Eigen::SparseLU<SpMat> solver;
+    // Eigen::SparseLU<SpMat> solver;
+    // TODO suitesparse part
+    Eigen::SparseLU<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> solver;
     Eigen::VectorXd x;
+
+    // The time test part
+    clock_t start, end;
+    double cpu_time;
+    start = clock();
 
     // Time loop for solving
     for (int k = 0; k < steps; ++k) {
@@ -95,14 +114,10 @@ int main() {
         M = M * (dt / (dx * dy)) + Id;
         S_ = S_ * (dt / (dx * dy)) + f;
 
+        // suitesparse part
+        M.makeCompressed();
 
-        // Eigen::SimplicialLLT<SpMat> solver;
-        // Eigen::VectorXd x = solver.compute(M).solve(S_);
-
-        // Solving:
-        // Eigen::SimplicialCholesky<SpMat> chol(M);  // performs a Cholesky factorization of A
-        // Eigen::VectorXd x = chol.solve(S_);         // use the factorization to solve for the given right hand side
-
+        
         solver.analyzePattern(M);
         solver.factorize(M);
         x = solver.solve(S_);
@@ -111,8 +126,8 @@ int main() {
 
         int numThreads = Eigen::nbThreads();
 
+        // print the threads of Eigen and OpenMP
         std::cout << "Using " << numThreads << " threads for Eigen" << std::endl;
-
         std::cout << "OpenMP is enabled with " << omp_get_num_threads() << " threads\n";
 
 
@@ -131,6 +146,9 @@ int main() {
             outFile.close();
         }
     }
+    end = clock();
+    cpu_time = ((double) (end - start)) / CLOCKS_PER_SEC;
+    std::cout << "CPU time used " << cpu_time << " seconds" << std::endl;
 
     return 0;
 }

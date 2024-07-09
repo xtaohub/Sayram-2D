@@ -10,6 +10,7 @@
 #ifndef FVM_SOLVER_H
 #define FVM_SOLVER_H
 
+// #include "mkl.h"
 #include "Grid.h"
 #include "D.h"
 #include "BoundaryConditions.h"
