@@ -155,55 +155,55 @@ void FVMSolver::timeForward(){
                     u3 = exp(-(p2e(P_MIN, gE0) - 0.2) / 0.1) * (sin(a - hdx) - sin(ALPHA_LC)) / (P_MIN * P_MIN);
                     u4 = exp(-(p2e(P_MIN, gE0) - 0.2) / 0.1) * (sin(a + hdx) - sin(ALPHA_LC)) / (P_MIN * P_MIN);
                     u2 = 0;
-                    u1 = (f_(nx * j + i) + f_(nx * (j+1) + i) + f_(nx * j + i+1) + f_(nx * (j+1) + i+1)) / 4.0;
+                    u1 = (f_(j, i) + f_(j+1, i) + f_(j, i+1) + f_(j+1, i+1)) / 4.0;
                 }
                 else if (j==0 && i==nx-1){
                     u3 = exp(-(p2e(P_MIN, gE0) - 0.2) / 0.1) * (sin(a - hdx) - sin(ALPHA_LC)) / (P_MIN * P_MIN);
                     u4 = exp(-(p2e(P_MIN, gE0) - 0.2) / 0.1) * (sin(a + hdx) - sin(ALPHA_LC)) / (P_MIN * P_MIN);
-                    u2 = (f_(nx * j + i) + f_(nx * (j+1) + i) + f_(nx * j + i - 1) + f_(nx * (j+1) + i-1)) / 4.0;
-                    u1 = (f_(nx * j + i) + f_(nx * (j+1) + i)) / 2.0;
+                    u2 = (f_(j, i) + f_(j+1, i) + f_(j, i-1) + f_(j+1, i-1)) / 4.0;
+                    u1 = (f_(j, i) + f_(j+1, i)) / 2.0;
                 }
                 else if (j==0){
                     u3 = exp(-(p2e(P_MIN, gE0) - 0.2) / 0.1) * (sin(a - hdx) - sin(ALPHA_LC)) / (P_MIN * P_MIN);
                     u4 = exp(-(p2e(P_MIN, gE0) - 0.2) / 0.1) * (sin(a + hdx) - sin(ALPHA_LC)) / (P_MIN * P_MIN);
-                    u2 = (f_(nx * j + i) + f_(nx * (j+1) + i) + f_(nx * j + i - 1) + f_(nx * (j + 1) + i - 1)) / 4.0;
-                    u1 = (f_(nx * j + i) + f_(nx * (j+1) + i) + f_(nx * j + i + 1) + f_(nx * (j + 1) + i + 1)) / 4.0;
+                    u2 = (f_(j, i) + f_(j+1, i) + f_(j, i-1) + f_(j+1, i-1)) / 4.0;
+                    u1 = (f_(j, i) + f_(j+1, i) + f_(j, i+1) + f_(j+1, i+1)) / 4.0;
                 }
                 else if (i==nx-1 && j ==ny-1){
                     u1 = 0.0;
                     u2 = 0.0;
-                    u3 = (f_(nx * j + i) + f_(nx * (j-1) + i) + f_(nx * j + i - 1) + f_(nx * (j - 1) + i - 1)) / 4.0;
-                    u4 = (f_(nx * j + i) + f_(nx * (j-1) + i)) / 2.0;
+                    u3 = (f_(j, i) + f_(j-1, i) + f_(j, i-1) + f_(j-1, i-1)) / 4.0;
+                    u4 = (f_(j, i) + f_(j-1, i)) / 2.0;
                 }
                 else if (i==nx-1){
-                    u1 = (f_(nx * j + i) + f_(nx * (j+1) + i)) / 2.0;
-                    u4 = (f_(nx * j + i) + f_(nx * (j-1) + i)) / 2.0;
-                    u2 = (f_(nx * j + i) + f_(nx * (j+1) + i) + f_(nx * j + i - 1) + f_(nx * (j + 1) + i - 1)) / 4.0;
-                    u3 = (f_(nx * j + i) + f_(nx * (j-1) + i) + f_(nx * j + i - 1) + f_(nx * (j - 1) + i - 1)) / 4.0;
+                    u1 = (f_(j, i) + f_(j+1, i)) / 2.0;
+                    u4 = (f_(j, i) + f_(j-1, i)) / 2.0;
+                    u2 = (f_(j, i) + f_(j+1, i) + f_(j, i-1) + f_(j+1, i-1)) / 4.0;
+                    u3 = (f_(j, i) + f_(j-1, i) + f_(j, i-1) + f_(j-1, i-1)) / 4.0;
                 }
                 else if (j==ny-1 && i==0){
                     u1 = 0.0;
                     u2 = 0.0;
                     u3 = 0.0;
-                    u4 = (f_(nx * j + i) + f_(nx * (j-1) + i) + f_(nx * j + i + 1) + f_(nx * (j - 1) + i + 1)) / 4.0;
+                    u4 = (f_(j, i) + f_(j-1, i) + f_(j, i+1) + f_(j-1, i+1)) / 4.0;
                 }
                 else if (j == ny-1){
                     u1 = 0.0;
                     u2 = 0.0;
-                    u3 = (f_(nx * j + i) + f_(nx * (j-1) + i) + f_(nx * j + i - 1) + f_(nx * (j - 1) + i - 1)) / 4.0;
-                    u4 = (f_(nx * j + i) + f_(nx * (j-1) + i) + f_(nx * j + i + 1) + f_(nx * (j - 1) + i + 1)) / 4.0;
+                    u3 = (f_(j, i) + f_(j-1, i) + f_(j, i-1) + f_(j-1, i-1)) / 4.0;
+                    u4 = (f_(j, i) + f_(j-1, i) + f_(j, i+1) + f_(j-1, i+1)) / 4.0;
                 }
                 else if (i==0){
                     u2 = 0.0;
                     u3 = 0.0;
-                    u1 = (f_(nx * j + i) + f_(nx * (j+1) + i) + f_(nx * j + i + 1) + f_(nx * (j + 1) + i + 1)) / 4.0;
-                    u4 = (f_(nx * j + i) + f_(nx * (j-1) + i) + f_(nx * j + i + 1) + f_(nx * (j - 1) + i + 1)) / 4.0;
+                    u1 = (f_(j, i) + f_(j+1, i) + f_(j, i+1) + f_(j+1, i+1)) / 4.0;
+                    u4 = (f_(j, i) + f_(j-1, i) + f_(j, i+1) + f_(j-1, i+1)) / 4.0;
                 }
                 else{
-                    u1 = (f_(nx * j + i) + f_(nx * (j+1) + i) + f_(nx * j + i + 1) + f_(nx * (j + 1) + i + 1)) / 4.0;
-                    u2 = (f_(nx * j + i) + f_(nx * (j+1) + i) + f_(nx * j + i - 1) + f_(nx * (j + 1) + i - 1)) / 4.0;
-                    u3 = (f_(nx * j + i) + f_(nx * (j-1) + i) + f_(nx * j + i - 1) + f_(nx * (j - 1) + i - 1)) / 4.0;
-                    u4 = (f_(nx * j + i) + f_(nx * (j-1) + i) + f_(nx * j + i + 1) + f_(nx * (j - 1) + i + 1)) / 4.0;
+                    u1 = (f_(j, i) + f_(j+1, i) + f_(j, i+1) + f_(j+1, i+1)) / 4.0;
+                    u2 = (f_(j, i) + f_(j+1, i) + f_(j, i-1) + f_(j+1, i-1)) / 4.0;
+                    u3 = (f_(j, i) + f_(j-1, i) + f_(j, i-1) + f_(j-1, i-1)) / 4.0;
+                    u4 = (f_(j, i) + f_(j-1, i) + f_(j, i+1) + f_(j-1, i+1)) / 4.0;
                 }
 
 
@@ -224,8 +224,8 @@ void FVMSolver::timeForward(){
                     B_sigma = mu_L * a_L_n - mu_K * a_K_n;
                     B_sigma_p = (abs(B_sigma) + B_sigma) / 2;
                     B_sigma_n = (abs(B_sigma) - B_sigma) / 2;
-                    A_K = mu_K * (alpha_K_(j,i).n.A + alpha_K_(j,i).n.B) + B_sigma_p / (f_(nx * j + i) + 1e-15);
-                    A_L = mu_L * (alpha_K_(j+1,i).s.A + alpha_K_(j+1,i).s.B) + B_sigma_n / (f_(nx * (j+1) + i) + 1e-15);
+                    A_K = mu_K * (alpha_K_(j,i).n.A + alpha_K_(j,i).n.B) + B_sigma_p / (f_(j, i) + 1e-15);
+                    A_L = mu_L * (alpha_K_(j+1,i).s.A + alpha_K_(j+1,i).s.B) + B_sigma_n / (f_(j+1, i) + 1e-15);
                     temp0 += A_K / G(a, p);
                     M_coefficients_.push_back(T(nx * j + i, nx * (j + 1) + i, -A_L / G(a, p)));
                 }
@@ -242,8 +242,8 @@ void FVMSolver::timeForward(){
                     B_sigma = mu_L * a_L_s - mu_K * a_K_s;
                     B_sigma_p = (abs(B_sigma) + B_sigma) / 2;
                     B_sigma_n = (abs(B_sigma) - B_sigma) / 2;
-                    A_K = mu_K * (alpha_K_(j,i).s.A + alpha_K_(j,i).s.B) + B_sigma_p / (f_(nx * j + i) + 1e-15);
-                    A_L = mu_L * (alpha_K_(j-1,i).n.A + alpha_K_(j-1,i).n.B) + B_sigma_n / (f_(nx * (j-1) + i) + 1e-15);
+                    A_K = mu_K * (alpha_K_(j,i).s.A + alpha_K_(j,i).s.B) + B_sigma_p / (f_(j, i) + 1e-15);
+                    A_L = mu_L * (alpha_K_(j-1,i).n.A + alpha_K_(j-1,i).n.B) + B_sigma_n / (f_(j-1, i) + 1e-15);
                     temp0 += A_K / G(a, p);
                     M_coefficients_.push_back(T(nx * j + i, nx * (j - 1) + i, -A_L / G(a, p)));
                 }
@@ -260,8 +260,8 @@ void FVMSolver::timeForward(){
                     B_sigma = mu_L * a_L_w - mu_K * a_K_w;
                     B_sigma_p = (abs(B_sigma) + B_sigma) / 2;
                     B_sigma_n = (abs(B_sigma) - B_sigma) / 2;
-                    A_K = mu_K * (alpha_K_(j,i).w.A + alpha_K_(j,i).w.B) + B_sigma_p / (f_(nx * j + i) + 1e-15);
-                    A_L = mu_L * (alpha_K_(j,i-1).e.A + alpha_K_(j,i-1).e.B) + B_sigma_n / (f_(nx * j + i - 1) + 1e-15);
+                    A_K = mu_K * (alpha_K_(j,i).w.A + alpha_K_(j,i).w.B) + B_sigma_p / (f_(j, i) + 1e-15);
+                    A_L = mu_L * (alpha_K_(j,i-1).e.A + alpha_K_(j,i-1).e.B) + B_sigma_n / (f_(j, i - 1) + 1e-15);
                     temp0 += A_K / G(a, p);
                     M_coefficients_.push_back(T(nx * j + i, nx * j + i - 1, -A_L / G(a, p)));
                 }
@@ -277,8 +277,8 @@ void FVMSolver::timeForward(){
                     B_sigma = mu_L * a_L_e - mu_K * a_K_e;
                     B_sigma_p = (abs(B_sigma) + B_sigma) / 2;
                     B_sigma_n = (abs(B_sigma) - B_sigma) / 2;
-                    A_K = mu_K * (alpha_K_(j,i).e.A + alpha_K_(j,i).e.B) + B_sigma_p / (f_(nx * j + i) + 1e-15);
-                    A_L = mu_L * (alpha_K_(j,i+1).w.A + alpha_K_(j,i+1).w.B) + B_sigma_n / (f_(nx * j + i+1) + 1e-15);
+                    A_K = mu_K * (alpha_K_(j,i).e.A + alpha_K_(j,i).e.B) + B_sigma_p / (f_(j, i) + 1e-15);
+                    A_L = mu_L * (alpha_K_(j,i+1).w.A + alpha_K_(j,i+1).w.B) + B_sigma_n / (f_(j, i+1) + 1e-15);
                     temp0 += A_K / G(a, p);
                     M_coefficients_.push_back(T(nx * j + i, nx * j + i, temp0));
                     M_coefficients_.push_back(T(nx * j + i, nx * j + i + 1, -A_L / G(a, p)));
@@ -297,11 +297,11 @@ void FVMSolver::solve(double dt) {
     M_.setFromTriplets(M_coefficients_.begin(), M_coefficients_.end());
   
     M_ = M_ * (dt / (dx * dy)) + Id_;
-    S_ = S_ * (dt / (dx * dy)) + f_.reshape();
+    S_ = S_ * (dt / (dx * dy)) + f_.reshaped();
 
     solver.analyzePattern(M_);
     solver.factorize(M_);
-    f_.reshape() = solver.solve(S_);
+    f_.reshaped() = solver.solve(S_);
 
 }
 
