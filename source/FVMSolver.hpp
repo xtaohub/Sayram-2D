@@ -41,45 +41,36 @@ struct Alpha_K{ // The AlphaK matrix for each cell with four faces: east,west,no
 
 class FVMSolver {
   public:
-    FVMSolver(const Grid& grid, const D& diffusion, const BoundaryConditions& boundaryConditions);
+    FVMSolver(const Grid& g_in, const D& d_in, const BoundaryConditions& bc_in);
 
-    // Solve the diffusion equation to update f
     void solve(double dt);
-
     const Eigen::MatrixXd& f() const { return f_; }
 
-    // const Eigen::VectorXd& f() const { return f_; }
-
     void initial();
-    void timeForward();
-
-    void construct_alpha_K();
 
   private:
     const Grid& g;
-    const BoundaryConditions& boundaryConditions;
+    const D& d; 
+    const BoundaryConditions& bc;
 
     SpMat M_;
-    std::vector<T> M_coefficients_;
+    std::vector<T> M_coeffs_;
 
-    Eigen::VectorXd R_;
+    Eigen::MatrixXd f_; 
+    Eigen::VectorXd S_;
+
+    Eigen::MatrixXd Id_; 
 
     Eigen::Matrix<Alpha_K, Eigen::Dynamic, Eigen::Dynamic> alpha_K_;
 
-    Eigen::MatrixXd f_; 
-    // Eigen::VectorXd f_; 
-    Eigen::VectorXd S_;
-    Eigen::MatrixXd Id_; 
-
-    // Unit_vector nK_;
-    // Unit_vector nT_; 
-    //
     Eigen::SparseLU<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> solver;
 
     double hdx_; 
     double hdy_; 
-    // Assemble the coefficient matrix M and the right-hand side vector R
-    void assembleSystem(Eigen::MatrixXd& f, const D& diffusion, double dt);
+
+    void assemble_M();
+    void construct_alpha_K();
+
 };
 
 #endif /* FVM_SOLVER_H */

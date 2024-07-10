@@ -15,19 +15,16 @@
 
 typedef Eigen::Triplet<double> T;
 
-FVMSolver::FVMSolver(const Grid& g_in, const D& diffusion, const BoundaryConditions& boundaryConditions)
-    : g(g_in), boundaryConditions(boundaryConditions), M_(g.nx()*g.ny(), g.nx()*g.ny()){
+FVMSolver::FVMSolver(const Grid& g_in, const D& d_in, const BoundaryConditions& bc_in)
+    : g(g_in), d(d_in), bc(bc_in){
 
     int nx = g.nx();
     int ny = g.ny();
 
-    // Resize and initialize the right-hand side vector R
-    R_.resize(nx* ny);
-    R_.setZero();
-
+    M_.resize(nx*ny, nx*ny);
+    f_.resize(ny, nx);
     S_.resize(nx*ny); 
 
-    f_.resize(nx*ny);
     alpha_K_.resize(ny, nx); 
 
     Id_ = Eigen::MatrixXd::Identity(nx * ny, nx * ny);
@@ -50,8 +47,6 @@ void FVMSolver::initial(){
 }
 
 void FVMSolver::construct_alpha_K(){
-    D diffusion(g);
-    diffusion.constructD(0.0);
 
     Eigen::Matrix2d Lambda_K;
 
@@ -112,8 +107,8 @@ void FVMSolver::construct_alpha_K(){
             double p = P_MIN + hdy + dy * j;
             double a = ALPHA_LC + hdx + dx * i;
 
-            Lambda_K << diffusion.getDaa(0.0, j, i) * G(a, p), diffusion.getDap(0.0, j, i) * G(a, p), 
-                        diffusion.getDap(0.0, j, i) * G(a, p), diffusion.getDpp(0.0, j, i) * G(a, p);
+            Lambda_K << d.getDaa(0.0, j, i) * G(a, p), d.getDap(0.0, j, i) * G(a, p), 
+                        d.getDap(0.0, j, i) * G(a, p), d.getDpp(0.0, j, i) * G(a, p);
             
             // 0, 1 represent counterclockwise
             // 1 represents +1
@@ -139,7 +134,7 @@ void FVMSolver::construct_alpha_K(){
     }
 }
 
-void FVMSolver::timeForward(){
+void FVMSolver::assemble_M(){
     double u1, u2, u3, u4;
     double a_K_n, a_K_e, a_K_s, a_K_w;
     double mu_K, mu_L, A_K, A_L, B_sigma, B_sigma_p, B_sigma_n;
@@ -227,7 +222,7 @@ void FVMSolver::timeForward(){
                     A_K = mu_K * (alpha_K_(j,i).n.A + alpha_K_(j,i).n.B) + B_sigma_p / (f_(j, i) + 1e-15);
                     A_L = mu_L * (alpha_K_(j+1,i).s.A + alpha_K_(j+1,i).s.B) + B_sigma_n / (f_(j+1, i) + 1e-15);
                     temp0 += A_K / G(a, p);
-                    M_coefficients_.push_back(T(nx * j + i, nx * (j + 1) + i, -A_L / G(a, p)));
+                    M_coeffs_.push_back(T(nx * j + i, nx * (j + 1) + i, -A_L / G(a, p)));
                 }
                 
                 if(j==0){
@@ -245,7 +240,7 @@ void FVMSolver::timeForward(){
                     A_K = mu_K * (alpha_K_(j,i).s.A + alpha_K_(j,i).s.B) + B_sigma_p / (f_(j, i) + 1e-15);
                     A_L = mu_L * (alpha_K_(j-1,i).n.A + alpha_K_(j-1,i).n.B) + B_sigma_n / (f_(j-1, i) + 1e-15);
                     temp0 += A_K / G(a, p);
-                    M_coefficients_.push_back(T(nx * j + i, nx * (j - 1) + i, -A_L / G(a, p)));
+                    M_coeffs_.push_back(T(nx * j + i, nx * (j - 1) + i, -A_L / G(a, p)));
                 }
                 
                 if (i==0){
@@ -263,11 +258,11 @@ void FVMSolver::timeForward(){
                     A_K = mu_K * (alpha_K_(j,i).w.A + alpha_K_(j,i).w.B) + B_sigma_p / (f_(j, i) + 1e-15);
                     A_L = mu_L * (alpha_K_(j,i-1).e.A + alpha_K_(j,i-1).e.B) + B_sigma_n / (f_(j, i - 1) + 1e-15);
                     temp0 += A_K / G(a, p);
-                    M_coefficients_.push_back(T(nx * j + i, nx * j + i - 1, -A_L / G(a, p)));
+                    M_coeffs_.push_back(T(nx * j + i, nx * j + i - 1, -A_L / G(a, p)));
                 }
                 
                 if (i==nx-1){
-                    M_coefficients_.push_back(T(nx * j + i, nx * j + i, temp0));
+                    M_coeffs_.push_back(T(nx * j + i, nx * j + i, temp0));
                     continue;
                 }
                 else{
@@ -280,21 +275,22 @@ void FVMSolver::timeForward(){
                     A_K = mu_K * (alpha_K_(j,i).e.A + alpha_K_(j,i).e.B) + B_sigma_p / (f_(j, i) + 1e-15);
                     A_L = mu_L * (alpha_K_(j,i+1).w.A + alpha_K_(j,i+1).w.B) + B_sigma_n / (f_(j, i+1) + 1e-15);
                     temp0 += A_K / G(a, p);
-                    M_coefficients_.push_back(T(nx * j + i, nx * j + i, temp0));
-                    M_coefficients_.push_back(T(nx * j + i, nx * j + i + 1, -A_L / G(a, p)));
+                    M_coeffs_.push_back(T(nx * j + i, nx * j + i, temp0));
+                    M_coeffs_.push_back(T(nx * j + i, nx * j + i + 1, -A_L / G(a, p)));
                 }
             }
         }
+
+    M_.setFromTriplets(M_coeffs_.begin(), M_coeffs_.end());
 }
 
 void FVMSolver::solve(double dt) {
-    // assembleSystem(f, diffusion, dt);
-    
-    S_.setZero();
-    M_coefficients_.clear();
+    // assembleSystem(f, d, dt);
 
-    timeForward(); 
-    M_.setFromTriplets(M_coefficients_.begin(), M_coefficients_.end());
+    S_.setZero();
+    M_coeffs_.clear();
+
+    assemble_M(); 
   
     M_ = M_ * (dt / (dx * dy)) + Id_;
     S_ = S_ * (dt / (dx * dy)) + f_.reshaped();
@@ -304,23 +300,5 @@ void FVMSolver::solve(double dt) {
     f_.reshaped() = solver.solve(S_);
 
 }
-
-// void FVMSolver::assembleSystem(Eigen::MatrixXd& f, const D& diffusion, double dt) {
-//     int nx = g.nx();
-//     int ny = g.ny();
-//
-//     // Fill the coefficient matrix M and the right-hand side vector R
-//     // Example: for a simple 1D case
-//     for (int i = 0; i < nx * ny; ++i) {
-//         M(i, i) = 2.0 + dt * diffusion.getDap(dt, i % nx, i / nx); // Example: diagonal entries
-//         if (i > 0) {
-//             M(i, i - 1) = -dt * diffusion.getDap(dt, (i - 1) % nx, (i - 1) / nx); // Example: off-diagonal entries
-//         }
-//         if (i < nx * ny - 1) {
-//             M(i, i + 1) = -dt * diffusion.getDap(dt, (i + 1) % nx, (i + 1) / nx); // Example: off-diagonal entries
-//         }
-//         R(i) = f(i) * dt; // Example: R = f * dt
-//     }
-// }
 
 

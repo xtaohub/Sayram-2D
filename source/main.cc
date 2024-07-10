@@ -40,7 +40,6 @@ int main() {
 
     // Create diffusion coefficients object
     D diffusion(g);
-
     diffusion.constructD(0.0);
 
     // // Create boundary conditions object
@@ -57,7 +56,6 @@ int main() {
     FVMSolver solver(g, diffusion, boundary);
     
     solver.initial();
-    solver.construct_alpha_K();
 
     string path;
 
@@ -82,7 +80,7 @@ int main() {
             ofstream outFile(path);
             assert(outFile);
     
-            for (double value : solver.f()) {
+            for (double value : solver.f().reshaped()) {
                 outFile << value << std::endl;
             }
             outFile.close();
