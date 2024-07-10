@@ -206,82 +206,83 @@ void FVMSolver::timeForward(Eigen::VectorXd& f, Eigen::VectorXd &S_, std::vector
                     u4 = (f(nx * j + i) + f(nx * (j-1) + i) + f(nx * j + i + 1) + f(nx * (j - 1) + i + 1)) / 4.0;
                 }
 
-                // a_K_n = alpha_K[0][0][j][i] * u1 + alpha_K[0][1][j][i] * u2;
-                // a_K_e = alpha_K[1][0][j][i] * u4 + alpha_K[1][1][j][i] * u1;
-                // a_K_s = alpha_K[2][0][j][i] * u3 + alpha_K[2][1][j][i] * u4;
-                // a_K_w = alpha_K[3][0][j][i] * u2 + alpha_K[3][1][j][i] * u3;
-                //
-                // if(j==ny-1){
-                //     B_sigma = - a_K_n;
-                //     S_(nx * j + i) += a_K_n / G(a, p);
-                //     temp0 += (alpha_K[0][0][j][i] + alpha_K[0][1][j][i]) / G(a, p);
-                // }
-                // else{
-                //     a_L_n = alpha_K[2][0][j + 1][i] * u2 + alpha_K[2][1][j + 1][i] * u1;
-                //     mu_K = calMuK(a_K_n, a_L_n);
-                //     mu_L = 1.0 - mu_K;
-                //     B_sigma = mu_L * a_L_n - mu_K * a_K_n;
-                //     B_sigma_p = (abs(B_sigma) + B_sigma) / 2;
-                //     B_sigma_n = (abs(B_sigma) - B_sigma) / 2;
-                //     A_K = mu_K * (alpha_K[0][0][j][i] + alpha_K[0][1][j][i]) + B_sigma_p / (f(nx * j + i) + 1e-15);
-                //     A_L = mu_L * (alpha_K[2][0][j+1][i] + alpha_K[2][1][j+1][i]) + B_sigma_n / (f(nx * (j+1) + i) + 1e-15);
-                //     temp0 += A_K / G(a, p);
-                //     M_coefficients.push_back(T(nx * j + i, nx * (j + 1) + i, -A_L / G(a, p)));
-                // }
-                //
-                // if(j==0){
-                //     B_sigma = - a_K_s;
-                //     S_(nx * j + i) += a_K_s / G(a, p);
-                //     temp0 += (alpha_K[2][0][j][i] + alpha_K[2][1][j][i]) / G(a, p);
-                // }
-                // else{
-                //     a_L_s = alpha_K[0][0][j-1][i] * u4 + alpha_K[0][1][j-1][i] * u3;
-                //     mu_K = calMuK(a_K_s, a_L_s);
-                //     mu_L = 1.0 - mu_K;
-                //     B_sigma = mu_L * a_L_s - mu_K * a_K_s;
-                //     B_sigma_p = (abs(B_sigma) + B_sigma) / 2;
-                //     B_sigma_n = (abs(B_sigma) - B_sigma) / 2;
-                //     A_K = mu_K * (alpha_K[2][0][j][i] + alpha_K[2][1][j][i]) + B_sigma_p / (f(nx * j + i) + 1e-15);
-                //     A_L = mu_L * (alpha_K[0][0][j-1][i] + alpha_K[0][1][j-1][i]) + B_sigma_n / (f(nx * (j-1) + i) + 1e-15);
-                //     temp0 += A_K / G(a, p);
-                //     M_coefficients.push_back(T(nx * j + i, nx * (j - 1) + i, -A_L / G(a, p)));
-                // }
-                //
-                // if (i==0){
-                //     B_sigma = - a_K_w;
-                //     S_(nx * j + i) = a_K_w / G(a, p);
-                //     temp0 += (alpha_K[3][0][j][i] + alpha_K[3][1][j][i]) / G(a, p);   
-                // }
-                // else{
-                //     a_L_w = alpha_K[1][0][j][i-1] * u3 + alpha_K[1][1][j][i-1] * u2;
-                //     mu_K = calMuK(a_K_w, a_L_w);
-                //     mu_L = 1.0 - mu_K;
-                //     B_sigma = mu_L * a_L_w - mu_K * a_K_w;
-                //     B_sigma_p = (abs(B_sigma) + B_sigma) / 2;
-                //     B_sigma_n = (abs(B_sigma) - B_sigma) / 2;
-                //     A_K = mu_K * (alpha_K[3][0][j][i] + alpha_K[3][1][j][i]) + B_sigma_p / (f(nx * j + i) + 1e-15);
-                //     A_L = mu_L * (alpha_K[1][0][j][i-1] + alpha_K[1][1][j][i-1]) + B_sigma_n / (f(nx * j + i - 1) + 1e-15);
-                //     temp0 += A_K / G(a, p);
-                //     M_coefficients.push_back(T(nx * j + i, nx * j + i - 1, -A_L / G(a, p)));
-                // }
-                //
-                // if (i==nx-1){
-                //     M_coefficients.push_back(T(nx * j + i, nx * j + i, temp0));
-                //     continue;
-                // }
-                // else{
-                //     a_L_e = alpha_K[3][0][j][i+1] * u1 + alpha_K[3][1][j][i+1] * u4;
-                //     mu_K = calMuK(a_K_e, a_L_e);
-                //     mu_L = 1.0 - mu_K;
-                //     B_sigma = mu_L * a_L_e - mu_K * a_K_e;
-                //     B_sigma_p = (abs(B_sigma) + B_sigma) / 2;
-                //     B_sigma_n = (abs(B_sigma) - B_sigma) / 2;
-                //     A_K = mu_K * (alpha_K[1][0][j][i] + alpha_K[1][1][j][i]) + B_sigma_p / (f(nx * j + i) + 1e-15);
-                //     A_L = mu_L * (alpha_K[3][0][j][i+1] + alpha_K[3][1][j][i+1]) + B_sigma_n / (f(nx * j + i+1) + 1e-15);
-                //     temp0 += A_K / G(a, p);
-                //     M_coefficients.push_back(T(nx * j + i, nx * j + i, temp0));
-                //     M_coefficients.push_back(T(nx * j + i, nx * j + i + 1, -A_L / G(a, p)));
-                // }
+
+                a_K_n = alpha_K_(j,i).n.A * u1 + alpha_K_(j,i).n.B * u2;
+                a_K_e = alpha_K_(j,i).e.A * u4 + alpha_K_(j,i).e.B * u1;
+                a_K_s = alpha_K_(j,i).s.A * u3 + alpha_K_(j,i).s.B * u4;
+                a_K_w = alpha_K_(j,i).w.A * u2 + alpha_K_(j,i).w.B * u3;
+    
+                if(j==ny-1){
+                    B_sigma = - a_K_n;
+                    S_(nx * j + i) += a_K_n / G(a, p);
+                    temp0 += (alpha_K_(j,i).n.A + alpha_K_(j,i).n.B) / G(a, p);
+                }
+                else{
+                    a_L_n = alpha_K_(j+1,i).s.A * u2 + alpha_K_(j+1,i).s.B * u1;
+                    mu_K = calMuK(a_K_n, a_L_n);
+                    mu_L = 1.0 - mu_K;
+                    B_sigma = mu_L * a_L_n - mu_K * a_K_n;
+                    B_sigma_p = (abs(B_sigma) + B_sigma) / 2;
+                    B_sigma_n = (abs(B_sigma) - B_sigma) / 2;
+                    A_K = mu_K * (alpha_K_(j,i).n.A + alpha_K_(j,i).n.B) + B_sigma_p / (f(nx * j + i) + 1e-15);
+                    A_L = mu_L * (alpha_K_(j+1,i).s.A + alpha_K_(j+1,i).s.B) + B_sigma_n / (f(nx * (j+1) + i) + 1e-15);
+                    temp0 += A_K / G(a, p);
+                    M_coefficients.push_back(T(nx * j + i, nx * (j + 1) + i, -A_L / G(a, p)));
+                }
+                
+                if(j==0){
+                    B_sigma = - a_K_s;
+                    S_(nx * j + i) += a_K_s / G(a, p);
+                    temp0 += (alpha_K_(j,i).s.A + alpha_K_(j,i).s.B) / G(a, p);
+                }
+                else{
+                    a_L_s = alpha_K_(j-1,i).n.A * u4 + alpha_K_(j-1,i).n.B * u3;
+                    mu_K = calMuK(a_K_s, a_L_s);
+                    mu_L = 1.0 - mu_K;
+                    B_sigma = mu_L * a_L_s - mu_K * a_K_s;
+                    B_sigma_p = (abs(B_sigma) + B_sigma) / 2;
+                    B_sigma_n = (abs(B_sigma) - B_sigma) / 2;
+                    A_K = mu_K * (alpha_K_(j,i).s.A + alpha_K_(j,i).s.B) + B_sigma_p / (f(nx * j + i) + 1e-15);
+                    A_L = mu_L * (alpha_K_(j-1,i).n.A + alpha_K_(j-1,i).n.B) + B_sigma_n / (f(nx * (j-1) + i) + 1e-15);
+                    temp0 += A_K / G(a, p);
+                    M_coefficients.push_back(T(nx * j + i, nx * (j - 1) + i, -A_L / G(a, p)));
+                }
+                
+                if (i==0){
+                    B_sigma = - a_K_w;
+                    S_(nx * j + i) = a_K_w / G(a, p);
+                    temp0 += (alpha_K_(j,i).w.A + alpha_K_(j,i).w.B) / G(a, p);   
+                }
+                else{
+                    a_L_w = alpha_K_(j,i-1).e.A * u3 + alpha_K_(j,i-1).e.B * u2;
+                    mu_K = calMuK(a_K_w, a_L_w);
+                    mu_L = 1.0 - mu_K;
+                    B_sigma = mu_L * a_L_w - mu_K * a_K_w;
+                    B_sigma_p = (abs(B_sigma) + B_sigma) / 2;
+                    B_sigma_n = (abs(B_sigma) - B_sigma) / 2;
+                    A_K = mu_K * (alpha_K_(j,i).w.A + alpha_K_(j,i).w.B) + B_sigma_p / (f(nx * j + i) + 1e-15);
+                    A_L = mu_L * (alpha_K_(j,i-1).e.A + alpha_K_(j,i-1).e.B) + B_sigma_n / (f(nx * j + i - 1) + 1e-15);
+                    temp0 += A_K / G(a, p);
+                    M_coefficients.push_back(T(nx * j + i, nx * j + i - 1, -A_L / G(a, p)));
+                }
+                
+                if (i==nx-1){
+                    M_coefficients.push_back(T(nx * j + i, nx * j + i, temp0));
+                    continue;
+                }
+                else{
+                    a_L_e = alpha_K_(j,i+1).w.A * u1 + alpha_K_(j,i+1).w.B * u4;
+                    mu_K = calMuK(a_K_e, a_L_e);
+                    mu_L = 1.0 - mu_K;
+                    B_sigma = mu_L * a_L_e - mu_K * a_K_e;
+                    B_sigma_p = (abs(B_sigma) + B_sigma) / 2;
+                    B_sigma_n = (abs(B_sigma) - B_sigma) / 2;
+                    A_K = mu_K * (alpha_K_(j,i).e.A + alpha_K_(j,i).e.B) + B_sigma_p / (f(nx * j + i) + 1e-15);
+                    A_L = mu_L * (alpha_K_(j,i+1).w.A + alpha_K_(j,i+1).w.B) + B_sigma_n / (f(nx * j + i+1) + 1e-15);
+                    temp0 += A_K / G(a, p);
+                    M_coefficients.push_back(T(nx * j + i, nx * j + i, temp0));
+                    M_coefficients.push_back(T(nx * j + i, nx * j + i + 1, -A_L / G(a, p)));
+                }
             }
         }
 }

@@ -50,6 +50,8 @@ class FVMSolver {
     void initial(Eigen::VectorXd& f);
     void timeForward(Eigen::VectorXd& f, Eigen::VectorXd &S_, std::vector<T> &M_coefficients);
 
+    void construct_alpha_K();
+
   private:
     const Grid& grid;
     const BoundaryConditions& boundaryConditions;
@@ -66,8 +68,6 @@ class FVMSolver {
 
     double hdx_; 
     double hdy_; 
-
-    void construct_alpha_K();
     // Assemble the coefficient matrix M and the right-hand side vector R
     void assembleSystem(Eigen::MatrixXd& f, const D& diffusion, double dt);
 };

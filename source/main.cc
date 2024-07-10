@@ -69,7 +69,7 @@ int main() {
     Eigen::VectorXd S_(nx*ny);
 
 
-    // fvmSolver.construct_alpha_K();
+    fvmSolver.construct_alpha_K();
 
     Eigen::MatrixXd L, U;
     string path;
@@ -104,23 +104,23 @@ int main() {
         solver.analyzePattern(M);
         solver.factorize(M);
         x = solver.solve(S_);
-        //
-        // f = x;
+        
+        f = x;
 
         // Output or visualize f at each time step
-        // std::cout << "Time step: " << k << std::endl;
+        std::cout << "Time step: " << k << std::endl;
         
-    //     if(k % printstep == printstep - 1){
-    //         path = "./output/SMPPFV/smppfv" + std::to_string(int((k + 1) / printstep));
-    //
-    //         ofstream outFile(path);
-    //         assert(outFile);
-    // 
-    //         for (double value : f) {
-    //             outFile << value << std::endl;
-    //         }
-    //         outFile.close();
-    //     }
+        if(k % printstep == printstep - 1){
+            path = "./output/SMPPFV/smppfv" + std::to_string(int((k + 1) / printstep));
+    
+            ofstream outFile(path);
+            assert(outFile);
+    
+            for (double value : f) {
+                outFile << value << std::endl;
+            }
+            outFile.close();
+        }
     }
     end = clock();
     cpu_time = ((double) (end - start)) / CLOCKS_PER_SEC;
