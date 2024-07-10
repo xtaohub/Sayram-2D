@@ -43,7 +43,7 @@ class FVMSolver {
   public:
     FVMSolver(const Grid& g_in, const D& d_in, const BoundaryConditions& bc_in);
 
-    void solve(double dt);
+    void update();
     const Eigen::MatrixXd& f() const { return f_; }
 
     void initial();
@@ -52,6 +52,9 @@ class FVMSolver {
     const Grid& g;
     const D& d; 
     const BoundaryConditions& bc;
+
+    // M f = S
+    Eigen::SparseLU<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> solver;
 
     SpMat M_;
     std::vector<T> M_coeffs_;
@@ -63,12 +66,10 @@ class FVMSolver {
 
     Eigen::Matrix<Alpha_K, Eigen::Dynamic, Eigen::Dynamic> alpha_K_;
 
-    Eigen::SparseLU<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> solver;
-
     double hdx_; 
     double hdy_; 
 
-    void assemble_M();
+    void assemble();
     void construct_alpha_K();
 
 };

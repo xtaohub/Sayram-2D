@@ -10,10 +10,6 @@
 
 // #include "mkl.h"
 #include "FVMSolver.hpp"
-#include "Parameters.hpp"
-#include "Eigen/Sparse"
-
-typedef Eigen::Triplet<double> T;
 
 FVMSolver::FVMSolver(const Grid& g_in, const D& d_in, const BoundaryConditions& bc_in)
     : g(g_in), d(d_in), bc(bc_in){
@@ -134,7 +130,7 @@ void FVMSolver::construct_alpha_K(){
     }
 }
 
-void FVMSolver::assemble_M(){
+void FVMSolver::assemble(){ // obtain S and M 
     double u1, u2, u3, u4;
     double a_K_n, a_K_e, a_K_s, a_K_w;
     double mu_K, mu_L, A_K, A_L, B_sigma, B_sigma_p, B_sigma_n;
@@ -200,7 +196,6 @@ void FVMSolver::assemble_M(){
                     u3 = (f_(j, i) + f_(j-1, i) + f_(j, i-1) + f_(j-1, i-1)) / 4.0;
                     u4 = (f_(j, i) + f_(j-1, i) + f_(j, i+1) + f_(j-1, i+1)) / 4.0;
                 }
-
 
                 a_K_n = alpha_K_(j,i).n.A * u1 + alpha_K_(j,i).n.B * u2;
                 a_K_e = alpha_K_(j,i).e.A * u4 + alpha_K_(j,i).e.B * u1;
@@ -284,16 +279,17 @@ void FVMSolver::assemble_M(){
     M_.setFromTriplets(M_coeffs_.begin(), M_coeffs_.end());
 }
 
-void FVMSolver::solve(double dt) {
+void FVMSolver::update() {
     // assembleSystem(f, d, dt);
 
     S_.setZero();
     M_coeffs_.clear();
 
-    assemble_M(); 
-  
-    M_ = M_ * (dt / (dx * dy)) + Id_;
-    S_ = S_ * (dt / (dx * dy)) + f_.reshaped();
+    assemble(); 
+ 
+    double dt_area = g.dt() / (g.dx() * g.dy());
+    M_ = M_ * dt_area + Id_;
+    S_ = S_ * dt_area + f_.reshaped();
 
     solver.analyzePattern(M_);
     solver.factorize(M_);

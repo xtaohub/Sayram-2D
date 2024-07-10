@@ -36,19 +36,11 @@ typedef Eigen::Triplet<double> T;
 int main() {
 
     // Create grid object
-    Grid g(nx, ny, dx, dy);
+    Grid g(nx, ny, dx, dy, dt);
 
     // Create diffusion coefficients object
     D diffusion(g);
     diffusion.constructD(0.0);
-
-    // // Create boundary conditions object
-    // BoundaryConditions boundaryConditions(g, diffusion);
-
-    // Create FVM solver object
-    // FVMSolver solver(g, diffusion);
-
-    // Define initial condition for f
 
     // TODO BoundaryConditions modularization
     BoundaryConditions boundary(0, 0.0);
@@ -67,9 +59,8 @@ int main() {
     // Time loop for solving
     for (int k = 0; k < steps; ++k) {
         // Solve using FVM solver
-        // solver.solve(f, dt);
 
-        solver.solve(dt);
+        solver.update();
 
         // Output or visualize f at each time step
         std::cout << "Time step: " << k << std::endl;
