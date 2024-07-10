@@ -18,7 +18,6 @@
 #include "Parameters.hpp"
 #include "Eigen/Sparse"
 
-typedef Eigen::Triplet<double> T;
 
 
 struct NTPFA_nodes{ // the two points A,B used in Nonlinear Two Point Approximation
@@ -45,26 +44,37 @@ class FVMSolver {
     FVMSolver(const Grid& grid, const D& diffusion, const BoundaryConditions& boundaryConditions);
 
     // Solve the diffusion equation to update f
-    void solve(Eigen::MatrixXd& f, const D& diffusion, double dt);
+    void solve(double dt);
 
-    void initial(Eigen::VectorXd& f);
-    void timeForward(Eigen::VectorXd& f, Eigen::VectorXd &S_, std::vector<T> &M_coefficients);
+    // const Eigen::MatrixXd& f() const { return f_; }
+
+    const Eigen::VectorXd& f() const { return f_; }
+
+    void initial();
+    void timeForward();
 
     void construct_alpha_K();
 
   private:
-    const Grid& grid;
+    const Grid& g;
     const BoundaryConditions& boundaryConditions;
 
-    Eigen::MatrixXd M;
-    Eigen::VectorXd R;
+    SpMat M_;
+    std::vector<T> M_coefficients_;
+
+    Eigen::VectorXd R_;
 
     Eigen::Matrix<Alpha_K, Eigen::Dynamic, Eigen::Dynamic> alpha_K_;
 
-    Eigen::MatrixXd f_; 
+    // Eigen::MatrixXd f_; 
+    Eigen::VectorXd f_; 
+    Eigen::VectorXd S_;
+    Eigen::MatrixXd Id_; 
 
     // Unit_vector nK_;
     // Unit_vector nT_; 
+    //
+    Eigen::SparseLU<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> solver;
 
     double hdx_; 
     double hdy_; 

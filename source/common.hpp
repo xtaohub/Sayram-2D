@@ -7,6 +7,10 @@
 #include <sstream>
 #include <string>
 #include <cmath>
+#include "Eigen/Sparse" 
+
+typedef Eigen::SparseMatrix<double> SpMat;
+typedef Eigen::Triplet<double> T;
 
 // constants
 const double gPI = 3.141592653589793238462;

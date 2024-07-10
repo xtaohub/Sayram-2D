@@ -1,4 +1,4 @@
-/*
+j/*
  * fin:        main.cc
  * Author:      Xin Tao <xtao@ustc.edu.cn>
  * Date:        05/12/2024 
@@ -31,7 +31,6 @@
 // #include <suitesparse/umfpack.h>
 
 
-typedef Eigen::SparseMatrix<double> SpMat;
 typedef Eigen::Triplet<double> T;
 
 int main() {
@@ -51,32 +50,26 @@ int main() {
     // FVMSolver solver(g, diffusion);
 
     // Define initial condition for f
-    Eigen::VectorXd f(nx * ny);
 
     // TODO BoundaryConditions modularization
     BoundaryConditions boundary(0, 0.0);
 
     FVMSolver fvmSolver(g, diffusion, boundary);
     
-    fvmSolver.initial(f);
+    fvmSolver.initial();
 
-    Eigen::MatrixXd M_Integration(nx*ny, nx*ny);
-    Eigen::MatrixXd Id = Eigen::MatrixXd::Identity(nx * ny, nx * ny);
-    Eigen::MatrixXd M_inv(nx*ny, nx*ny);
-
-    std::vector<T> M_coefficients;
-    SpMat M(nx*ny, nx*ny);
-    Eigen::VectorXd S_(nx*ny);
+//    Eigen::MatrixXd M_Integration(nx*ny, nx*ny);
+//    Eigen::MatrixXd Id = Eigen::MatrixXd::Identity(nx * ny, nx * ny);
+ //   Eigen::MatrixXd M_inv(nx*ny, nx*ny);
 
 
     fvmSolver.construct_alpha_K();
 
-    Eigen::MatrixXd L, U;
+    // Eigen::MatrixXd L, U;
     string path;
     // Eigen::SparseLU<SpMat> solver;
     // TODO suitesparse part
-    Eigen::SparseLU<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> solver;
-    Eigen::VectorXd x;
+    // Eigen::VectorXd x;
 
     // The time test part
     clock_t start, end;
@@ -88,24 +81,10 @@ int main() {
         // Solve using FVM solver
         // solver.solve(f, dt);
         
-        S_ = Eigen::VectorXd::Zero(nx*ny);
-        M_coefficients.clear();
 
-        fvmSolver.timeForward(f, S_, M_coefficients);
-
-        M.setFromTriplets(M_coefficients.begin(), M_coefficients.end());
-        
-        M = M * (dt / (dx * dy)) + Id;
-        S_ = S_ * (dt / (dx * dy)) + f;
-
-        // suitesparse part
-        M.makeCompressed();
-        
-        solver.analyzePattern(M);
-        solver.factorize(M);
-        x = solver.solve(S_);
-        
-        f = x;
+        // fvmSolver.timeForward(f, S_, M_coefficients);
+        //
+        fvmSolver.solve(dt);
 
         // Output or visualize f at each time step
         std::cout << "Time step: " << k << std::endl;
@@ -116,7 +95,7 @@ int main() {
             ofstream outFile(path);
             assert(outFile);
     
-            for (double value : f) {
+            for (double value : fvmSolver.f()) {
                 outFile << value << std::endl;
             }
             outFile.close();
