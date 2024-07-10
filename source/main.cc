@@ -37,18 +37,18 @@ typedef Eigen::Triplet<double> T;
 int main() {
 
     // Create grid object
-    Grid grid(nx, ny, dx, dy);
+    Grid g(nx, ny, dx, dy);
 
     // Create diffusion coefficients object
-    D diffusion(grid);
+    D diffusion(g);
 
     diffusion.constructD(0.0);
 
     // // Create boundary conditions object
-    // BoundaryConditions boundaryConditions(grid, diffusion);
+    // BoundaryConditions boundaryConditions(g, diffusion);
 
     // Create FVM solver object
-    // FVMSolver solver(grid, diffusion);
+    // FVMSolver solver(g, diffusion);
 
     // Define initial condition for f
     Eigen::VectorXd f(nx * ny);
@@ -56,7 +56,7 @@ int main() {
     // TODO BoundaryConditions modularization
     BoundaryConditions boundary(0, 0.0);
 
-    FVMSolver fvmSolver(grid, diffusion, boundary);
+    FVMSolver fvmSolver(g, diffusion, boundary);
     
     fvmSolver.initial(f);
 
@@ -68,9 +68,8 @@ int main() {
     SpMat M(nx*ny, nx*ny);
     Eigen::VectorXd S_(nx*ny);
 
-    double alpha_K[4][2][ny][nx];
 
-    fvmSolver.constructAlpha_K(alpha_K);
+    // fvmSolver.construct_alpha_K();
 
     Eigen::MatrixXd L, U;
     string path;
@@ -92,7 +91,7 @@ int main() {
         S_ = Eigen::VectorXd::Zero(nx*ny);
         M_coefficients.clear();
 
-        fvmSolver.timeForward(f, alpha_K, S_, M_coefficients);
+        fvmSolver.timeForward(f, S_, M_coefficients);
 
         M.setFromTriplets(M_coefficients.begin(), M_coefficients.end());
         
@@ -105,8 +104,8 @@ int main() {
         solver.analyzePattern(M);
         solver.factorize(M);
         x = solver.solve(S_);
-
-        f = x;
+        //
+        // f = x;
 
         // Output or visualize f at each time step
         // std::cout << "Time step: " << k << std::endl;

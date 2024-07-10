@@ -10,10 +10,6 @@
 #ifndef D_H_
 #define D_H_
 
-// #define EIGEN_USE_MKL_ALL
-// #define EIGEN_VECTORIZE_SSE4_2
-
-// #include "mkl.h"
 #include "Eigen/Core"
 #include "Grid.h"
 
