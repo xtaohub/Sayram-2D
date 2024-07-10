@@ -28,7 +28,7 @@ FVMSolver::FVMSolver(const Grid& g_in, const D& diffusion, const BoundaryConditi
     S_.resize(nx*ny); 
 
     f_.resize(nx*ny);
-    alpha_K_.resize(nx, ny); 
+    alpha_K_.resize(ny, nx); 
 
     Id_ = Eigen::MatrixXd::Identity(nx * ny, nx * ny);
 
@@ -41,11 +41,11 @@ void FVMSolver::initial(){
     double p;
     double a;
     for (int j = 0; j< ny; j++){
-        for (int i = 0; i < nx; i++){
-            p = P_MIN + hdy + dy * j;
-            a = ALPHA_LC + hdx + dx * i;
-            f_(j*nx+i) = exp(-(p2e(p, gE0) - 0.2) / 0.1) * (sin(a) - sin(ALPHA_LC)) / (p * p);
-        }
+      p = P_MIN + hdy + dy * j;
+      for (int i = 0; i < nx; i++){
+        a = ALPHA_LC + hdx + dx * i;
+        f_(j,i) = exp(-(p2e(p, gE0) - 0.2) / 0.1) * (sin(a) - sin(ALPHA_LC)) / (p * p);
+      }
     }
 }
 
@@ -297,11 +297,11 @@ void FVMSolver::solve(double dt) {
     M_.setFromTriplets(M_coefficients_.begin(), M_coefficients_.end());
   
     M_ = M_ * (dt / (dx * dy)) + Id_;
-    S_ = S_ * (dt / (dx * dy)) + f_;
+    S_ = S_ * (dt / (dx * dy)) + f_.reshape();
 
     solver.analyzePattern(M_);
     solver.factorize(M_);
-    f_ = solver.solve(S_);
+    f_.reshape() = solver.solve(S_);
 
 }
 

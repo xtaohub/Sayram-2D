@@ -46,9 +46,9 @@ class FVMSolver {
     // Solve the diffusion equation to update f
     void solve(double dt);
 
-    // const Eigen::MatrixXd& f() const { return f_; }
+    const Eigen::MatrixXd& f() const { return f_; }
 
-    const Eigen::VectorXd& f() const { return f_; }
+    // const Eigen::VectorXd& f() const { return f_; }
 
     void initial();
     void timeForward();
@@ -66,8 +66,8 @@ class FVMSolver {
 
     Eigen::Matrix<Alpha_K, Eigen::Dynamic, Eigen::Dynamic> alpha_K_;
 
-    // Eigen::MatrixXd f_; 
-    Eigen::VectorXd f_; 
+    Eigen::MatrixXd f_; 
+    // Eigen::VectorXd f_; 
     Eigen::VectorXd S_;
     Eigen::MatrixXd Id_; 
 

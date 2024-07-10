@@ -1,4 +1,4 @@
-j/*
+/*
  * fin:        main.cc
  * Author:      Xin Tao <xtao@ustc.edu.cn>
  * Date:        05/12/2024 
@@ -54,22 +54,12 @@ int main() {
     // TODO BoundaryConditions modularization
     BoundaryConditions boundary(0, 0.0);
 
-    FVMSolver fvmSolver(g, diffusion, boundary);
+    FVMSolver solver(g, diffusion, boundary);
     
-    fvmSolver.initial();
+    solver.initial();
+    solver.construct_alpha_K();
 
-//    Eigen::MatrixXd M_Integration(nx*ny, nx*ny);
-//    Eigen::MatrixXd Id = Eigen::MatrixXd::Identity(nx * ny, nx * ny);
- //   Eigen::MatrixXd M_inv(nx*ny, nx*ny);
-
-
-    fvmSolver.construct_alpha_K();
-
-    // Eigen::MatrixXd L, U;
     string path;
-    // Eigen::SparseLU<SpMat> solver;
-    // TODO suitesparse part
-    // Eigen::VectorXd x;
 
     // The time test part
     clock_t start, end;
@@ -80,11 +70,8 @@ int main() {
     for (int k = 0; k < steps; ++k) {
         // Solve using FVM solver
         // solver.solve(f, dt);
-        
 
-        // fvmSolver.timeForward(f, S_, M_coefficients);
-        //
-        fvmSolver.solve(dt);
+        solver.solve(dt);
 
         // Output or visualize f at each time step
         std::cout << "Time step: " << k << std::endl;
@@ -95,7 +82,7 @@ int main() {
             ofstream outFile(path);
             assert(outFile);
     
-            for (double value : fvmSolver.f()) {
+            for (double value : solver.f()) {
                 outFile << value << std::endl;
             }
             outFile.close();
