@@ -1,6 +1,7 @@
 /*
  * fin:        main.cc
  * Author:      Xin Tao <xtao@ustc.edu.cn>
+ *              Peng Peng <pp140594@mail.ustc.edu.cn>
  * Date:        05/12/2024 
  * 
  * Copyright (c) Xin Tao 
@@ -27,7 +28,6 @@
 #include "Eigen/Core"
 #include "Eigen/Sparse"
 #include <ctime>
-// TODO: Have tried suitesparse, have little contribution of speed
 // #include <suitesparse/umfpack.h>
 
 
@@ -51,15 +51,15 @@ int main() {
 
     string path;
 
-    // The time test part
+    // The timer
     clock_t start, end;
     double cpu_time;
     start = clock();
 
     // Time loop for solving
     for (int k = 0; k < steps; ++k) {
+        
         // Solve using FVM solver
-
         solver.update();
 
         // Output or visualize f at each time step

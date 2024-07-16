@@ -1,6 +1,7 @@
 /*
  * File:        FVMsolver.h
  * Author:      Xin Tao <xtao@ustc.edu.cn>
+ *              Peng Peng <pp140594@mail.ustc.edu.cn>
  * Date:        05/12/2024 
  * 
  * Copyright (c) Xin Tao 
@@ -25,19 +26,12 @@ struct NTPFA_nodes{ // the two points A,B used in Nonlinear Two Point Approximat
   double B;
 }; 
 
-struct Alpha_K{ // The AlphaK matrix for each cell with four faces: east,west,north,south. 
+struct Alpha_K{ // The AlphaK matrix for each cell with four faces: e(east) / w(west) corespond to alpha + da / - da faces; and n(north) / s(south) are p + dp / - dp faces. 
   NTPFA_nodes e;
   NTPFA_nodes w;
   NTPFA_nodes n;
   NTPFA_nodes s;
 };
-
-// struct Unit_vector{
-//   Eigen::Vector2d e;
-//   Eigen::Vector2d w;
-//   Eigen::Vector2d n;
-//   Eigen::Vector2d s;
-// };
 
 class FVMSolver {
   public:

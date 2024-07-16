@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import meshio
 from scipy.interpolate import griddata
 
 E_MIN = 0.2  # MeV
@@ -23,10 +22,10 @@ p2 = calP(2.0)
 P_MIN = calP(E_MIN)
 P_MAX = calP(E_MAX)
 
-M = 20
-N = 20
-x1 = np.linspace(5, 90, M)
-x2 = np.linspace(5 + 85 / (2 * N), 90 - 85 / (2 * N), N)
+nx = 20
+ny = 30
+x1 = np.linspace(5, 90, nx)
+x2 = np.linspace(5 + 85 / (2 * nx), 90 - 85 / (2 * nx), nx)
 
 # Tao's data
 with open("p80x80/p80x802") as dT01:
@@ -48,27 +47,27 @@ with open("output/SMPPFV/smppfv2") as raw0:
 with open("output/SMPPFV/smppfv20") as raw1:
     d1 = raw1.readlines()
 
-data0 = np.zeros((N, M))
-data1 = np.zeros((N, M))
+data0 = np.zeros((nx, ny))
+data1 = np.zeros((nx, ny))
 
-for i in range(N):
-    for j in range(M):
-        data0[i, j] = float(d0[M*i + j])
-        data1[i, j] = float(d1[M*i + j])
+for i in range(nx):
+    for j in range(ny):
+        data0[i, j] = float(d0[nx*j + i])
+        data1[i, j] = float(d1[nx*j + i])
 
-pos_p1 = ((p1-P_MIN - (P_MAX - P_MIN) / 100) / (P_MAX - P_MIN) * M)
+pos_p1 = ((p1-P_MIN - (P_MAX - P_MIN) / 100) / (P_MAX - P_MIN) * ny)
 loc_p1 = int(pos_p1)
 w1 = pos_p1 - loc_p1
 w2 = 1 - w1
-y_0s05 = (data0[loc_p1] * 1/w1 / (1/w1 + 1/w2) + data0[loc_p1 + 1] * 1/w2 / (1/w1 + 1/w2)) * p1**2
-y_1s05 = (data1[loc_p1] * 1/w1 / (1/w1 + 1/w2) + data1[loc_p1 + 1] * 1/w2 / (1/w1 + 1/w2)) * p1**2
+y_0s05 = (data0[:, loc_p1] * 1/w1 / (1/w1 + 1/w2) + data0[:, loc_p1 + 1] * 1/w2 / (1/w1 + 1/w2)) * p1**2
+y_1s05 = (data1[:, loc_p1] * 1/w1 / (1/w1 + 1/w2) + data1[:, loc_p1 + 1] * 1/w2 / (1/w1 + 1/w2)) * p1**2
 
-pos_p2 = ((p2-P_MIN - (P_MAX - P_MIN) / 100) / (P_MAX - P_MIN) * M)
+pos_p2 = ((p2-P_MIN - (P_MAX - P_MIN) / 100) / (P_MAX - P_MIN) * ny)
 loc_p2 = int(pos_p2)
 w1 = pos_p2 - loc_p2
 w2 = 1 - w1
-y_0s20 = (data0[loc_p2] * 1/w1 / (1/w1 + 1/w2) + data0[loc_p2 + 1] * 1/w2 / (1/w1 + 1/w2)) * p2**2
-y_1s20 = (data1[loc_p2] * 1/w1 / (1/w1 + 1/w2) + data1[loc_p2 + 1] * 1/w2 / (1/w1 + 1/w2)) * p2**2
+y_0s20 = (data0[:, loc_p2] * 1/w1 / (1/w1 + 1/w2) + data0[:, loc_p2 + 1] * 1/w2 / (1/w1 + 1/w2)) * p2**2
+y_1s20 = (data1[:, loc_p2] * 1/w1 / (1/w1 + 1/w2) + data1[:, loc_p2 + 1] * 1/w2 / (1/w1 + 1/w2)) * p2**2
 
 
 e1 = 0.5

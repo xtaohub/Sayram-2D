@@ -1,6 +1,7 @@
 /*
  * File:        D.cc
  * Author:      Xin Tao <xtao@ustc.edu.cn>
+ *              Peng Peng <pp140594@mail.ustc.edu.cn>
  * Date:        05/12/2024 
  * 
  * Copyright (c) Xin Tao 
@@ -72,7 +73,7 @@ void read_d(std::string address, Eigen::MatrixXd& D_raw){
             for (int j = 0; j < 49; j++){
                 try{
                     double temp = std::stod(line.substr((5 + 15) * j + 4, 16));
-                    D_raw(j, i - 1) = temp;
+                    D_raw(i - 1, j) = temp;
                 } catch (const std::exception& e){
                     std::cout<< "File "<< address << " has data error." << std::endl;
                 }
@@ -82,7 +83,7 @@ void read_d(std::string address, Eigen::MatrixXd& D_raw){
 }
 
 
-std::vector<double> locate(int j, int i){
+std::vector<double> locate(int i, int j){
     std::vector<double> locinfo = {0.0, 0.0, 0.0, 0.0};
     double a = (ALPHA_LC + hdx + dx * i) / gPI * 180.0 - 1;
     double af = floor(a);
@@ -107,9 +108,9 @@ std::vector<double> locate(int j, int i){
 
 
 void D::constructD(double t){
-    Eigen::MatrixXd Daa_raw(49, 90);
-    Eigen::MatrixXd Dap_raw(49, 90);
-    Eigen::MatrixXd Dpp_raw(49, 90);
+    Eigen::MatrixXd Daa_raw(90, 49);
+    Eigen::MatrixXd Dap_raw(90, 49);
+    Eigen::MatrixXd Dpp_raw(90, 49);
 
     std::string address1 = "D/AlbertYoung_chorus/AlbertYoung_chorus.Daa";
     std::string address2 = "D/AlbertYoung_chorus/AlbertYoung_chorus.Dap";
@@ -121,41 +122,41 @@ void D::constructD(double t){
     read_d(address2, Dap_raw);
     read_d(address3, Dpp_raw);
 
-    for(int j = 0; j < ny; j++){
-        for(int i = 0; i < nx; i++){
+    for(int i = 0; i < nx; i++){
+        for(int j = 0; j < ny; j++){
             double p = P_MIN + hdy + dy * j;
-            std::vector<double> loc = locate(j, i);
+            std::vector<double> loc = locate(i, j);
             int locx = int(loc[0]);
             int locy = int(loc[1]);
             double da = loc[2];
             double dp = loc[3];
             if(loc[0] < 0 and loc[1] < 0){
-                Daa(j, i) = Daa_raw(-locy, -locx) * denormalize_factor / (p * p);
-                Dap(j, i) = Dap_raw(-locy, -locx) * denormalize_factor / p;
-                Dpp(j, i) = Dpp_raw(-locy, -locx) * denormalize_factor;
-            }
-            else if(loc[1] < 0) {
-                double w1 = 1.0 / da;
-                double w2 = 1.0 / (1.0 - da);
-                Daa(j, i) = (w1 * Daa_raw(-locy, locx) + w2 * Daa_raw(-locy, locx + 1)) / (w1 + w2) * denormalize_factor / (p * p);
-                Dap(j, i) = (w1 * Dap_raw(-locy, locx) + w2 * Dap_raw(-locy, locx + 1)) / (w1 + w2) * denormalize_factor / p;
-                Dpp(j, i) = (w1 * Dpp_raw(-locy, locx) + w2 * Dpp_raw(-locy, locx + 1)) / (w1 + w2) * denormalize_factor;
+                Daa(i, j) = Daa_raw(-locx, -locy) * denormalize_factor / (p * p);
+                Dap(i, j) = Dap_raw(-locx, -locy) * denormalize_factor / p;
+                Dpp(i, j) = Dpp_raw(-locx, -locy) * denormalize_factor;
             }
             else if(loc[0] < 0) {
                 double w1 = 1.0 / dp;
                 double w2 = 1.0 / (1.0 - dp);
-                Daa(j, i) = (w1 * Daa_raw(locy, -locx) + w2 * Daa_raw(locy + 1, -locx)) / (w1 + w2) * denormalize_factor / (p * p);
-                Dap(j, i) = (w1 * Dap_raw(locy, -locx) + w2 * Dap_raw(locy + 1, -locx)) / (w1 + w2) * denormalize_factor / p;
-                Dpp(j, i) = (w1 * Dpp_raw(locy, -locx) + w2 * Dpp_raw(locy + 1, -locx)) / (w1 + w2) * denormalize_factor;
+                Daa(i, j) = (w1 * Daa_raw(-locx, locy) + w2 * Daa_raw(-locx, locy + 1)) / (w1 + w2) * denormalize_factor / (p * p);
+                Dap(i, j) = (w1 * Dap_raw(-locx, locy) + w2 * Dap_raw(-locx, locy + 1)) / (w1 + w2) * denormalize_factor / p;
+                Dpp(i, j) = (w1 * Dpp_raw(-locx, locy) + w2 * Dpp_raw(-locx, locy + 1)) / (w1 + w2) * denormalize_factor;
+            }
+            else if(loc[1] < 0) {
+                double w1 = 1.0 / da;
+                double w2 = 1.0 / (1.0 - da);
+                Daa(i, j) = (w1 * Daa_raw(locx, -locy) + w2 * Daa_raw(locx + 1, -locy)) / (w1 + w2) * denormalize_factor / (p * p);
+                Dap(i, j) = (w1 * Dap_raw(locx, -locy) + w2 * Dap_raw(locx + 1, -locy)) / (w1 + w2) * denormalize_factor / p;
+                Dpp(i, j) = (w1 * Dpp_raw(locx, -locy) + w2 * Dpp_raw(locx + 1, -locy)) / (w1 + w2) * denormalize_factor;
             }
             else {
                 double w1 = 1.0 / sqrt(da * da + dp * dp);
-                double w2 = 1.0 / sqrt((1.0 - da) * (1.0 - da) + dp * dp);
+                double w2 = 1.0 / sqrt(da * da + (1.0 - dp) * (1.0 - dp));
                 double w3 = 1.0 / sqrt((1.0 - da) * (1.0 - da) + (1.0 - dp) * (1.0 - dp));
-                double w4 = 1.0 / sqrt(da * da + (1.0 - dp) * (1.0 - dp));
-                Daa(j, i) = (w1 * Daa_raw(locy, locx) + w2 * Daa_raw(locy, locx + 1) + w3 * Daa_raw(locy + 1, locx + 1) + w4 * Daa_raw(locy + 1, locx)) / (w1 + w2 + w3 + w4) * denormalize_factor / (p * p);
-                Dap(j, i) = (w1 * Dap_raw(locy, locx) + w2 * Dap_raw(locy, locx + 1) + w3 * Dap_raw(locy + 1, locx + 1) + w4 * Dap_raw(locy + 1, locx)) / (w1 + w2 + w3 + w4) * denormalize_factor / p;
-                Dpp(j, i) = (w1 * Dpp_raw(locy, locx) + w2 * Dpp_raw(locy, locx + 1) + w3 * Dpp_raw(locy + 1, locx + 1) + w4 * Dpp_raw(locy + 1, locx)) / (w1 + w2 + w3 + w4) * denormalize_factor;
+                double w4 = 1.0 / sqrt((1.0 - da) * (1.0 - da) + dp * dp);
+                Daa(i, j) = (w1 * Daa_raw(locx, locy) + w2 * Daa_raw(locx, locy + 1) + w3 * Daa_raw(locx + 1, locy + 1) + w4 * Daa_raw(locx + 1, locy)) / (w1 + w2 + w3 + w4) * denormalize_factor / (p * p);
+                Dap(i, j) = (w1 * Dap_raw(locx, locy) + w2 * Dap_raw(locx, locy + 1) + w3 * Dap_raw(locx + 1, locy + 1) + w4 * Dap_raw(locx + 1, locy)) / (w1 + w2 + w3 + w4) * denormalize_factor / p;
+                Dpp(i, j) = (w1 * Dpp_raw(locx, locy) + w2 * Dpp_raw(locx, locy + 1) + w3 * Dpp_raw(locx + 1, locy + 1) + w4 * Dpp_raw(locx + 1, locy)) / (w1 + w2 + w3 + w4) * denormalize_factor;
             }
         }
     }
