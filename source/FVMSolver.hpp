@@ -20,7 +20,6 @@
 #include "Eigen/Sparse"
 
 
-
 struct NTPFA_nodes{ // the two points A,B used in Nonlinear Two Point Approximation
   double A;
   double B;
@@ -60,11 +59,38 @@ class FVMSolver {
 
     Eigen::Matrix<Alpha_K, Eigen::Dynamic, Eigen::Dynamic> alpha_K_;
 
+
+
     double hdx_; 
     double hdy_; 
 
     void assemble();
     void construct_alpha_K();
+
+    double calMuK(double a_K, double a_L) {
+      if (a_K != 0 || a_L != 0){
+        return abs(a_L) / (abs(a_K) + abs(a_L));
+      } else {
+        return 0.5;
+      }
+    }
+
+    double bsigma_inner_cells() { 
+
+    }
+
+    double bsigma_boundary_cells(){
+
+    }
+
+    double bsigma_plus(){
+        return (std::abs(bsigma) + std::abs(bsigma))/2.0;
+    }
+
+    double bsigma_minus(){
+        return (std::abs(bsigma) - std::abs(bsigma))/2.0;
+
+    }
 
 };
 

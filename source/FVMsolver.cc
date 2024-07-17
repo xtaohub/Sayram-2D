@@ -42,6 +42,8 @@ void FVMSolver::initial(){
       }
     }
     construct_alpha_K();
+
+    assemble();
 }
 
 void FVMSolver::construct_alpha_K(){
@@ -131,6 +133,7 @@ void FVMSolver::construct_alpha_K(){
     }
 }
 
+
 void FVMSolver::assemble(){ // obtain S and M 
     double u1, u2, u3, u4;
     double a_K_n, a_K_e, a_K_s, a_K_w;
@@ -139,6 +142,14 @@ void FVMSolver::assemble(){ // obtain S and M
     double temp0;
     double a;
     double p;
+
+    for (int i=1; i<nx-1; ++i){
+      a = ALPHA_LC + hdx + dx * i;
+      for (int j=1; j<ny-1; ++j){
+      }
+    }
+
+
     for (int i = 0; i < nx; i++){
         a = ALPHA_LC + hdx + dx * i;
         for (int j = 0; j < ny; j++){
@@ -284,7 +295,6 @@ void FVMSolver::assemble(){ // obtain S and M
 }
 
 void FVMSolver::update() {
-    // assembleSystem(f, d, dt);
 
     S_.setZero();
     M_coeffs_.clear();

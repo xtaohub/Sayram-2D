@@ -18,12 +18,4 @@ inline double G(double alpha, double p){
   return p * p * t * sin(alpha) * cos(alpha);
 }
 
-inline double calMuK(double a_K, double a_L){
-  if (a_K == 0 and a_L == 0){
-    return 0.5;
-  } else {
-    return abs(a_L) / (abs(a_K) + abs(a_L));
-  }
-}
-
 #endif

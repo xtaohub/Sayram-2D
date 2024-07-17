@@ -8,7 +8,7 @@
  *
  */
 
-#define EIGEN_USE_THREADS
+// #define EIGEN_USE_THREADS
 
 // TODO MKL
 // #define EIGEN_USE_MKL_ALL
