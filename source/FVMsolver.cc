@@ -38,12 +38,10 @@ void FVMSolver::initial(){
         a = ALPHA_LC + hdx + dx * i;
         for (int j = 0; j < ny; j++){
             p = P_MIN + hdy + dy * j;
-            f_(i,j) = exp(-(p2e(p, gE0) - 0.2) / 0.1) * (sin(a) - sin(ALPHA_LC)) / (p * p);
+            f_(i,j) = init_f(a, p);
       }
     }
     construct_alpha_K();
-
-    assemble();
 }
 
 void FVMSolver::construct_alpha_K(){
@@ -133,162 +131,246 @@ void FVMSolver::construct_alpha_K(){
     }
 }
 
+// value(u) 1, 2, 3, 4 represent North-East, North-West, South-West, South-East corner values
+double FVMSolver::cal_u1(int i, int j){
+    return (f_(i, j) + f_(i, j+1) + f_(i+1, j) + f_(i+1, j+1)) / 4.0;
+}
+
+double FVMSolver::cal_u2(int i, int j){
+    return (f_(i, j) + f_(i, j+1) + f_(i-1, j) + f_(i-1, j+1)) / 4.0;
+}
+
+double FVMSolver::cal_u3(int i, int j){
+    return (f_(i, j) + f_(i, j-1) + f_(i-1, j) + f_(i-1, j-1)) / 4.0;
+}
+
+double FVMSolver::cal_u4(int i, int j){
+    return (f_(i, j) + f_(i, j-1) + f_(i+1, j) + f_(i+1, j-1)) / 4.0;
+}
+
+void FVMSolver::coeff_M_add_n(int i, int j, double a, double p, double u1, double u2){
+    double a_K_n = alpha_K_(i,j).n.A * u1 + alpha_K_(i,j).n.B * u2;
+    double a_L_n = alpha_K_(i,j+1).s.A * u2 + alpha_K_(i,j+1).s.B * u1;
+    double mu_K = calMuK(a_K_n, a_L_n);
+    double mu_L = 1.0 - mu_K;
+    double B_sigma = mu_L * a_L_n - mu_K * a_K_n;
+    double B_sigma_p = bsigma_plus(B_sigma);
+    double B_sigma_n = bsigma_minus(B_sigma);
+    double A_K = mu_K * (alpha_K_(i,j).n.A + alpha_K_(i,j).n.B) + B_sigma_p / (f_(i, j) + 1e-15);
+    double A_L = mu_L * (alpha_K_(i,j+1).s.A + alpha_K_(i,j+1).s.B) + B_sigma_n / (f_(i, j+1) + 1e-15);
+    M_coeffs_.push_back(T(nx * j + i, nx * j + i, A_K / G(a, p)));
+    M_coeffs_.push_back(T(nx * j + i, nx * (j + 1) + i, -A_L / G(a, p)));
+}
+
+void FVMSolver::coeff_M_add_s(int i, int j, double a, double p, double u3, double u4){
+    double a_K_s = alpha_K_(i,j).s.A * u3 + alpha_K_(i,j).s.B * u4;
+    double a_L_s = alpha_K_(i,j-1).n.A * u4 + alpha_K_(i,j-1).n.B * u3;
+    double mu_K = calMuK(a_K_s, a_L_s);
+    double mu_L = 1.0 - mu_K;
+    double B_sigma = mu_L * a_L_s - mu_K * a_K_s;
+    double B_sigma_p = bsigma_plus(B_sigma);
+    double B_sigma_n = bsigma_minus(B_sigma);
+    double A_K = mu_K * (alpha_K_(i,j).s.A + alpha_K_(i,j).s.B) + B_sigma_p / (f_(i, j) + 1e-15);
+    double A_L = mu_L * (alpha_K_(i,j-1).n.A + alpha_K_(i,j-1).n.B) + B_sigma_n / (f_(i, j-1) + 1e-15);
+    M_coeffs_.push_back(T(nx * j + i, nx * j + i, A_K / G(a, p)));
+    M_coeffs_.push_back(T(nx * j + i, nx * (j - 1) + i, -A_L / G(a, p)));
+}
+
+void FVMSolver::coeff_M_add_e(int i, int j, double a, double p, double u4, double u1){
+    double a_K_e = alpha_K_(i,j).e.A * u4 + alpha_K_(i,j).e.B * u1;
+    double a_L_e = alpha_K_(i+1, j).e.A * u1 + alpha_K_(i+1, j).e.B * u4;
+    double mu_K = calMuK(a_K_e, a_L_e);
+    double mu_L = 1.0 - mu_K;
+    double B_sigma = mu_L * a_L_e - mu_K * a_K_e;
+    double B_sigma_p = bsigma_plus(B_sigma);
+    double B_sigma_n = bsigma_minus(B_sigma);
+    double A_K = mu_K * (alpha_K_(i,j).e.A + alpha_K_(i,j).e.B) + B_sigma_p / (f_(i, j) + 1e-15);
+    double A_L = mu_L * (alpha_K_(i+1, j).w.A + alpha_K_(i+1, j).w.B) + B_sigma_n / (f_(i+1, j) + 1e-15);
+    M_coeffs_.push_back(T(nx * j + i, nx * j + i, A_K / G(a, p)));
+    M_coeffs_.push_back(T(nx * j + i, nx * j + i + 1, -A_L / G(a, p)));
+}
+
+void FVMSolver::coeff_M_add_w(int i, int j, double a, double p, double u2, double u3){
+    double a_K_w = alpha_K_(i,j).w.A * u2 + alpha_K_(i,j).w.B * u3;
+    double a_L_w = alpha_K_(i-1, j).e.A * u3 + alpha_K_(i-1,j).e.B * u2;
+    double mu_K = calMuK(a_K_w, a_L_w);
+    double mu_L = 1.0 - mu_K;
+    double B_sigma = mu_L * a_L_w - mu_K * a_K_w;
+    double B_sigma_p = bsigma_plus(B_sigma);
+    double B_sigma_n = bsigma_minus(B_sigma);
+    double A_K = mu_K * (alpha_K_(i,j).w.A + alpha_K_(i,j).w.B) + B_sigma_p / (f_(i, j) + 1e-15);
+    double A_L = mu_L * (alpha_K_(i-1, j).e.A + alpha_K_(i-1, j).e.B) + B_sigma_n / (f_(i-1, j) + 1e-15);
+    M_coeffs_.push_back(T(nx * j + i, nx * j + i, A_K / G(a, p)));
+    M_coeffs_.push_back(T(nx * j + i, nx * j + i - 1, -A_L / G(a, p)));
+}
+
+void FVMSolver::coeff_add_n_edge(int i, int j, double a, double p, double u1, double u2){
+    double a_K_n = alpha_K_(i,j).n.A * u1 + alpha_K_(i,j).n.B * u2;
+    S_(nx * j + i) += a_K_n / G(a, p);
+    M_coeffs_.push_back(T(nx * j + i, nx * j + i, (alpha_K_(i,j).n.A + alpha_K_(i,j).n.B) / G(a, p)));
+}
+
+void FVMSolver::coeff_add_s_edge(int i, int j, double a, double p, double u3, double u4){
+    double a_K_s = alpha_K_(i,j).s.A * u3 + alpha_K_(i,j).s.B * u4;
+    S_(nx * j + i) += a_K_s / G(a, p);
+    M_coeffs_.push_back(T(nx * j + i, nx * j + i, (alpha_K_(i,j).s.A + alpha_K_(i,j).s.B) / G(a, p)));
+}
+
+void FVMSolver::coeff_add_w_edge(int i, int j, double a, double p, double u2, double u3){
+    double a_K_w = alpha_K_(i,j).w.A * u2 + alpha_K_(i,j).w.B * u3;
+    S_(nx * j + i) = a_K_w / G(a, p);
+    M_coeffs_.push_back(T(nx * j + i, nx * j + i, (alpha_K_(i,j).w.A + alpha_K_(i,j).w.B) / G(a, p)));
+}
+
 
 void FVMSolver::assemble(){ // obtain S and M 
     double u1, u2, u3, u4;
-    double a_K_n, a_K_e, a_K_s, a_K_w;
-    double mu_K, mu_L, A_K, A_L, B_sigma, B_sigma_p, B_sigma_n;
-    double a_L_w, a_L_s, a_L_n, a_L_e;
-    double temp0;
-    double a;
-    double p;
+    double a, p;
+    int i, j;
+    
+    // inner grids
+    for (i=1; i<nx-1; ++i){
+        a = ALPHA_LC + hdx + dx * i;
+        for (j=1; j<ny-1; ++j){
+            p = P_MIN + hdy + dy * j;
+            u1 = cal_u1(i, j);
+            u2 = cal_u2(i, j);
+            u3 = cal_u3(i, j);
+            u4 = cal_u4(i, j);
 
-    for (int i=1; i<nx-1; ++i){
-      a = ALPHA_LC + hdx + dx * i;
-      for (int j=1; j<ny-1; ++j){
-      }
+            coeff_M_add_n(i, j, a, p, u1, u2);
+            coeff_M_add_s(i, j, a, p, u3, u4);
+            coeff_M_add_w(i, j, a, p, u2, u3);
+            coeff_M_add_e(i, j, a, p, u4, u1);
+        }
     }
 
+    // South-West corner，i==0, j==0, 
+    i = 0;
+    j = 0;
+    a = ALPHA_LC + hdx + dx * i;
+    p = P_MIN + hdy + dy * j;
+    u1 = cal_u1(i, j);
+    u2 = 0;
+    u3 = 0;
+    u4 = init_f(ALPHA_LC + dx, P_MIN);
 
-    for (int i = 0; i < nx; i++){
+    coeff_M_add_n(i, j, a, p, u1, u2);
+    coeff_M_add_e(i, j, a, p, u4, u1);
+    coeff_add_w_edge(i, j, a, p, u2, u3);
+    coeff_add_s_edge(i, j, a, p, u3, u4);
+
+
+    // South-East corner, i==nx-1, j==0
+    i = nx-1;
+    j = 0;
+    a = ALPHA_LC + hdx + dx * i;
+    p = P_MIN + hdy + dy * j;
+    u1 = (f_(i, j) + f_(i, j+1)) / 2.0;
+    u2 = cal_u2(i, j);
+    u3 = init_f(a - hdx, P_MIN);
+    u4 = init_f(a + hdx, P_MIN);
+
+    coeff_M_add_n(i, j, a, p, u1, u2);
+    coeff_M_add_w(i, j, a, p, u2, u3);
+    coeff_add_s_edge(i, j, a, p, u3, u4);
+
+    // South edge (except corner), j==0
+    j = 0;
+    p = P_MIN + hdy + dy * j;
+    for (i=1; i<nx-1; ++i){
         a = ALPHA_LC + hdx + dx * i;
-        for (int j = 0; j < ny; j++){
-            p = P_MIN + hdy + dy * j;
-            temp0 = 0.0;
-            // value(u) 1, 2, 3, 4 represent North-East, North-West, South-West, South-East corner values
-            // cases when grid on corner, edge or inner the domain
-            if (i==0 && j==0){
-                u1 = (f_(i, j) + f_(i, j+1) + f_(i+1, j) + f_(i+1, j+1)) / 4.0;
-                u2 = 0;
-                u3 = 0;
-                u4 = exp(-(p2e(P_MIN, gE0) - 0.2) / 0.1) * (sin(a + hdx) - sin(ALPHA_LC)) / (P_MIN * P_MIN);
-            }
-            else if (i==nx-1 && j==0){
-                u1 = (f_(i, j) + f_(i, j+1)) / 2.0;
-                u2 = (f_(i, j) + f_(i, j+1) + f_(i-1, j) + f_(i-1, j+1)) / 4.0;
-                u3 = exp(-(p2e(P_MIN, gE0) - 0.2) / 0.1) * (sin(a - hdx) - sin(ALPHA_LC)) / (P_MIN * P_MIN);
-                u4 = exp(-(p2e(P_MIN, gE0) - 0.2) / 0.1) * (sin(a + hdx) - sin(ALPHA_LC)) / (P_MIN * P_MIN);
-            }
-            else if (j==0){
-                u1 = (f_(i, j) + f_(i, j+1) + f_(i+1, j) + f_(i+1, j+1)) / 4.0;
-                u2 = (f_(i, j) + f_(i, j+1) + f_(i-1, j) + f_(i-1, j+1)) / 4.0;
-                u3 = exp(-(p2e(P_MIN, gE0) - 0.2) / 0.1) * (sin(a - hdx) - sin(ALPHA_LC)) / (P_MIN * P_MIN);
-                u4 = exp(-(p2e(P_MIN, gE0) - 0.2) / 0.1) * (sin(a + hdx) - sin(ALPHA_LC)) / (P_MIN * P_MIN);
-            }
-            else if (i==nx-1 && j==ny-1){
-                u1 = 0;
-                u2 = 0;
-                u3 = (f_(i, j) + f_(i, j-1) + f_(i-1, j) + f_(i-1, j-1)) / 4.0;
-                u4 = (f_(i, j) + f_(i, j-1)) / 2.0;
-            }
-            else if (i==nx-1){
-                u1 = (f_(i, j) + f_(i, j+1)) / 2.0;
-                u2 = (f_(i, j) + f_(i, j+1) + f_(i-1, j) + f_(i-1, j+1)) / 4.0;
-                u3 = (f_(i, j) + f_(i, j-1) + f_(i-1, j) + f_(i-1, j-1)) / 4.0;
-                u4 = (f_(i, j) + f_(i, j-1)) / 2.0;
-            }
-            else if (i==0 && j==ny-1){
-                u1 = 0;
-                u2 = 0;
-                u3 = 0;
-                u4 = (f_(i, j) + f_(i, j-1) + f_(i+1, j) + f_(i+1, j-1)) / 4.0;
-            }
-            else if (j==ny-1){
-                u1 = 0;
-                u2 = 0;
-                u3 = (f_(i, j) + f_(i, j-1) + f_(i-1, j) + f_(i-1, j-1)) / 4.0;
-                u4 = (f_(i, j) + f_(i, j-1) + f_(i+1, j) + f_(i+1, j-1)) / 4.0;
-            }
-            else if (i==0){
-                u1 = (f_(i, j) + f_(i, j+1) + f_(i+1, j) + f_(i+1, j+1)) / 4.0;
-                u2 = 0;
-                u3 = 0;
-                u4 = (f_(i, j) + f_(i, j-1) + f_(i+1, j) + f_(i+1, j-1)) / 4.0;
-            }
-            else{
-                u1 = (f_(i, j) + f_(i, j+1) + f_(i+1, j) + f_(i+1, j+1)) / 4.0;
-                u2 = (f_(i, j) + f_(i, j+1) + f_(i-1, j) + f_(i-1, j+1)) / 4.0;
-                u3 = (f_(i, j) + f_(i, j-1) + f_(i-1, j) + f_(i-1, j-1)) / 4.0;
-                u4 = (f_(i, j) + f_(i, j-1) + f_(i+1, j) + f_(i+1, j-1)) / 4.0;
-            }
+        u1 = cal_u1(i, j);
+        u2 = cal_u2(i, j);
+        u3 = init_f(a - hdx, P_MIN);
+        u4 = init_f(a + hdx, P_MIN);
 
-            a_K_n = alpha_K_(i,j).n.A * u1 + alpha_K_(i,j).n.B * u2;
-            a_K_w = alpha_K_(i,j).w.A * u2 + alpha_K_(i,j).w.B * u3;
-            a_K_s = alpha_K_(i,j).s.A * u3 + alpha_K_(i,j).s.B * u4;
-            a_K_e = alpha_K_(i,j).e.A * u4 + alpha_K_(i,j).e.B * u1;
+        coeff_M_add_n(i, j, a, p, u1, u2);
+        coeff_M_add_w(i, j, a, p, u2, u3);
+        coeff_M_add_e(i, j, a, p, u4, u1);
+        coeff_add_s_edge(i, j, a, p, u3, u4);
+    }
 
-            if(j==ny-1){
-                B_sigma = - a_K_n;
-                S_(nx * j + i) += a_K_n / G(a, p);
-                temp0 += (alpha_K_(i,j).n.A + alpha_K_(i,j).n.B) / G(a, p);
-            }
-            else{
-                a_L_n = alpha_K_(i,j+1).s.A * u2 + alpha_K_(i,j+1).s.B * u1;
-                mu_K = calMuK(a_K_n, a_L_n);
-                mu_L = 1.0 - mu_K;
-                B_sigma = mu_L * a_L_n - mu_K * a_K_n;
-                B_sigma_p = (abs(B_sigma) + B_sigma) / 2;
-                B_sigma_n = (abs(B_sigma) - B_sigma) / 2;
-                A_K = mu_K * (alpha_K_(i,j).n.A + alpha_K_(i,j).n.B) + B_sigma_p / (f_(i, j) + 1e-15);
-                A_L = mu_L * (alpha_K_(i,j+1).s.A + alpha_K_(i,j+1).s.B) + B_sigma_n / (f_(i, j+1) + 1e-15);
-                temp0 += A_K / G(a, p);
-                M_coeffs_.push_back(T(nx * j + i, nx * (j + 1) + i, -A_L / G(a, p)));
-            }
-            
-            if(j==0){
-                B_sigma = - a_K_s;
-                S_(nx * j + i) += a_K_s / G(a, p);
-                temp0 += (alpha_K_(i,j).s.A + alpha_K_(i,j).s.B) / G(a, p);
-            }
-            else{
-                a_L_s = alpha_K_(i,j-1).n.A * u4 + alpha_K_(i,j-1).n.B * u3;
-                mu_K = calMuK(a_K_s, a_L_s);
-                mu_L = 1.0 - mu_K;
-                B_sigma = mu_L * a_L_s - mu_K * a_K_s;
-                B_sigma_p = (abs(B_sigma) + B_sigma) / 2;
-                B_sigma_n = (abs(B_sigma) - B_sigma) / 2;
-                A_K = mu_K * (alpha_K_(i,j).s.A + alpha_K_(i,j).s.B) + B_sigma_p / (f_(i, j) + 1e-15);
-                A_L = mu_L * (alpha_K_(i,j-1).n.A + alpha_K_(i,j-1).n.B) + B_sigma_n / (f_(i, j-1) + 1e-15);
-                temp0 += A_K / G(a, p);
-                M_coeffs_.push_back(T(nx * j + i, nx * (j - 1) + i, -A_L / G(a, p)));
-            }
-            
-            if (i==0){
-                B_sigma = - a_K_w;
-                S_(nx * j + i) = a_K_w / G(a, p);
-                temp0 += (alpha_K_(i,j).w.A + alpha_K_(i,j).w.B) / G(a, p);   
-            }
-            else{
-                a_L_w = alpha_K_(i-1, j).e.A * u3 + alpha_K_(i-1,j).e.B * u2;
-                mu_K = calMuK(a_K_w, a_L_w);
-                mu_L = 1.0 - mu_K;
-                B_sigma = mu_L * a_L_w - mu_K * a_K_w;
-                B_sigma_p = (abs(B_sigma) + B_sigma) / 2;
-                B_sigma_n = (abs(B_sigma) - B_sigma) / 2;
-                A_K = mu_K * (alpha_K_(i,j).w.A + alpha_K_(i,j).w.B) + B_sigma_p / (f_(i, j) + 1e-15);
-                A_L = mu_L * (alpha_K_(i-1, j).e.A + alpha_K_(i-1, j).e.B) + B_sigma_n / (f_(i-1, j) + 1e-15);
-                temp0 += A_K / G(a, p);
-                M_coeffs_.push_back(T(nx * j + i, nx * j + i - 1, -A_L / G(a, p)));
-            }
-            
-            if (i==nx-1){
-                M_coeffs_.push_back(T(nx * j + i, nx * j + i, temp0));
-                continue; // Neumann boundary condition
-            }
-            else{
-                a_L_e = alpha_K_(i+1, j).e.A * u1 + alpha_K_(i+1, j).e.B * u4;
-                mu_K = calMuK(a_K_e, a_L_e);
-                mu_L = 1.0 - mu_K;
-                B_sigma = mu_L * a_L_e - mu_K * a_K_e;
-                B_sigma_p = (abs(B_sigma) + B_sigma) / 2;
-                B_sigma_n = (abs(B_sigma) - B_sigma) / 2;
-                A_K = mu_K * (alpha_K_(i,j).e.A + alpha_K_(i,j).e.B) + B_sigma_p / (f_(i, j) + 1e-15);
-                A_L = mu_L * (alpha_K_(i+1, j).w.A + alpha_K_(i+1, j).w.B) + B_sigma_n / (f_(i+1, j) + 1e-15);
-                temp0 += A_K / G(a, p);
-                M_coeffs_.push_back(T(nx * j + i, nx * j + i, temp0));
-                M_coeffs_.push_back(T(nx * j + i, nx * j + i + 1, -A_L / G(a, p)));
-            }
-        }
+    // North East corner, i==nx-1, j==ny-1
+    i = nx-1;
+    j = ny-1;
+    a = ALPHA_LC + hdx + dx * i;
+    p = P_MIN + hdy + dy * j;
+
+    u1 = 0;
+    u2 = 0;
+    u3 = cal_u3(i, j);
+    u4 = (f_(i, j) + f_(i, j-1)) / 2.0;
+
+    coeff_M_add_s(i, j, a, p, u3, u4);
+    coeff_M_add_w(i, j, a, p, u2, u3);
+    coeff_add_n_edge(i, j, a, p, u1, u2);
+
+    // East edge (except corner), i==nx-1
+    i = nx-1;
+    a = ALPHA_LC + hdx + dx * i;
+    for(j=1; j<ny-1; j++){
+        p = P_MIN + hdy + dy * j;
+
+        u1 = (f_(i, j) + f_(i, j+1)) / 2.0;
+        u2 = cal_u2(i, j);
+        u3 = cal_u3(i, j);
+        u4 = (f_(i, j) + f_(i, j-1)) / 2.0;
+
+        coeff_M_add_n(i, j, a, p, u1, u2);
+        coeff_M_add_s(i, j, a, p, u3, u4);
+        coeff_M_add_w(i, j, a, p, u2, u3);
+    }
+
+    // North West corner, i==0, j==ny-1
+    i = 0;
+    j = ny - 1;
+    a = ALPHA_LC + hdx + dx * i;
+    p = P_MIN + hdy + dy * j;
+
+    u1 = 0;
+    u2 = 0;
+    u3 = 0;
+    u4 = cal_u4(i, j);
+
+    coeff_M_add_s(i, j, a, p, u3, u4);
+    coeff_M_add_e(i, j, a, p, u4, u1);
+    coeff_add_w_edge(i, j, a, p, u2, u3);
+    coeff_add_n_edge(i, j, a, p, u1, u2);
+
+
+    // North edge (except corner), j==ny-1
+    j = ny - 1;
+    p = P_MIN + hdy + dy * j;
+    for (i=1; i<nx-1; ++i){
+        a = ALPHA_LC + hdx + dx * i;
+
+        u1 = 0;
+        u2 = 0;
+        u3 = cal_u3(i, j);
+        u4 = cal_u4(i, j);
+
+        coeff_M_add_s(i, j, a, p, u3, u4);
+        coeff_M_add_w(i, j, a, p, u2, u3);
+        coeff_M_add_e(i, j, a, p, u4, u1);
+        coeff_add_n_edge(i, j, a, p, u1, u2);
+    }
+
+    // West edge (except corner), i==0
+    i = 0;
+    a = ALPHA_LC + hdx + dx * i;
+    for(j=1; j<ny-1; j++){
+        p = P_MIN + hdy + dy * j;
+
+        u1 = cal_u1(i, j);
+        u2 = 0;
+        u3 = 0;
+        u4 = cal_u4(i, j);
+
+        coeff_M_add_n(i, j, a, p, u1, u2);
+        coeff_M_add_s(i, j, a, p, u3, u4);
+        coeff_M_add_e(i, j, a, p, u4, u1);
+        coeff_add_w_edge(i, j, a, p, u2, u3);
     }
 
     M_.setFromTriplets(M_coeffs_.begin(), M_coeffs_.end());

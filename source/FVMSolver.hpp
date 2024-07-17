@@ -66,6 +66,27 @@ class FVMSolver {
 
     void assemble();
     void construct_alpha_K();
+    double cal_u1(int i, int j);
+    double cal_u2(int i, int j);
+    double cal_u3(int i, int j);
+    double cal_u4(int i, int j);
+
+    // add coefficients to the Matrix M_ for inner grids (north)
+    void coeff_M_add_n(int i, int j, double a, double p, double u1, double u2);
+
+    // add coefficients to the Matrix M_ for inner grids (south)
+    void coeff_M_add_s(int i, int j, double a, double p, double u3, double u4);
+
+    // add coefficients to the Matrix M_ for inner grids (east)
+    void coeff_M_add_e(int i, int j, double a, double p, double u4, double u1);
+
+    // add coefficients to the Matrix M_ for inner grids (west)
+    void coeff_M_add_w(int i, int j, double a, double p, double u2, double u3);
+
+    // add coefficients, but the edge condition (east edge flux is 0, ignored)
+    void coeff_add_n_edge(int i, int j, double a, double p, double u1, double u2);
+    void coeff_add_s_edge(int i, int j, double a, double p, double u3, double u4);
+    void coeff_add_w_edge(int i, int j, double a, double p, double u2, double u3);
 
     double calMuK(double a_K, double a_L) {
       if (a_K != 0 || a_L != 0){
@@ -83,13 +104,16 @@ class FVMSolver {
 
     }
 
-    double bsigma_plus(){
+    double bsigma_plus(double bsigma){
         return (std::abs(bsigma) + std::abs(bsigma))/2.0;
     }
 
-    double bsigma_minus(){
+    double bsigma_minus(double bsigma){
         return (std::abs(bsigma) - std::abs(bsigma))/2.0;
+    }
 
+    double init_f(double a, double p){
+      return exp(-(p2e(p, gE0) - 0.2) / 0.1) * (sin(a) - sin(ALPHA_LC)) / (p * p);
     }
 
 };
