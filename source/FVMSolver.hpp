@@ -83,10 +83,10 @@ class FVMSolver {
 
     void assemble();
     void construct_alpha_K();
-    double cal_u1(int i, int j);
-    double cal_u2(int i, int j);
-    double cal_u3(int i, int j);
-    double cal_u4(int i, int j);
+    // double cal_u1(int i, int j);
+    // double cal_u2(int i, int j);
+    // double cal_u3(int i, int j);
+    // double cal_u4(int i, int j);
 
     // add coefficients to the Matrix M_ for inner grids (north)
     void coeff_M_add_n(int i, int j, double a, double p, double u1, double u2);

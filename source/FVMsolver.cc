@@ -131,22 +131,22 @@ void FVMSolver::construct_alpha_K(){
     }
 }
 
-// value(u) 1, 2, 3, 4 represent North-East, North-West, South-West, South-East corner values
-double FVMSolver::cal_u1(int i, int j){
-    return (f_(i, j) + f_(i, j+1) + f_(i+1, j) + f_(i+1, j+1)) / 4.0;
-}
-
-double FVMSolver::cal_u2(int i, int j){
-    return (f_(i, j) + f_(i, j+1) + f_(i-1, j) + f_(i-1, j+1)) / 4.0;
-}
-
-double FVMSolver::cal_u3(int i, int j){
-    return (f_(i, j) + f_(i, j-1) + f_(i-1, j) + f_(i-1, j-1)) / 4.0;
-}
-
-double FVMSolver::cal_u4(int i, int j){
-    return (f_(i, j) + f_(i, j-1) + f_(i+1, j) + f_(i+1, j-1)) / 4.0;
-}
+// // value(u) 1, 2, 3, 4 represent North-East, North-West, South-West, South-East corner values
+// double FVMSolver::cal_u1(int i, int j){
+//     return (f_(i, j) + f_(i, j+1) + f_(i+1, j) + f_(i+1, j+1)) / 4.0;
+// }
+//
+// double FVMSolver::cal_u2(int i, int j){
+//     return (f_(i, j) + f_(i, j+1) + f_(i-1, j) + f_(i-1, j+1)) / 4.0;
+// }
+//
+// double FVMSolver::cal_u3(int i, int j){
+//     return (f_(i, j) + f_(i, j-1) + f_(i-1, j) + f_(i-1, j-1)) / 4.0;
+// }
+//
+// double FVMSolver::cal_u4(int i, int j){
+//     return (f_(i, j) + f_(i, j-1) + f_(i+1, j) + f_(i+1, j-1)) / 4.0;
+// }
 
 
 
@@ -235,10 +235,10 @@ void FVMSolver::assemble(){ // obtain S and M
         a = ALPHA_LC + hdx + dx * i;
         for (j=1; j<ny-1; ++j){
             p = P_MIN + hdy + dy * j;
-            u1 = cal_u1(i, j);
-            u2 = cal_u2(i, j);
-            u3 = cal_u3(i, j);
-            u4 = cal_u4(i, j);
+            u1 = vertex_f(i,j);
+            u2 = vertex_f(i-1,j);
+            u3 = vertex_f(i-1, j-1);
+            u4 = vertex_f(i,j-1);
 
             coeff_M_add_n(i, j, a, p, u1, u2);
             coeff_M_add_s(i, j, a, p, u3, u4);
@@ -252,7 +252,7 @@ void FVMSolver::assemble(){ // obtain S and M
     j = 0;
     a = ALPHA_LC + hdx + dx * i;
     p = P_MIN + hdy + dy * j;
-    u1 = cal_u1(i, j);
+    u1 = vertex_f(i, j);
     u2 = 0;
     u3 = 0;
     u4 = init_f(ALPHA_LC + dx, P_MIN);
@@ -269,7 +269,7 @@ void FVMSolver::assemble(){ // obtain S and M
     a = ALPHA_LC + hdx + dx * i;
     p = P_MIN + hdy + dy * j;
     u1 = (f_(i, j) + f_(i, j+1)) / 2.0;
-    u2 = cal_u2(i, j);
+    u2 = vertex_f(i-1, j);
     u3 = init_f(a - hdx, P_MIN);
     u4 = init_f(a + hdx, P_MIN);
 
@@ -282,8 +282,8 @@ void FVMSolver::assemble(){ // obtain S and M
     p = P_MIN + hdy + dy * j;
     for (i=1; i<nx-1; ++i){
         a = ALPHA_LC + hdx + dx * i;
-        u1 = cal_u1(i, j);
-        u2 = cal_u2(i, j);
+        u1 = vertex_f(i, j);
+        u2 = vertex_f(i-1, j);
         u3 = init_f(a - hdx, P_MIN);
         u4 = init_f(a + hdx, P_MIN);
 
@@ -301,7 +301,7 @@ void FVMSolver::assemble(){ // obtain S and M
 
     u1 = 0;
     u2 = 0;
-    u3 = cal_u3(i, j);
+    u3 = vertex_f(i-1, j-1);
     u4 = (f_(i, j) + f_(i, j-1)) / 2.0;
 
     coeff_M_add_s(i, j, a, p, u3, u4);
@@ -315,8 +315,8 @@ void FVMSolver::assemble(){ // obtain S and M
         p = P_MIN + hdy + dy * j;
 
         u1 = (f_(i, j) + f_(i, j+1)) / 2.0;
-        u2 = cal_u2(i, j);
-        u3 = cal_u3(i, j);
+        u2 = vertex_f(i-1, j);
+        u3 = vertex_f(i-1, j-1);
         u4 = (f_(i, j) + f_(i, j-1)) / 2.0;
 
         coeff_M_add_n(i, j, a, p, u1, u2);
@@ -333,7 +333,7 @@ void FVMSolver::assemble(){ // obtain S and M
     u1 = 0;
     u2 = 0;
     u3 = 0;
-    u4 = cal_u4(i, j);
+    u4 = vertex_f(i, j-1);
 
     coeff_M_add_s(i, j, a, p, u3, u4);
     coeff_M_add_e(i, j, a, p, u4, u1);
@@ -349,8 +349,8 @@ void FVMSolver::assemble(){ // obtain S and M
 
         u1 = 0;
         u2 = 0;
-        u3 = cal_u3(i, j);
-        u4 = cal_u4(i, j);
+        u3 = vertex_f(i-1, j-1);
+        u4 = vertex_f(i, j-1);
 
         coeff_M_add_s(i, j, a, p, u3, u4);
         coeff_M_add_w(i, j, a, p, u2, u3);
@@ -364,10 +364,10 @@ void FVMSolver::assemble(){ // obtain S and M
     for(j=1; j<ny-1; j++){
         p = P_MIN + hdy + dy * j;
 
-        u1 = cal_u1(i, j);
+        u1 = vertex_f(i, j);
         u2 = 0;
         u3 = 0;
-        u4 = cal_u4(i, j);
+        u4 = vertex_f(i, j-1);
 
         coeff_M_add_n(i, j, a, p, u1, u2);
         coeff_M_add_s(i, j, a, p, u3, u4);
