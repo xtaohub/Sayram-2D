@@ -101,7 +101,7 @@ void FVMSolver::construct_alpha_K(){
 void FVMSolver::coeff_M_add_n(int i, int j, double a, double p, double u_ipjp, double u_imjp){
   double a_K_n = alpha_K_(i,j).jp1.A * u_ipjp + alpha_K_(i,j).jp1.B * u_imjp;
   double a_L_n = alpha_K_(i,j+1).jm1.A * u_imjp + alpha_K_(i,j+1).jm1.B * u_ipjp;
-  double mu_K = calMuK(a_K_n, a_L_n);
+  double mu_K = coeff_mu(a_K_n, a_L_n);
   double mu_L = 1.0 - mu_K;
   double B_sigma = mu_L * a_L_n - mu_K * a_K_n;
   double B_sigma_p = bsigma_plus(B_sigma);
@@ -115,7 +115,7 @@ void FVMSolver::coeff_M_add_n(int i, int j, double a, double p, double u_ipjp, d
 void FVMSolver::coeff_M_add_s(int i, int j, double a, double p, double u_imjm, double u_ipjm){
   double a_K_s = alpha_K_(i,j).jm1.A * u_imjm + alpha_K_(i,j).jm1.B * u_ipjm;
   double a_L_s = alpha_K_(i,j-1).jp1.A * u_ipjm + alpha_K_(i,j-1).jp1.B * u_imjm;
-  double mu_K = calMuK(a_K_s, a_L_s);
+  double mu_K = coeff_mu(a_K_s, a_L_s);
   double mu_L = 1.0 - mu_K;
   double B_sigma = mu_L * a_L_s - mu_K * a_K_s;
   double B_sigma_p = bsigma_plus(B_sigma);
@@ -129,7 +129,7 @@ void FVMSolver::coeff_M_add_s(int i, int j, double a, double p, double u_imjm, d
 void FVMSolver::coeff_M_add_e(int i, int j, double a, double p, double u_ipjm, double u_ipjp){
   double a_K_e = alpha_K_(i,j).ip1.A * u_ipjm + alpha_K_(i,j).ip1.B * u_ipjp;
   double a_L_e = alpha_K_(i+1, j).ip1.A * u_ipjp + alpha_K_(i+1, j).ip1.B * u_ipjm;
-  double mu_K = calMuK(a_K_e, a_L_e);
+  double mu_K = coeff_mu(a_K_e, a_L_e);
   double mu_L = 1.0 - mu_K;
   double B_sigma = mu_L * a_L_e - mu_K * a_K_e;
   double B_sigma_p = bsigma_plus(B_sigma);
@@ -143,7 +143,7 @@ void FVMSolver::coeff_M_add_e(int i, int j, double a, double p, double u_ipjm, d
 void FVMSolver::coeff_M_add_w(int i, int j, double a, double p, double u_imjp, double u_imjm){
   double a_K_w = alpha_K_(i,j).im1.A * u_imjp + alpha_K_(i,j).im1.B * u_imjm;
   double a_L_w = alpha_K_(i-1, j).ip1.A * u_imjm + alpha_K_(i-1,j).ip1.B * u_imjp;
-  double mu_K = calMuK(a_K_w, a_L_w);
+  double mu_K = coeff_mu(a_K_w, a_L_w);
   double mu_L = 1.0 - mu_K;
   double B_sigma = mu_L * a_L_w - mu_K * a_K_w;
   double B_sigma_p = bsigma_plus(B_sigma);
