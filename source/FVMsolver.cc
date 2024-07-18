@@ -55,7 +55,7 @@ void FVMSolver::alpha_K(const Eigen::Matrix2d& Lambda_K, const Eigen::Vector2d& 
   Eigen::Vector2d rxbk = {xbk(1), -xbk(0)};  // (x,y) rotated by 90 clockwise, becoming (y, -x)
   Eigen::Vector2d rxak = {xak(1), -xak(0)}; 
 
-  Eigen::Vector2d nksigma = {ba(1), -ba(0)}; 
+  Eigen::Vector2d nksigma = {ba(1) / sigma, -ba(0) / sigma}; 
 
   *alpha_KAp = sigma * (nksigma.transpose() * Lambda_K * rxbk)(0) / (xak.transpose() * rxbk)(0);
   *alpha_KBp = sigma * (nksigma.transpose() * Lambda_K * rxak)(0) / (xbk.transpose() * rxak)(0); 
@@ -66,54 +66,54 @@ void FVMSolver::construct_alpha_K(){
 
   Eigen::Matrix2d Lambda_K;
 
-  Eigen::Vector2d n_Ke;
-  Eigen::Vector2d n_1_Te;
-  Eigen::Vector2d n_1_Re;
-  Eigen::Vector2d n_0_Te;
-  Eigen::Vector2d n_0_Re;
-  n_Ke << 1, 0; 
-  n_1_Te << hdx, hdy;
-  n_1_Re << hdy, -hdx;
-  n_0_Te << hdx, -hdy;
-  n_0_Re << -hdy, -hdx;
+  // Eigen::Vector2d n_Ke;
+  // Eigen::Vector2d n_1_Te;
+  // Eigen::Vector2d n_1_Re;
+  // Eigen::Vector2d n_0_Te;
+  // Eigen::Vector2d n_0_Re;
+  // n_Ke << 1, 0; 
+  // n_1_Te << hdx, hdy;
+  // n_1_Re << hdy, -hdx;
+  // n_0_Te << hdx, -hdy;
+  // n_0_Re << -hdy, -hdx;
 
-  Eigen::Vector2d n_Kw; 
-  Eigen::Vector2d n_1_Tw;
-  Eigen::Vector2d n_1_Rw;
-  Eigen::Vector2d n_0_Tw;
-  Eigen::Vector2d n_0_Rw;
-  n_Kw << -1, 0;
-  n_1_Tw << -hdx, -hdy;
-  n_1_Rw << -hdy, hdx;
-  n_0_Tw << -hdx, hdy;
-  n_0_Rw << hdy, hdx;
+  // Eigen::Vector2d n_Kw; 
+  // Eigen::Vector2d n_1_Tw;
+  // Eigen::Vector2d n_1_Rw;
+  // Eigen::Vector2d n_0_Tw;
+  // Eigen::Vector2d n_0_Rw;
+  // n_Kw << -1, 0;
+  // n_1_Tw << -hdx, -hdy;
+  // n_1_Rw << -hdy, hdx;
+  // n_0_Tw << -hdx, hdy;
+  // n_0_Rw << hdy, hdx;
 
-  Eigen::Vector2d n_Kn; 
-  Eigen::Vector2d n_1_Tn;
-  Eigen::Vector2d n_1_Rn;
-  Eigen::Vector2d n_0_Tn;
-  Eigen::Vector2d n_0_Rn;
-  n_Kn << 0, 1; 
-  n_1_Tn << -hdx, hdy;
-  n_1_Rn << hdy, hdx;
-  n_0_Tn << hdx, hdy;
-  n_0_Rn << hdy, -hdx;
+  // Eigen::Vector2d n_Kn; 
+  // Eigen::Vector2d n_1_Tn;
+  // Eigen::Vector2d n_1_Rn;
+  // Eigen::Vector2d n_0_Tn;
+  // Eigen::Vector2d n_0_Rn;
+  // n_Kn << 0, 1; 
+  // n_1_Tn << -hdx, hdy;
+  // n_1_Rn << hdy, hdx;
+  // n_0_Tn << hdx, hdy;
+  // n_0_Rn << hdy, -hdx;
 
-  Eigen::Vector2d n_Ks; 
-  Eigen::Vector2d n_1_Ts;
-  Eigen::Vector2d n_1_Rs;
-  Eigen::Vector2d n_0_Ts;
-  Eigen::Vector2d n_0_Rs;
-  n_Ks << 0, -1;
-  n_1_Ts << hdx, -hdy;
-  n_1_Rs << -hdy, -hdx;
-  n_0_Ts << -hdx, -hdy;
-  n_0_Rs << -hdy, hdx;
+  // Eigen::Vector2d n_Ks; 
+  // Eigen::Vector2d n_1_Ts;
+  // Eigen::Vector2d n_1_Rs;
+  // Eigen::Vector2d n_0_Ts;
+  // Eigen::Vector2d n_0_Rs;
+  // n_Ks << 0, -1;
+  // n_1_Ts << hdx, -hdy;
+  // n_1_Rs << -hdy, -hdx;
+  // n_0_Ts << -hdx, -hdy;
+  // n_0_Rs << -hdy, hdx;
 
-  double sigma_e = dy;
-  double sigma_w = dy;
-  double sigma_n = dx;
-  double sigma_s = dx;
+  // double sigma_e = dy;
+  // double sigma_w = dy;
+  // double sigma_n = dx;
+  // double sigma_s = dx;
 
   double a;
   double p;
@@ -123,7 +123,19 @@ void FVMSolver::construct_alpha_K(){
     for (int j = 0; j < ny; j++){
       p = P_MIN + hdy + dy * j;
       Lambda_K << d.getDaa(0.0, i, j) * G(a, p), d.getDap(0.0, i, j) * G(a, p), 
-               d.getDap(0.0, i, j) * G(a, p), d.getDpp(0.0, i, j) * G(a, p);
+                  d.getDap(0.0, i, j) * G(a, p), d.getDpp(0.0, i, j) * G(a, p);
+
+      Eigen::Vector2d K;
+      K  << a, p;
+      Eigen::Vector2d v_ipjp;
+      v_ipjp << a + hdx, p + hdy;
+      Eigen::Vector2d v_imjp;
+      v_imjp << a - hdx, p + hdy;
+      Eigen::Vector2d v_imjm;
+      v_imjm << a - hdx, p - hdy;
+      Eigen::Vector2d v_ipjm;
+      v_ipjm << a + hdx, p - hdy;
+
 
       // 0, 1 are counterclockwise vertex marker
       // T: Transpose vector
@@ -131,46 +143,50 @@ void FVMSolver::construct_alpha_K(){
       // the north represent the growth direction of p, and east is the alpha growing direction
 
       // East:
-      alpha_K_(i,j).e.A = sigma_e * (n_Ke.transpose() * Lambda_K * n_1_Re)(0) / (n_0_Te.transpose() * n_1_Re)(0);
-      alpha_K_(i,j).e.B = sigma_e * (n_Ke.transpose() * Lambda_K * n_0_Re)(0) / (n_1_Te.transpose() * n_0_Re)(0);
+      // alpha_K_(i,j).e.A = sigma_e * (n_Ke.transpose() * Lambda_K * n_1_Re)(0) / (n_0_Te.transpose() * n_1_Re)(0);
+      // alpha_K_(i,j).e.B = sigma_e * (n_Ke.transpose() * Lambda_K * n_0_Re)(0) / (n_1_Te.transpose() * n_0_Re)(0);
+      alpha_K(Lambda_K, K, v_ipjm, v_ipjp, &alpha_K_(i,j).e.A, &alpha_K_(i,j).e.B);
 
       // West:
-      alpha_K_(i,j).w.A = sigma_w * (n_Kw.transpose() * Lambda_K * n_1_Rw)(0) / (n_0_Tw.transpose() * n_1_Rw)(0);
-      alpha_K_(i,j).w.B = sigma_w * (n_Kw.transpose() * Lambda_K * n_0_Rw)(0) / (n_1_Tw.transpose() * n_0_Rw)(0);
+      // alpha_K_(i,j).w.A = sigma_w * (n_Kw.transpose() * Lambda_K * n_1_Rw)(0) / (n_0_Tw.transpose() * n_1_Rw)(0);
+      // alpha_K_(i,j).w.B = sigma_w * (n_Kw.transpose() * Lambda_K * n_0_Rw)(0) / (n_1_Tw.transpose() * n_0_Rw)(0);
+      alpha_K(Lambda_K, K, v_imjp, v_imjm, &alpha_K_(i,j).w.A, &alpha_K_(i,j).w.B);
 
       // North:
-      alpha_K_(i,j).n.A = sigma_n * (n_Kn.transpose() * Lambda_K * n_1_Rn)(0) / (n_0_Tn.transpose() * n_1_Rn)(0);
-      alpha_K_(i,j).n.B = sigma_n * (n_Kn.transpose() * Lambda_K * n_0_Rn)(0) / (n_1_Tn.transpose() * n_0_Rn)(0);
+      // alpha_K_(i,j).n.A = sigma_n * (n_Kn.transpose() * Lambda_K * n_1_Rn)(0) / (n_0_Tn.transpose() * n_1_Rn)(0);
+      // alpha_K_(i,j).n.B = sigma_n * (n_Kn.transpose() * Lambda_K * n_0_Rn)(0) / (n_1_Tn.transpose() * n_0_Rn)(0);
+      alpha_K(Lambda_K, K, v_ipjp, v_imjp, &alpha_K_(i,j).n.A, &alpha_K_(i,j).n.B);
 
       // South:
-      alpha_K_(i,j).s.A = sigma_s * (n_Ks.transpose() * Lambda_K * n_1_Rs)(0) / (n_0_Ts.transpose() * n_1_Rs)(0);
-      alpha_K_(i,j).s.B = sigma_s * (n_Ks.transpose() * Lambda_K * n_0_Rs)(0) / (n_1_Ts.transpose() * n_0_Rs)(0);
+      // alpha_K_(i,j).s.A = sigma_s * (n_Ks.transpose() * Lambda_K * n_1_Rs)(0) / (n_0_Ts.transpose() * n_1_Rs)(0);
+      // alpha_K_(i,j).s.B = sigma_s * (n_Ks.transpose() * Lambda_K * n_0_Rs)(0) / (n_1_Ts.transpose() * n_0_Rs)(0);
+      alpha_K(Lambda_K, K, v_imjm, v_ipjm, &alpha_K_(i,j).s.A, &alpha_K_(i,j).s.B);
     }
   }
 }
 
 // // value(u) 1, 2, 3, 4 represent North-East, North-West, South-West, South-East corner values
-// double FVMSolver::cal_u1(int i, int j){
+// double FVMSolver::cal_u_ipjp(int i, int j){
 //     return (f_(i, j) + f_(i, j+1) + f_(i+1, j) + f_(i+1, j+1)) / 4.0;
 // }
 //
-// double FVMSolver::cal_u2(int i, int j){
+// double FVMSolver::cal_u_imjp(int i, int j){
 //     return (f_(i, j) + f_(i, j+1) + f_(i-1, j) + f_(i-1, j+1)) / 4.0;
 // }
 //
-// double FVMSolver::cal_u3(int i, int j){
+// double FVMSolver::cal_u_imjm(int i, int j){
 //     return (f_(i, j) + f_(i, j-1) + f_(i-1, j) + f_(i-1, j-1)) / 4.0;
 // }
 //
-// double FVMSolver::cal_u4(int i, int j){
+// double FVMSolver::cal_u_ipjm(int i, int j){
 //     return (f_(i, j) + f_(i, j-1) + f_(i+1, j) + f_(i+1, j-1)) / 4.0;
 // }
 
 
 
-void FVMSolver::coeff_M_add_n(int i, int j, double a, double p, double u1, double u2){
-  double a_K_n = alpha_K_(i,j).n.A * u1 + alpha_K_(i,j).n.B * u2;
-  double a_L_n = alpha_K_(i,j+1).s.A * u2 + alpha_K_(i,j+1).s.B * u1;
+void FVMSolver::coeff_M_add_n(int i, int j, double a, double p, double u_ipjp, double u_imjp){
+  double a_K_n = alpha_K_(i,j).n.A * u_ipjp + alpha_K_(i,j).n.B * u_imjp;
+  double a_L_n = alpha_K_(i,j+1).s.A * u_imjp + alpha_K_(i,j+1).s.B * u_ipjp;
   double mu_K = calMuK(a_K_n, a_L_n);
   double mu_L = 1.0 - mu_K;
   double B_sigma = mu_L * a_L_n - mu_K * a_K_n;
@@ -182,9 +198,9 @@ void FVMSolver::coeff_M_add_n(int i, int j, double a, double p, double u1, doubl
   M_coeffs_.push_back(T(nx * j + i, nx * (j + 1) + i, -A_L / G(a, p)));
 }
 
-void FVMSolver::coeff_M_add_s(int i, int j, double a, double p, double u3, double u4){
-  double a_K_s = alpha_K_(i,j).s.A * u3 + alpha_K_(i,j).s.B * u4;
-  double a_L_s = alpha_K_(i,j-1).n.A * u4 + alpha_K_(i,j-1).n.B * u3;
+void FVMSolver::coeff_M_add_s(int i, int j, double a, double p, double u_imjm, double u_ipjm){
+  double a_K_s = alpha_K_(i,j).s.A * u_imjm + alpha_K_(i,j).s.B * u_ipjm;
+  double a_L_s = alpha_K_(i,j-1).n.A * u_ipjm + alpha_K_(i,j-1).n.B * u_imjm;
   double mu_K = calMuK(a_K_s, a_L_s);
   double mu_L = 1.0 - mu_K;
   double B_sigma = mu_L * a_L_s - mu_K * a_K_s;
@@ -196,9 +212,9 @@ void FVMSolver::coeff_M_add_s(int i, int j, double a, double p, double u3, doubl
   M_coeffs_.push_back(T(nx * j + i, nx * (j - 1) + i, -A_L / G(a, p)));
 }
 
-void FVMSolver::coeff_M_add_e(int i, int j, double a, double p, double u4, double u1){
-  double a_K_e = alpha_K_(i,j).e.A * u4 + alpha_K_(i,j).e.B * u1;
-  double a_L_e = alpha_K_(i+1, j).e.A * u1 + alpha_K_(i+1, j).e.B * u4;
+void FVMSolver::coeff_M_add_e(int i, int j, double a, double p, double u_ipjm, double u_ipjp){
+  double a_K_e = alpha_K_(i,j).e.A * u_ipjm + alpha_K_(i,j).e.B * u_ipjp;
+  double a_L_e = alpha_K_(i+1, j).e.A * u_ipjp + alpha_K_(i+1, j).e.B * u_ipjm;
   double mu_K = calMuK(a_K_e, a_L_e);
   double mu_L = 1.0 - mu_K;
   double B_sigma = mu_L * a_L_e - mu_K * a_K_e;
@@ -210,9 +226,9 @@ void FVMSolver::coeff_M_add_e(int i, int j, double a, double p, double u4, doubl
   M_coeffs_.push_back(T(nx * j + i, nx * j + i + 1, -A_L / G(a, p)));
 }
 
-void FVMSolver::coeff_M_add_w(int i, int j, double a, double p, double u2, double u3){
-  double a_K_w = alpha_K_(i,j).w.A * u2 + alpha_K_(i,j).w.B * u3;
-  double a_L_w = alpha_K_(i-1, j).e.A * u3 + alpha_K_(i-1,j).e.B * u2;
+void FVMSolver::coeff_M_add_w(int i, int j, double a, double p, double u_imjp, double u_imjm){
+  double a_K_w = alpha_K_(i,j).w.A * u_imjp + alpha_K_(i,j).w.B * u_imjm;
+  double a_L_w = alpha_K_(i-1, j).e.A * u_imjm + alpha_K_(i-1,j).e.B * u_imjp;
   double mu_K = calMuK(a_K_w, a_L_w);
   double mu_L = 1.0 - mu_K;
   double B_sigma = mu_L * a_L_w - mu_K * a_K_w;
@@ -224,27 +240,27 @@ void FVMSolver::coeff_M_add_w(int i, int j, double a, double p, double u2, doubl
   M_coeffs_.push_back(T(nx * j + i, nx * j + i - 1, -A_L / G(a, p)));
 }
 
-void FVMSolver::coeff_add_n_edge(int i, int j, double a, double p, double u1, double u2){
-  double a_K_n = alpha_K_(i,j).n.A * u1 + alpha_K_(i,j).n.B * u2;
+void FVMSolver::coeff_add_n_edge(int i, int j, double a, double p, double u_ipjp, double u_imjp){
+  double a_K_n = alpha_K_(i,j).n.A * u_ipjp + alpha_K_(i,j).n.B * u_imjp;
   S_(nx * j + i) += a_K_n / G(a, p);
   M_coeffs_.push_back(T(nx * j + i, nx * j + i, (alpha_K_(i,j).n.A + alpha_K_(i,j).n.B) / G(a, p)));
 }
 
-void FVMSolver::coeff_add_s_edge(int i, int j, double a, double p, double u3, double u4){
-  double a_K_s = alpha_K_(i,j).s.A * u3 + alpha_K_(i,j).s.B * u4;
+void FVMSolver::coeff_add_s_edge(int i, int j, double a, double p, double u_imjm, double u_ipjm){
+  double a_K_s = alpha_K_(i,j).s.A * u_imjm + alpha_K_(i,j).s.B * u_ipjm;
   S_(nx * j + i) += a_K_s / G(a, p);
   M_coeffs_.push_back(T(nx * j + i, nx * j + i, (alpha_K_(i,j).s.A + alpha_K_(i,j).s.B) / G(a, p)));
 }
 
-void FVMSolver::coeff_add_w_edge(int i, int j, double a, double p, double u2, double u3){
-  double a_K_w = alpha_K_(i,j).w.A * u2 + alpha_K_(i,j).w.B * u3;
+void FVMSolver::coeff_add_w_edge(int i, int j, double a, double p, double u_imjp, double u_imjm){
+  double a_K_w = alpha_K_(i,j).w.A * u_imjp + alpha_K_(i,j).w.B * u_imjm;
   S_(nx * j + i) = a_K_w / G(a, p);
   M_coeffs_.push_back(T(nx * j + i, nx * j + i, (alpha_K_(i,j).w.A + alpha_K_(i,j).w.B) / G(a, p)));
 }
 
 
 void FVMSolver::assemble(){ // obtain S and M 
-  double u1, u2, u3, u4;
+  double u_ipjp, u_imjp, u_imjm, u_ipjm;
   double a, p;
   int i, j;
 
@@ -253,15 +269,15 @@ void FVMSolver::assemble(){ // obtain S and M
     a = ALPHA_LC + hdx + dx * i;
     for (j=1; j<ny-1; ++j){
       p = P_MIN + hdy + dy * j;
-      u1 = vertex_f(i,j);
-      u2 = vertex_f(i-1,j);
-      u3 = vertex_f(i-1, j-1);
-      u4 = vertex_f(i,j-1);
+      u_ipjp = vertex_f(i,j);
+      u_imjp = vertex_f(i-1,j);
+      u_imjm = vertex_f(i-1, j-1);
+      u_ipjm = vertex_f(i,j-1);
 
-      coeff_M_add_n(i, j, a, p, u1, u2);
-      coeff_M_add_s(i, j, a, p, u3, u4);
-      coeff_M_add_w(i, j, a, p, u2, u3);
-      coeff_M_add_e(i, j, a, p, u4, u1);
+      coeff_M_add_n(i, j, a, p, u_ipjp, u_imjp);
+      coeff_M_add_s(i, j, a, p, u_imjm, u_ipjm);
+      coeff_M_add_w(i, j, a, p, u_imjp, u_imjm);
+      coeff_M_add_e(i, j, a, p, u_ipjm, u_ipjp);
     }
   }
 
@@ -270,15 +286,15 @@ void FVMSolver::assemble(){ // obtain S and M
   j = 0;
   a = ALPHA_LC + hdx + dx * i;
   p = P_MIN + hdy + dy * j;
-  u1 = vertex_f(i, j);
-  u2 = 0;
-  u3 = 0;
-  u4 = init_f(ALPHA_LC + dx, P_MIN);
+  u_ipjp = vertex_f(i, j);
+  u_imjp = 0;
+  u_imjm = 0;
+  u_ipjm = init_f(ALPHA_LC + dx, P_MIN);
 
-  coeff_M_add_n(i, j, a, p, u1, u2);
-  coeff_M_add_e(i, j, a, p, u4, u1);
-  coeff_add_w_edge(i, j, a, p, u2, u3);
-  coeff_add_s_edge(i, j, a, p, u3, u4);
+  coeff_M_add_n(i, j, a, p, u_ipjp, u_imjp);
+  coeff_M_add_e(i, j, a, p, u_ipjm, u_ipjp);
+  coeff_add_w_edge(i, j, a, p, u_imjp, u_imjm);
+  coeff_add_s_edge(i, j, a, p, u_imjm, u_ipjm);
 
 
   // South-East corner, i==nx-1, j==0
@@ -286,29 +302,29 @@ void FVMSolver::assemble(){ // obtain S and M
   j = 0;
   a = ALPHA_LC + hdx + dx * i;
   p = P_MIN + hdy + dy * j;
-  u1 = (f_(i, j) + f_(i, j+1)) / 2.0;
-  u2 = vertex_f(i-1, j);
-  u3 = init_f(a - hdx, P_MIN);
-  u4 = init_f(a + hdx, P_MIN);
+  u_ipjp = (f_(i, j) + f_(i, j+1)) / 2.0;
+  u_imjp = vertex_f(i-1, j);
+  u_imjm = init_f(a - hdx, P_MIN);
+  u_ipjm = init_f(a + hdx, P_MIN);
 
-  coeff_M_add_n(i, j, a, p, u1, u2);
-  coeff_M_add_w(i, j, a, p, u2, u3);
-  coeff_add_s_edge(i, j, a, p, u3, u4);
+  coeff_M_add_n(i, j, a, p, u_ipjp, u_imjp);
+  coeff_M_add_w(i, j, a, p, u_imjp, u_imjm);
+  coeff_add_s_edge(i, j, a, p, u_imjm, u_ipjm);
 
   // South edge (except corner), j==0
   j = 0;
   p = P_MIN + hdy + dy * j;
   for (i=1; i<nx-1; ++i){
     a = ALPHA_LC + hdx + dx * i;
-    u1 = vertex_f(i, j);
-    u2 = vertex_f(i-1, j);
-    u3 = init_f(a - hdx, P_MIN);
-    u4 = init_f(a + hdx, P_MIN);
+    u_ipjp = vertex_f(i, j);
+    u_imjp = vertex_f(i-1, j);
+    u_imjm = init_f(a - hdx, P_MIN);
+    u_ipjm = init_f(a + hdx, P_MIN);
 
-    coeff_M_add_n(i, j, a, p, u1, u2);
-    coeff_M_add_w(i, j, a, p, u2, u3);
-    coeff_M_add_e(i, j, a, p, u4, u1);
-    coeff_add_s_edge(i, j, a, p, u3, u4);
+    coeff_M_add_n(i, j, a, p, u_ipjp, u_imjp);
+    coeff_M_add_w(i, j, a, p, u_imjp, u_imjm);
+    coeff_M_add_e(i, j, a, p, u_ipjm, u_ipjp);
+    coeff_add_s_edge(i, j, a, p, u_imjm, u_ipjm);
   }
 
   // North East corner, i==nx-1, j==ny-1
@@ -317,14 +333,14 @@ void FVMSolver::assemble(){ // obtain S and M
   a = ALPHA_LC + hdx + dx * i;
   p = P_MIN + hdy + dy * j;
 
-  u1 = 0;
-  u2 = 0;
-  u3 = vertex_f(i-1, j-1);
-  u4 = (f_(i, j) + f_(i, j-1)) / 2.0;
+  u_ipjp = 0;
+  u_imjp = 0;
+  u_imjm = vertex_f(i-1, j-1);
+  u_ipjm = (f_(i, j) + f_(i, j-1)) / 2.0;
 
-  coeff_M_add_s(i, j, a, p, u3, u4);
-  coeff_M_add_w(i, j, a, p, u2, u3);
-  coeff_add_n_edge(i, j, a, p, u1, u2);
+  coeff_M_add_s(i, j, a, p, u_imjm, u_ipjm);
+  coeff_M_add_w(i, j, a, p, u_imjp, u_imjm);
+  coeff_add_n_edge(i, j, a, p, u_ipjp, u_imjp);
 
   // East edge (except corner), i==nx-1
   i = nx-1;
@@ -332,14 +348,14 @@ void FVMSolver::assemble(){ // obtain S and M
   for(j=1; j<ny-1; j++){
     p = P_MIN + hdy + dy * j;
 
-    u1 = (f_(i, j) + f_(i, j+1)) / 2.0;
-    u2 = vertex_f(i-1, j);
-    u3 = vertex_f(i-1, j-1);
-    u4 = (f_(i, j) + f_(i, j-1)) / 2.0;
+    u_ipjp = (f_(i, j) + f_(i, j+1)) / 2.0;
+    u_imjp = vertex_f(i-1, j);
+    u_imjm = vertex_f(i-1, j-1);
+    u_ipjm = (f_(i, j) + f_(i, j-1)) / 2.0;
 
-    coeff_M_add_n(i, j, a, p, u1, u2);
-    coeff_M_add_s(i, j, a, p, u3, u4);
-    coeff_M_add_w(i, j, a, p, u2, u3);
+    coeff_M_add_n(i, j, a, p, u_ipjp, u_imjp);
+    coeff_M_add_s(i, j, a, p, u_imjm, u_ipjm);
+    coeff_M_add_w(i, j, a, p, u_imjp, u_imjm);
   }
 
   // North West corner, i==0, j==ny-1
@@ -348,15 +364,15 @@ void FVMSolver::assemble(){ // obtain S and M
   a = ALPHA_LC + hdx + dx * i;
   p = P_MIN + hdy + dy * j;
 
-  u1 = 0;
-  u2 = 0;
-  u3 = 0;
-  u4 = vertex_f(i, j-1);
+  u_ipjp = 0;
+  u_imjp = 0;
+  u_imjm = 0;
+  u_ipjm = vertex_f(i, j-1);
 
-  coeff_M_add_s(i, j, a, p, u3, u4);
-  coeff_M_add_e(i, j, a, p, u4, u1);
-  coeff_add_w_edge(i, j, a, p, u2, u3);
-  coeff_add_n_edge(i, j, a, p, u1, u2);
+  coeff_M_add_s(i, j, a, p, u_imjm, u_ipjm);
+  coeff_M_add_e(i, j, a, p, u_ipjm, u_ipjp);
+  coeff_add_w_edge(i, j, a, p, u_imjp, u_imjm);
+  coeff_add_n_edge(i, j, a, p, u_ipjp, u_imjp);
 
 
   // North edge (except corner), j==ny-1
@@ -365,15 +381,15 @@ void FVMSolver::assemble(){ // obtain S and M
   for (i=1; i<nx-1; ++i){
     a = ALPHA_LC + hdx + dx * i;
 
-    u1 = 0;
-    u2 = 0;
-    u3 = vertex_f(i-1, j-1);
-    u4 = vertex_f(i, j-1);
+    u_ipjp = 0;
+    u_imjp = 0;
+    u_imjm = vertex_f(i-1, j-1);
+    u_ipjm = vertex_f(i, j-1);
 
-    coeff_M_add_s(i, j, a, p, u3, u4);
-    coeff_M_add_w(i, j, a, p, u2, u3);
-    coeff_M_add_e(i, j, a, p, u4, u1);
-    coeff_add_n_edge(i, j, a, p, u1, u2);
+    coeff_M_add_s(i, j, a, p, u_imjm, u_ipjm);
+    coeff_M_add_w(i, j, a, p, u_imjp, u_imjm);
+    coeff_M_add_e(i, j, a, p, u_ipjm, u_ipjp);
+    coeff_add_n_edge(i, j, a, p, u_ipjp, u_imjp);
   }
 
   // West edge (except corner), i==0
@@ -382,15 +398,15 @@ void FVMSolver::assemble(){ // obtain S and M
   for(j=1; j<ny-1; j++){
     p = P_MIN + hdy + dy * j;
 
-    u1 = vertex_f(i, j);
-    u2 = 0;
-    u3 = 0;
-    u4 = vertex_f(i, j-1);
+    u_ipjp = vertex_f(i, j);
+    u_imjp = 0;
+    u_imjm = 0;
+    u_ipjm = vertex_f(i, j-1);
 
-    coeff_M_add_n(i, j, a, p, u1, u2);
-    coeff_M_add_s(i, j, a, p, u3, u4);
-    coeff_M_add_e(i, j, a, p, u4, u1);
-    coeff_add_w_edge(i, j, a, p, u2, u3);
+    coeff_M_add_n(i, j, a, p, u_ipjp, u_imjp);
+    coeff_M_add_s(i, j, a, p, u_imjm, u_ipjm);
+    coeff_M_add_e(i, j, a, p, u_ipjm, u_ipjp);
+    coeff_add_w_edge(i, j, a, p, u_imjp, u_imjm);
   }
 
   M_.setFromTriplets(M_coeffs_.begin(), M_coeffs_.end());

@@ -89,21 +89,21 @@ class FVMSolver {
     void alpha_K(const Eigen::Matrix2d& Lambda_K, const Eigen::Vector2d& K, const Eigen::Vector2d& A, const Eigen::Vector2d& B, double* alpha_KA, double* alpha_KB); 
 
     // add coefficients to the Matrix M_ for inner grids (north)
-    void coeff_M_add_n(int i, int j, double a, double p, double u1, double u2);
+    void coeff_M_add_n(int i, int j, double a, double p, double u_ipjp, double u_imjp);
 
     // add coefficients to the Matrix M_ for inner grids (south)
-    void coeff_M_add_s(int i, int j, double a, double p, double u3, double u4);
+    void coeff_M_add_s(int i, int j, double a, double p, double u_imjm, double u_ipjm);
 
     // add coefficients to the Matrix M_ for inner grids (east)
-    void coeff_M_add_e(int i, int j, double a, double p, double u4, double u1);
+    void coeff_M_add_e(int i, int j, double a, double p, double u_ipjm, double u_ipjp);
 
     // add coefficients to the Matrix M_ for inner grids (west)
-    void coeff_M_add_w(int i, int j, double a, double p, double u2, double u3);
+    void coeff_M_add_w(int i, int j, double a, double p, double u_imjp, double u_imjm);
 
     // add coefficients, but the edge condition (east edge flux is 0, ignored)
-    void coeff_add_n_edge(int i, int j, double a, double p, double u1, double u2);
-    void coeff_add_s_edge(int i, int j, double a, double p, double u3, double u4);
-    void coeff_add_w_edge(int i, int j, double a, double p, double u2, double u3);
+    void coeff_add_n_edge(int i, int j, double a, double p, double u_ipjp, double u_imjp);
+    void coeff_add_s_edge(int i, int j, double a, double p, double u_imjm, double u_ipjm);
+    void coeff_add_w_edge(int i, int j, double a, double p, double u_imjp, double u_imjm);
 
     double calMuK(double a_K, double a_L) {
       if (a_K != 0 || a_L != 0){
