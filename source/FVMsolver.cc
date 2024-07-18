@@ -13,7 +13,7 @@
 #include "FVMSolver.hpp"
 
 FVMSolver::FVMSolver(const Grid& g_in, const D& d_in, const BoundaryConditions& bc_in)
-    : g(g_in), d(d_in), bc(bc_in){
+  : g(g_in), d(d_in), bc(bc_in){
 
     int nx = g.nx();
     int ny = g.ny();
@@ -29,19 +29,19 @@ FVMSolver::FVMSolver(const Grid& g_in, const D& d_in, const BoundaryConditions& 
     hdx_ = g.dx()/2.0;
     hdy_ = g.dy()/2.0;
 
-}
+  }
 
 void FVMSolver::initial(){
-    double a;
-    double p;
-    for (int i = 0; i < nx; i++){
-        a = ALPHA_LC + hdx + dx * i;
-        for (int j = 0; j < ny; j++){
-            p = P_MIN + hdy + dy * j;
-            f_(i,j) = init_f(a, p);
-      }
+  double a;
+  double p;
+  for (int i = 0; i < nx; i++){
+    a = ALPHA_LC + hdx + dx * i;
+    for (int j = 0; j < ny; j++){
+      p = P_MIN + hdy + dy * j;
+      f_(i,j) = init_f(a, p);
     }
-    construct_alpha_K();
+  }
+  construct_alpha_K();
 }
 
 void FVMSolver::alpha_K(const Eigen::Matrix2d& Lambda_K, const Eigen::Vector2d& K, const Eigen::Vector2d& A, const Eigen::Vector2d& B, double* alpha_KAp, double* alpha_KBp){
@@ -96,7 +96,6 @@ void FVMSolver::construct_alpha_K(){
     }
   }
 }
-
 
 void FVMSolver::coeff_M_add_n(int i, int j, double a, double p, double u_ipjp, double u_imjp){
   double a_K_n = alpha_K_(i,j).jp1.A * u_ipjp + alpha_K_(i,j).jp1.B * u_imjp;

@@ -19,7 +19,6 @@
 #include "Parameters.hpp"
 #include "Eigen/Sparse"
 
-
 struct NTPFA_nodes{ // the two points A,B used in Nonlinear Two Point Approximation
   double A;
   double B;
@@ -105,6 +104,8 @@ class FVMSolver {
 
     void coeff_M(int icell, int jcell);  
 
+    void coeff_M_single(int i, int j, double a, double p, double u1, double u2); 
+
     double coeff_a(double alphaA, double fA, double alphaB, double fB) const {
       return alphaA*fA + alphaB*fB; 
     }
@@ -126,11 +127,11 @@ class FVMSolver {
     }
 
     double bsigma_plus(double bsigma){
-        return (std::abs(bsigma) + std::abs(bsigma))/2.0;
+      return (std::abs(bsigma) + std::abs(bsigma))/2.0;
     }
 
     double bsigma_minus(double bsigma){
-        return (std::abs(bsigma) - std::abs(bsigma))/2.0;
+      return (std::abs(bsigma) - std::abs(bsigma))/2.0;
     }
 
     double init_f(double a, double p){
