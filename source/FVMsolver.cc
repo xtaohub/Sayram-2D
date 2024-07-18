@@ -148,6 +148,8 @@ double FVMSolver::cal_u4(int i, int j){
     return (f_(i, j) + f_(i, j-1) + f_(i+1, j) + f_(i+1, j-1)) / 4.0;
 }
 
+
+
 void FVMSolver::coeff_M_add_n(int i, int j, double a, double p, double u1, double u2){
     double a_K_n = alpha_K_(i,j).n.A * u1 + alpha_K_(i,j).n.B * u2;
     double a_L_n = alpha_K_(i,j+1).s.A * u2 + alpha_K_(i,j+1).s.B * u1;

@@ -63,6 +63,23 @@ class FVMSolver {
 
     double hdx_; 
     double hdy_; 
+    int ind2to1(int i, int j) const {
+      return j*g.nx()+i; 
+    }
+
+    double vertex_f(int imin, int jmin) const { 
+      // 
+      // obtain flux at vertex by four-point inteprolation.
+      // here (i,j) is the smallest indices among the four cells.
+      // 
+      //          | 
+      //   (i,j)  |  (i,j+1)  
+      //  --------v-----------
+      //  (i+1,j) |  (i+1,j+1)
+      //          |
+      //
+      return (f_(imin,jmin) + f_(imin,jmin+1) + f_(imin+1,jmin) + f_(imin+1,jmin+1)) / 4.0;
+    }
 
     void assemble();
     void construct_alpha_K();
