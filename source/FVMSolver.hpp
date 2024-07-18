@@ -63,7 +63,9 @@ class FVMSolver {
 
     double hdx_; 
     double hdy_; 
-    int ind2to1(int i, int j) const {
+
+    int ind2to1(int i, int j) const { 
+      // map 2d indices to 1, column major
       return j*g.nx()+i; 
     }
 
@@ -83,10 +85,8 @@ class FVMSolver {
 
     void assemble();
     void construct_alpha_K();
-    // double cal_u1(int i, int j);
-    // double cal_u2(int i, int j);
-    // double cal_u3(int i, int j);
-    // double cal_u4(int i, int j);
+
+    void alpha_K(const Eigen::Matrix2d& Lambda_K, const Eigen::Vector2d& K, const Eigen::Vector2d& A, const Eigen::Vector2d& B, double* alpha_KA, double* alpha_KB); 
 
     // add coefficients to the Matrix M_ for inner grids (north)
     void coeff_M_add_n(int i, int j, double a, double p, double u1, double u2);
@@ -113,13 +113,13 @@ class FVMSolver {
       }
     }
 
-    double bsigma_inner_cells() { 
-
-    }
-
-    double bsigma_boundary_cells(){
-
-    }
+    // double bsigma_inner_cells() { 
+    //
+    // }
+    //
+    // double bsigma_boundary_cells(){
+    //
+    // }
 
     double bsigma_plus(double bsigma){
         return (std::abs(bsigma) + std::abs(bsigma))/2.0;
