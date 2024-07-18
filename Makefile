@@ -2,7 +2,7 @@
 # This Makefile used be used in the parent folder of source ("../")
 
 CC = g++
-LOCAL_INCLUDE = /home/peng/local/include
+LOCAL_INCLUDE = /Users/xtao/local/include
 # HDF5_LIB = /Users/xtao/local/lib
 SRC_DIR := source
 BUILD_DIR = build
