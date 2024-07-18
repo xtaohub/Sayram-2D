@@ -48,11 +48,13 @@ class FVMSolver {
     // M f = S
     Eigen::SparseLU<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> solver;
 
+    SpMat V_invU_;
+    std::vector<T> V_invU_coeffs_;
     SpMat M_;
-    std::vector<T> M_coeffs_;
 
     Eigen::MatrixXd f_; 
-    Eigen::VectorXd S_;
+    Eigen::VectorXd S_invU_;
+    Eigen::VectorXd R_;
 
     Eigen::MatrixXd Id_; 
 
@@ -85,22 +87,22 @@ class FVMSolver {
 
     void alpha_K(const Eigen::Matrix2d& Lambda_K, const Eigen::Vector2d& K, const Eigen::Vector2d& A, const Eigen::Vector2d& B, double* alpha_KA, double* alpha_KB); 
 
-    // add coefficients to the Matrix M_ for inner grids (north)
-    void coeff_M_add_n(int i, int j, double a, double p, double u_ipjp, double u_imjp);
+    // add coefficients to the Matrix M_ for inner grids (j plus (jp) direction flux)
+    void coeff_add_jp(int i, int j, double a, double p, double u_ipjp, double u_imjp);
 
-    // add coefficients to the Matrix M_ for inner grids (south)
-    void coeff_M_add_s(int i, int j, double a, double p, double u_imjm, double u_ipjm);
+    // add coefficients to the Matrix M_ for inner grids (jm)
+    void coeff_add_jm(int i, int j, double a, double p, double u_imjm, double u_ipjm);
 
-    // add coefficients to the Matrix M_ for inner grids (east)
-    void coeff_M_add_e(int i, int j, double a, double p, double u_ipjm, double u_ipjp);
+    // add coefficients to the Matrix M_ for inner grids (ip)
+    void coeff_add_ip(int i, int j, double a, double p, double u_ipjm, double u_ipjp);
 
-    // add coefficients to the Matrix M_ for inner grids (west)
-    void coeff_M_add_w(int i, int j, double a, double p, double u_imjp, double u_imjm);
+    // add coefficients to the Matrix M_ for inner grids (im)
+    void coeff_add_im(int i, int j, double a, double p, double u_imjp, double u_imjm);
 
-    // add coefficients, but the edge condition (east edge flux is 0, ignored)
-    void coeff_add_n_edge(int i, int j, double a, double p, double u_ipjp, double u_imjp);
-    void coeff_add_s_edge(int i, int j, double a, double p, double u_imjm, double u_ipjm);
-    void coeff_add_w_edge(int i, int j, double a, double p, double u_imjp, double u_imjm);
+    // add coefficients, but the edge condition (i max boundary condition flux is 0, ignored)
+    void coeff_add_jp_edge(int i, int j, double a, double p, double u_ipjp, double u_imjp);
+    void coeff_add_jm_edge(int i, int j, double a, double p, double u_imjm, double u_ipjm);
+    void coeff_add_im_edge(int i, int j, double a, double p, double u_imjp, double u_imjm);
 
     void coeff_M(int icell, int jcell);  
 
@@ -136,6 +138,18 @@ class FVMSolver {
 
     double init_f(double a, double p){
       return exp(-(p2e(p, gE0) - 0.2) / 0.1) * (sin(a) - sin(ALPHA_LC)) / (p * p);
+    }
+
+    double boundary_imin(double p){
+        return 0.0;
+    }
+
+    double boundary_jmin(double a){
+      return exp(-(p2e(P_MIN, gE0) - 0.2) / 0.1) * (sin(a) - sin(ALPHA_LC)) / (P_MIN * P_MIN);
+    }
+
+    double boundary_jmax(double a){
+      return 0.0;
     }
 
 };

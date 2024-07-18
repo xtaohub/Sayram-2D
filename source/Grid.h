@@ -21,6 +21,7 @@ public:
     double dx() const { return dx_; }
     double dy() const { return dy_; }
     double dt() const { return dt_; }
+    double dt_area() const { return dt_ / (dx_ * dy_);}
 
 private:
     int nx_;
