@@ -25,11 +25,11 @@ struct NTPFA_nodes{ // the two points A,B used in Nonlinear Two Point Approximat
   double B;
 }; 
 
-struct Alpha_K{ // The AlphaK matrix for each cell with four faces: e(east) / w(west) corespond to alpha + da / - da faces; and n(north) / s(south) are p + dp / - dp faces. 
-  NTPFA_nodes e;
-  NTPFA_nodes w;
-  NTPFA_nodes n;
-  NTPFA_nodes s;
+struct Alpha_K{ // The AlphaK matrix for each cell with four faces
+  NTPFA_nodes ip1;
+  NTPFA_nodes im1;
+  NTPFA_nodes jp1;
+  NTPFA_nodes jm1;
 };
 
 class FVMSolver {
@@ -58,8 +58,6 @@ class FVMSolver {
     Eigen::MatrixXd Id_; 
 
     Eigen::Matrix<Alpha_K, Eigen::Dynamic, Eigen::Dynamic> alpha_K_;
-
-
 
     double hdx_; 
     double hdy_; 
@@ -105,21 +103,27 @@ class FVMSolver {
     void coeff_add_s_edge(int i, int j, double a, double p, double u_imjm, double u_ipjm);
     void coeff_add_w_edge(int i, int j, double a, double p, double u_imjp, double u_imjm);
 
-    double calMuK(double a_K, double a_L) {
-      if (a_K != 0 || a_L != 0){
-        return abs(a_L) / (abs(a_K) + abs(a_L));
+    void coeff_M(int icell, int jcell);  
+
+    double coeff_a(double alphaA, double fA, double alphaB, double fB) const {
+      return alphaA*fA + alphaB*fB; 
+    }
+
+    double coeff_mu(double aK, double aL) const {
+      if (aK != 0 || aL != 0){
+        return abs(aL) / (abs(aK) + abs(aL));
       } else {
         return 0.5;
       }
     }
 
-    // double bsigma_inner_cells() { 
-    //
-    // }
-    //
-    // double bsigma_boundary_cells(){
-    //
-    // }
+    double bsigma_inner_cells(double aK, double muK, double aL, double muL) const { 
+      return muL*aL-muK*aK;  
+    }
+
+    double bsigma_boundary_cells(double aK){
+      return -aK; 
+    }
 
     double bsigma_plus(double bsigma){
         return (std::abs(bsigma) + std::abs(bsigma))/2.0;
