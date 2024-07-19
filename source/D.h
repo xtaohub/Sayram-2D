@@ -12,12 +12,12 @@
 #define D_H_
 
 #include "Eigen/Core"
-#include "Grid.h"
+#include "Mesh.h"
 
 class D {
 public:
-    D(const Grid& grid);
-    D(const Grid& grid, const Eigen::MatrixXd& Daa_in, const Eigen::MatrixXd& Dap_in, const Eigen::MatrixXd& Dpp_in);
+    D(const Mesh& mesh);
+    D(const Mesh& mesh, const Eigen::MatrixXd& Daa_in, const Eigen::MatrixXd& Dap_in, const Eigen::MatrixXd& Dpp_in);
 
     double getDap(double t, int i, int j) const;
     double getDpp(double t, int i, int j) const;
@@ -34,7 +34,7 @@ private:
     Eigen::MatrixXd Dap;
     Eigen::MatrixXd Dpp;
 
-    const Grid& grid;
+    const Mesh& m;
 };
 
 #endif /* D_H_ */

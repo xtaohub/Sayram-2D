@@ -12,28 +12,31 @@
 #define FVM_SOLVER_H
 
 // #include "mkl.h"
-#include "Grid.h"
+#include "Mesh.h"
 #include "D.h"
 #include "BoundaryConditions.h"
 #include "Eigen/Core"
 #include "Parameters.hpp"
 #include "Eigen/Sparse"
+#include "Array.h"
 
 struct NTPFA_nodes{ // the two points A,B used in Nonlinear Two Point Approximation
   double A;
   double B;
 }; 
 
-struct Alpha_K{ // The AlphaK matrix for each cell with four faces
-  NTPFA_nodes ip1;
-  NTPFA_nodes im1;
-  NTPFA_nodes jp1;
-  NTPFA_nodes jm1;
-};
+// struct Alpha_K{ // The AlphaK matrix for each cell with four faces
+//   // NTPFA_nodes ip1;
+//   // NTPFA_nodes im1;
+//   // NTPFA_nodes jp1;
+//   // NTPFA_nodes jm1;
+//   double A; 
+//   double B; 
+// };
 
 class FVMSolver {
   public:
-    FVMSolver(const Grid& g_in, const D& d_in, const BoundaryConditions& bc_in);
+    FVMSolver(const Mesh& m_in, const D& d_in, const BoundaryConditions& bc_in);
 
     void update();
     const Eigen::MatrixXd& f() const { return f_; }
@@ -41,7 +44,7 @@ class FVMSolver {
     void initial();
 
   private:
-    const Grid& g;
+    const Mesh& m;
     const D& d; 
     const BoundaryConditions& bc;
 
@@ -58,14 +61,16 @@ class FVMSolver {
 
     Eigen::MatrixXd Id_; 
 
-    Eigen::Matrix<Alpha_K, Eigen::Dynamic, Eigen::Dynamic> alpha_K_;
+    // Eigen::Matrix<Alpha_K, Eigen::Dynamic, Eigen::Dynamic> alpha_K_;
+
+    Array<NTPFA_nodes, 3> alpha_K_; 
 
     double hdx_; 
     double hdy_; 
 
     int ind2to1(int i, int j) const { 
       // map 2d indices to 1, column major
-      return j*g.nx()+i; 
+      return j*m.nx()+i; 
     }
 
     double vertex_f(int imin, int jmin) const { 
@@ -106,7 +111,10 @@ class FVMSolver {
 
     void coeff_M(int icell, int jcell);  
 
-    void coeff_M_single(int i, int j, double a, double p, double u1, double u2); 
+    // void coeff_M_single(int i, int j, double a, double p, double u1, double u2); 
+    
+    // add coefficient to M corresponds to the inbr cell of cell (i,j)
+    void coeff_M_add_inner(int i, int j, int inbr);  
 
     double coeff_a(double alphaA, double fA, double alphaB, double fB) const {
       return alphaA*fA + alphaB*fB; 

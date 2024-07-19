@@ -18,18 +18,18 @@
 #include "Parameters.hpp"
 #include "common.hpp"
 
-D::D(const Grid& grid) : grid(grid) {
-    // Initialize matrices Dap, Dpp, and Daa based on grid size
-    Daa = Eigen::MatrixXd::Zero(grid.nx(), grid.ny());
-    Dap = Eigen::MatrixXd::Zero(grid.nx(), grid.ny());
-    Dpp = Eigen::MatrixXd::Zero(grid.nx(), grid.ny());
+D::D(const Mesh& mesh) : m(mesh) {
+    // Initialize matrices Dap, Dpp, and Daa based on mesh size
+    Daa = Eigen::MatrixXd::Zero(m.nx(), m.ny());
+    Dap = Eigen::MatrixXd::Zero(m.nx(), m.ny());
+    Dpp = Eigen::MatrixXd::Zero(m.nx(), m.ny());
 }
 
-D::D(const Grid& grid, const Eigen::MatrixXd& Daa_in, const Eigen::MatrixXd& Dap_in, const Eigen::MatrixXd& Dpp_in): grid(grid) {
+D::D(const Mesh& mesh, const Eigen::MatrixXd& Daa_in, const Eigen::MatrixXd& Dap_in, const Eigen::MatrixXd& Dpp_in): m(mesh) {
 
-    Daa = Eigen::MatrixXd::Zero(grid.nx(), grid.ny());
-    Dap = Eigen::MatrixXd::Zero(grid.nx(), grid.ny());
-    Dpp = Eigen::MatrixXd::Zero(grid.nx(), grid.ny());
+    Daa = Eigen::MatrixXd::Zero(m.nx(), m.ny());
+    Dap = Eigen::MatrixXd::Zero(m.nx(), m.ny());
+    Dpp = Eigen::MatrixXd::Zero(m.nx(), m.ny());
 
     Daa = Daa_in;
     Dap = Dap_in;

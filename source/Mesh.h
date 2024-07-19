@@ -1,0 +1,113 @@
+/*
+ * File:        Mesh.h
+ * Author:      Xin Tao <xtao@ustc.edu.cn>
+ *              Peng Peng <pp140594@mail.ustc.edu.cn>
+ * Date:        05/12/2024 
+ * 
+ * Copyright (c) Xin Tao 
+ *
+ */
+
+#ifndef MESH_H_
+#define MESH_H_
+
+#include "Parameters.hpp" 
+#include "Array.h"
+#include "Eigen/Core"
+
+struct Ind{
+  int i; 
+  int j;
+}; 
+
+typedef Eigen::Vector2d Point;  // each point has two coordinates, Point(0) -- x, Point(1) -- y
+
+struct Edge{
+  Point A; 
+  Point B;
+}; 
+
+class Mesh {
+  public:
+    Mesh(int nx, int ny, double dx, double dy, double dt): x_(nx), y_(ny) {
+
+        nx_ = nx; 
+        ny_ = ny; 
+        dx_ = dx; 
+        dy_ = dy; 
+        dt_ = dt; 
+
+        // // should init x and y here.
+        // x_ = 0;
+        // y_ = 0; 
+
+        // these two lines need to be changed.
+        x_(0) = ALPHA_LC + dx/2.0; 
+        y_(0) = P_MIN + dy/2.0; 
+
+        for (int i=1; i<nx; ++i) x_(i) = x_(0) + i*dx; 
+        for (int j=1; j<ny; ++j) y_(j) = y_(0) + j*dy; 
+
+        Shape3 nbrs_shape = {nx, ny, 4}; 
+        nbr_inds.resize(nbrs_shape); 
+        edges.resize(nbrs_shape); 
+        build_connectivity(); 
+
+        // The reverse inbr number.
+        // For example, if the current cell is K, its 0th neighbor is L.
+        // Then, for cell L, K is its 2th neighbor.
+        rinbr_(0) = 2; 
+        rinbr_(1) = 3; 
+        rinbr_(2) = 0; 
+        rinbr_(3) = 1; 
+
+      }
+    
+    double x(int i) const { return x_(i); }
+    double y(int j) const { return y_(j); }
+    int nx() const { return nx_; }
+    int ny() const { return ny_; }
+    double dx() const { return dx_; }
+    double hdx() const { return dx()/2.0; }
+    double dy() const { return dy_; }
+    double hdy() const { return dy()/2.0; }
+    double dt() const { return dt_; }
+    double dt_area() const { return dt_ / (dx_ * dy_);}
+
+    int nnbrs() const { return 4; } // each cell has 4 nbrs
+    int rinbr(int inbr) const { return rinbr_(inbr); }                                    
+    
+    void get_cell_ind_interp(const Point& A, Ind* indp) const {
+      indp->i = floor((A(0) - x(0))/dx());  
+      indp->j = floor((A(1) - y(0))/dy()); 
+
+    } // get the lowest i,j index for interpolation to obtain fA and fB 
+
+    void get_nbr_ind(int i, int j, int inbr, Ind* nbr_indp) const {
+      *nbr_indp = nbr_inds(i,j,inbr); 
+    }
+
+    void get_nbr_edg(int i, int j, int inbr, Edge* edgep) const {
+      *edgep = edges(i,j,inbr); 
+    }
+
+  private:
+    int nx_;
+    int ny_;
+    double dx_;
+    double dy_;
+    double dt_; 
+
+    Eigen::VectorXd x_; 
+    Eigen::VectorXd y_; 
+
+    Eigen::Vector4i rinbr_; 
+
+    Array<Ind, 3> nbr_inds; 
+    Array<Edge,3> edges; 
+
+    void build_connectivity();
+};
+
+#endif /* MESH_H */
+

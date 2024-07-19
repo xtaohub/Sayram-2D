@@ -19,7 +19,7 @@
 // TODO MKL
 // #include "mkl.h"
 #include <cassert>
-#include "Grid.h"
+#include "Mesh.h"
 #include "D.h"
 #include "BoundaryConditions.h"
 #include "Parameters.hpp"
@@ -30,22 +30,21 @@
 #include <ctime>
 // #include <suitesparse/umfpack.h>
 
-
 typedef Eigen::Triplet<double> T;
 
 int main() {
 
     // Create grid object
-    Grid g(nx, ny, dx, dy, dt);
+    Mesh m(nx, ny, dx, dy, dt);
 
     // Create diffusion coefficients object
-    D diffusion(g);
+    D diffusion(m);
     diffusion.constructD(0.0);
 
     // TODO BoundaryConditions modularization
     BoundaryConditions boundary(0, 0.0);
 
-    FVMSolver solver(g, diffusion, boundary);
+    FVMSolver solver(m, diffusion, boundary);
     
     solver.initial();
 

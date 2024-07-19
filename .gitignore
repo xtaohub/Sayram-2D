@@ -1,3 +1,4 @@
 build/
 output/
 fvm2d
+.DS_Store
