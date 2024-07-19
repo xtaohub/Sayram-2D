@@ -130,28 +130,25 @@ void FVMSolver::coeff_M_add_inner(int i, int j, int inbr){
 
 }
 
-void FVMSolver::coeff_add_jp_edge(int i, int j, double u_ipjp, double u_imjp){
-  double a_K = alpha_K_(i,j, 1).A * u_ipjp + alpha_K_(i,j,1).B * u_imjp;
-  S_(ind2to1(i,j)) += a_K;
-  V_coeffs_.push_back(T(ind2to1(i,j), ind2to1(i,j), (alpha_K_(i,j, 1).A + alpha_K_(i,j,1).B)));
-}
+void FVMSolver::coeff_M_add_dirbc(int i, int j, int inbr) {  
+  Edge edge; 
+  m.get_nbr_edg(i, j, inbr, &edge); 
 
-void FVMSolver::coeff_add_jm_edge(int i, int j, double u_imjm, double u_ipjm){
-  double a_K = alpha_K_(i,j,3).A * u_imjm + alpha_K_(i,j,3).B * u_ipjm;
-  S_(ind2to1(i,j)) += a_K;
-  V_coeffs_.push_back(T(ind2to1(i,j), ind2to1(i,j), (alpha_K_(i,j,3).A + alpha_K_(i,j,3).B)));
-}
+  Ind indA, indB; 
+  m.indO(edge.A, &indA); 
+  double fA = vertex_f_(indA.i, indA.j); 
+  
+  m.indO(edge.B, &indB); 
+  double fB = vertex_f_(indB.i,indB.j); 
 
-void FVMSolver::coeff_add_im_edge(int i, int j, double u_imjp, double u_imjm){
-  double a_K = alpha_K_(i,j,0).A * u_imjp + alpha_K_(i,j,0).B * u_imjm;
-  S_(ind2to1(i,j)) = a_K;
-  V_coeffs_.push_back(T(ind2to1(i,j), ind2to1(i,j), (alpha_K_(i,j,0).A + alpha_K_(i,j,0).B)));
+  double aK = alpha_K_(i,j,inbr).A * fA + alpha_K_(i,j,inbr).B * fB; 
+
+  S_(ind2to1(i,j)) += aK; 
+  V_coeffs_.push_back(T(ind2to1(i,j), ind2to1(i,j), (alpha_K_(i,j,inbr).A + alpha_K_(i,j,inbr).B)));
 }
 
 
 void FVMSolver::assemble(){ // obtain S * U^-1 and V * U^-1 
-  double u_ipjp, u_imjp, u_imjm, u_ipjm;
-  double a, p;
   int i, j;
 
   // inner grids
@@ -166,76 +163,40 @@ void FVMSolver::assemble(){ // obtain S * U^-1 and V * U^-1
   // corner gird: i==0, j==0, 
   i = 0;
   j = 0;
-  a = m.x(i);
-  p = m.y(j);
-  u_ipjp = vertex_f_(1, 1);
-  u_imjp = boundary_imin(p + hdy);
-  u_imjm = boundary_imin(p + hdy);
-  u_ipjm = boundary_jmin(a + hdx);
   
   coeff_M_add_inner(i,j,1); 
   coeff_M_add_inner(i,j,2); 
-  coeff_add_im_edge(i, j, u_imjp, u_imjm);
-  coeff_add_jm_edge(i, j, u_imjm, u_ipjm);
-
+  coeff_M_add_dirbc(i, j, 0); 
+  coeff_M_add_dirbc(i, j, 3); 
 
   // corner gird: i==nx-1, j==0
   i = nx-1;
   j = 0;
-  a = m.x(i);
-  p = m.y(j);
-  u_ipjp = (f_(i, j) + f_(i, j+1)) / 2.0;
-  u_imjp = vertex_f_(i, j+1);
-  u_imjm = boundary_jmin(a - hdx);
-  u_ipjm = boundary_jmin(a + hdx);
 
   coeff_M_add_inner(i, j, 1);
   coeff_M_add_inner(i, j, 0); 
-  coeff_add_jm_edge(i, j, u_imjm, u_ipjm);
+  coeff_M_add_dirbc(i, j, 3); 
 
   // i min boundary, j==0
   j = 0;
-  p = m.y(j);
   for (i=1; i<nx-1; ++i){
-    a = m.x(i);
-    u_ipjp = vertex_f_(i+1, j+1);
-    u_imjp = vertex_f_(i, j+1);
-    u_imjm = boundary_jmin(a - hdx);
-    u_ipjm = boundary_jmin(a + hdx);
-
     coeff_M_add_inner(i, j, 1); 
     coeff_M_add_inner(i, j, 0); 
     coeff_M_add_inner(i, j, 2); 
-    coeff_add_jm_edge(i, j, u_imjm, u_ipjm);
+    coeff_M_add_dirbc(i, j, 3); 
   }
 
   // corner gird: i==nx-1, j==ny-1
   i = nx-1;
   j = ny-1;
-  a = m.x(i);
-  p = m.y(j);
-
-  u_ipjp = boundary_jmax(a + hdx);
-  u_imjp = boundary_jmax(a - hdx);
-  u_imjm = vertex_f_(i, j);
-  u_ipjm = (f_(i, j) + f_(i, j-1)) / 2.0;
 
   //
   coeff_M_add_inner(i, j, 0);
   coeff_M_add_inner(i, j, 3);
-  coeff_add_jp_edge(i, j, u_ipjp, u_imjp);
+  coeff_M_add_dirbc(i, j, 1); 
 
-  // i max boundary (except corner), i==nx-1
   i = nx-1;
-  a = m.x(i);
   for(j=1; j<ny-1; j++){
-    p = m.y(j);
-
-    u_ipjp = (f_(i, j) + f_(i, j+1)) / 2.0;
-    u_imjp = vertex_f_(i, j+1);
-    u_imjm = vertex_f_(i, j);
-    u_ipjm = (f_(i, j) + f_(i, j-1)) / 2.0;
-
     coeff_M_add_inner(i, j, 1);
     coeff_M_add_inner(i, j, 3);
     coeff_M_add_inner(i, j, 0);
@@ -244,56 +205,29 @@ void FVMSolver::assemble(){ // obtain S * U^-1 and V * U^-1
   // corner gird: i==0, j==ny-1
   i = 0;
   j = ny - 1;
-  a = m.x(i);
-  p = m.y(j);
 
-  u_ipjp = boundary_jmax(a + hdx);
-  u_imjp = boundary_jmax(a - hdx);
-  u_imjm = boundary_imin(p - hdy);
-  u_ipjm = vertex_f_(i+1, j);
-
-  // coeff_add_jm(i, j, a, p, u_imjm, u_ipjm);
-  // coeff_add_ip(i, j, a, p, u_ipjm, u_ipjp);
   coeff_M_add_inner(i, j, 3);
   coeff_M_add_inner(i, j, 2);
-
-  coeff_add_im_edge(i, j, u_imjp, u_imjm);
-  coeff_add_jp_edge(i, j, u_ipjp, u_imjp);
-
+  coeff_M_add_dirbc(i, j, 0); 
+  coeff_M_add_dirbc(i, j, 1); 
 
   // j max boundary (except corner), j==ny-1
   j = ny - 1;
-  p = m.y(j);
   for (i=1; i<nx-1; ++i){
-    a = m.x(i);
-
-    u_ipjp = boundary_jmax(a + hdx);
-    u_imjp = boundary_jmax(a - hdx);
-    u_imjm = vertex_f(i-1, j-1);
-    u_ipjm = vertex_f(i, j-1);
-
     coeff_M_add_inner(i, j, 3);
     coeff_M_add_inner(i, j, 0);
     coeff_M_add_inner(i, j, 2);
-    coeff_add_jp_edge(i, j, u_ipjp, u_imjp);
+    coeff_M_add_dirbc(i, j, 1); 
   }
 
   // i min boundary (except corner), i==0
   i = 0;
-  a = m.x(i);
   for(j=1; j<ny-1; j++){
-    p = m.y(j);
-
-    u_ipjp = vertex_f(i, j);
-    u_imjp = boundary_imin(p + hdy);
-    u_imjm = boundary_imin(p - hdy);
-    u_ipjm = vertex_f(i, j-1);
 
     coeff_M_add_inner(i, j, 1);
     coeff_M_add_inner(i, j, 3);
     coeff_M_add_inner(i, j, 2);
-
-    coeff_add_im_edge(i, j, u_imjp, u_imjm);
+    coeff_M_add_dirbc(i, j, 0); 
   }
 
   V_.setFromTriplets(V_coeffs_.begin(), V_coeffs_.end());
