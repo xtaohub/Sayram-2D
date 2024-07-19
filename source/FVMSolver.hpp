@@ -19,7 +19,7 @@
 #include "Eigen/Sparse"
 #include "Array.h"
 
-struct NTPFA_nodes{ // the two points A,B used in Nonlinear Two Point Approximation
+struct NTPFA_nodes{ // two points A,B used in Nonlinear Two Point Approximation
   double A;
   double B;
 }; 
@@ -51,9 +51,6 @@ class FVMSolver {
     Eigen::VectorXd R_;
 
     Array<NTPFA_nodes, 3> alpha_K_; 
-
-    double hdx_; 
-    double hdy_; 
 
     //
     // use a matrix to store f at vertices to build a lookup 

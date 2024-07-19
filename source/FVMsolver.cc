@@ -27,9 +27,6 @@ FVMSolver::FVMSolver(const Mesh& m_in, const D& d_in, const BoundaryConditions& 
     vertex_f_.resize(nx+1,ny+1); 
     U_.resize(nx*ny, nx*ny);
 
-    hdx_ = m.dx()/2.0;
-    hdy_ = m.dy()/2.0;
-
     initial(); 
 
   }
