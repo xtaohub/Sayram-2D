@@ -37,16 +37,12 @@ class Mesh {
         dy_ = dy; 
         dt_ = dt; 
 
-        // // should init x and y here.
-        // x_ = 0;
-        // y_ = 0; 
-
         // these two lines need to be changed.
         xO_ = ALPHA_LC;
         yO_ = P_MIN; 
 
-        x_(0) = xO_ + dx/2.0; 
-        y_(0) = yO_ + dy/2.0; 
+        x_(0) = xO() + dx/2.0; 
+        y_(0) = yO() + dy/2.0; 
 
         for (int i=1; i<nx; ++i) x_(i) = x_(0) + i*dx; 
         for (int j=1; j<ny; ++j) y_(j) = y_(0) + j*dy; 
@@ -73,9 +69,7 @@ class Mesh {
     int nx() const { return nx_; }
     int ny() const { return ny_; }
     double dx() const { return dx_; }
-    double hdx() const { return dx()/2.0; }
     double dy() const { return dy_; }
-    double hdy() const { return dy()/2.0; }
     double dt() const { return dt_; }
     double area_dt() const { return dx_ * dy_ / dt_;}
 
@@ -88,6 +82,15 @@ class Mesh {
     }
 
     int nnbrs() const { return 4; } // each cell has 4 nbrs
+                                    
+    // define the neighbor # of four adjacent cells
+    // im -- (i-1, j); jp -- (i,j+1)
+    // ip -- (i+1, j); jm -- (i,j-1)
+    int inbr_im() const { return 0; }
+    int inbr_jp() const { return 1; }
+    int inbr_ip() const { return 2; }
+    int inbr_jm() const { return 3; }
+
     int rinbr(int inbr) const { return rinbr_(inbr); }                                    
 
     void get_nbr_ind(int i, int j, int inbr, Ind* nbr_indp) const {

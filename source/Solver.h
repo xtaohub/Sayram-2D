@@ -40,13 +40,10 @@ class Solver {
     // M f = S
     Eigen::SparseLU<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> solver;
 
-    SpMat V_;
-    std::vector<T> V_coeffs_;
     SpMat M_;
+    std::vector<T> M_coeffs_;
 
     Eigen::MatrixXd f_;
-    Eigen::MatrixXd U_; 
-    Eigen::VectorXd S_;
     Eigen::VectorXd R_;
 
     Array<NTPFA_node, 3> alpha_osf_; // alpha_one_sided_flux
@@ -62,25 +59,19 @@ class Solver {
       return j*m.nx()+i; 
     }
 
-    void set_vertex_f(); 
+    void update_vertex_f(); 
 
     void assemble();
-
-    void construct_U_();
 
     void construct_alpha_osf();
     void alpha_osf_func(const Eigen::Matrix2d& Lambda_K, const Point& K, const Point& A, const Point& B, NTPFA_node* nodep);
 
-    // add coefficient to M corresponds to the inbr cell of cell (i,j)
+    // add coefficients to M and R corresponds to the inbr cell of cell (i,j)
     // Here: the inbr neighbor is an inner cell.
-    void coeff_M_add_inner(int i, int j, int inbr);  
+    void coeff_add_inner(int i, int j, int inbr);  
   
     // Here: the inbr neighbor is a Dirichlet boundary cell.
-    void coeff_M_add_dirbc(int i, int j, int inbr); 
-
-    double coeff_a(double alphaA, double fA, double alphaB, double fB) const {
-      return alphaA*fA + alphaB*fB; 
-    }
+    void coeff_add_dirbc(int i, int j, int inbr); 
 
     double coeff_mu(double aK, double aL) const {
       if (aK != 0 || aL != 0){

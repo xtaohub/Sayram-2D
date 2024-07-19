@@ -23,58 +23,51 @@
 #include "Solver.h"
 #include <ctime>
 
-typedef Eigen::Triplet<double> T;
-
 int main() {
 
-    Eigen::Vector2i a; 
+  // Create grid object
+  Mesh m(nx, ny, dx, dy, dt);
 
-    a(2) = 5; 
+  // Create diffusion coefficients object
+  D diffusion(m);
+  diffusion.constructD(0.0);
 
-    // Create grid object
-    Mesh m(nx, ny, dx, dy, dt);
+  // TODO BoundaryConditions modularization
+  BCs boundary(0, 0.0);
 
-    // Create diffusion coefficients object
-    D diffusion(m);
-    diffusion.constructD(0.0);
+  Solver solver(m, diffusion, boundary);
 
-    // TODO BoundaryConditions modularization
-    BCs boundary(0, 0.0);
+  string path;
 
-    Solver solver(m, diffusion, boundary);
+  // The timer
+  clock_t start, end;
+  double cpu_time;
+  start = clock();
 
-    string path;
+  // Time loop for solving
+  for (int k = 0; k < steps; ++k) {
 
-    // The timer
-    clock_t start, end;
-    double cpu_time;
-    start = clock();
+    // Solve using FVM solver
+    solver.update();
 
-    // Time loop for solving
-    for (int k = 0; k < steps; ++k) {
-        
-        // Solve using FVM solver
-        solver.update();
+    if(k % printstep == printstep - 1){
 
-        // Output or visualize f at each time step
-        std::cout << "Time step: " << k << std::endl;
-        
-        if(k % printstep == printstep - 1){
-            path = "./output/SMPPFV/smppfv" + std::to_string(int((k + 1) / printstep));
-    
-            ofstream outFile(path);
-            assert(outFile);
+      std::cout << "Time step: " << k << std::endl;
+      path = "./output/SMPPFV/smppfv" + std::to_string(int((k + 1) / printstep));
 
-            for (double value : solver.f().reshaped()) {
-                outFile << value << std::endl;
-            }
-            outFile.close();
-        }
+      ofstream outFile(path);
+      assert(outFile);
+
+      for (double value : solver.f().reshaped()) {
+        outFile << value << std::endl;
+      }
+      outFile.close();
     }
-    end = clock();
-    cpu_time = ((double) (end - start)) / CLOCKS_PER_SEC;
-    std::cout << "CPU time used " << cpu_time << " seconds" << std::endl;
+  }
+  end = clock();
+  cpu_time = ((double) (end - start)) / CLOCKS_PER_SEC;
+  std::cout << "CPU time used " << cpu_time << " seconds" << std::endl;
 
-    return 0;
+  return 0;
 }
 

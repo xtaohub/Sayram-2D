@@ -1,7 +1,7 @@
 #ifndef COMMON_H_
 #define COMMON_H_
 
-// #define EIGEN_NO_DEBUG
+#define EIGEN_NO_DEBUG
 
 #include <iostream>
 #include <iomanip>
