@@ -12,7 +12,7 @@ SRCS := $(shell find $(SRC_DIR)/* -name \*.cc)
 OBJS := $(addprefix $(BUILD_DIR)/, $(SRCS:.cc=.o))
 DEPS := $(addprefix $(BUILD_DIR)/, $(SRCS:.cc=.d))
 
-CCFLAGS = -Wall -O2 -fopenmp -I$(LOCAL_INCLUDE) 
+CCFLAGS = -Wall -Wno-class-memaccess -O2 -fopenmp -I$(LOCAL_INCLUDE) 
 CCFLAGS += $(DIRS:%=-I%)
 CCFLAGS += 
 

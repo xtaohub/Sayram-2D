@@ -15,7 +15,7 @@
 // #define EIGEN_VECTORIZE_SSE4_2
 #define EIGEN_NO_DEBUG
 #include <iostream>
-#include <emmintrin.h>
+// #include <emmintrin.h>
 // TODO MKL
 // #include "mkl.h"
 #include <cassert>
