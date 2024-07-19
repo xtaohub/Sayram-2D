@@ -51,15 +51,14 @@ class FVMSolver {
     // M f = S
     Eigen::SparseLU<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> solver;
 
-    SpMat V_invU_;
-    std::vector<T> V_invU_coeffs_;
+    SpMat V_;
+    std::vector<T> V_coeffs_;
     SpMat M_;
 
-    Eigen::MatrixXd f_; 
-    Eigen::VectorXd S_invU_;
+    Eigen::MatrixXd f_;
+    Eigen::MatrixXd U_; 
+    Eigen::VectorXd S_;
     Eigen::VectorXd R_;
-
-    Eigen::MatrixXd Id_; 
 
     // Eigen::Matrix<Alpha_K, Eigen::Dynamic, Eigen::Dynamic> alpha_K_;
 
@@ -98,26 +97,16 @@ class FVMSolver {
     void assemble();
     void construct_alpha_K();
 
+    void construct_U_();
+
     void alpha_K(const Eigen::Matrix2d& Lambda_K, const Eigen::Vector2d& K, const Eigen::Vector2d& A, const Eigen::Vector2d& B, double* alpha_KA, double* alpha_KB); 
 
-    // // add coefficients to the Matrix M_ for inner grids (j plus (jp) direction flux)
-    // void coeff_add_jp(int i, int j, double a, double p, double u_ipjp, double u_imjp);
-    //
-    // // add coefficients to the Matrix M_ for inner grids (jm)
-    // void coeff_add_jm(int i, int j, double a, double p, double u_imjm, double u_ipjm);
-    //
-    // // add coefficients to the Matrix M_ for inner grids (ip)
-    // void coeff_add_ip(int i, int j, double a, double p, double u_ipjm, double u_ipjp);
-    //
-    // // add coefficients to the Matrix M_ for inner grids (im)
-    // void coeff_add_im(int i, int j, double a, double p, double u_imjp, double u_imjm);
-
     // add coefficients, but the edge condition (i max boundary condition flux is 0, ignored)
-    void coeff_add_jp_edge(int i, int j, double a, double p, double u_ipjp, double u_imjp);
-    void coeff_add_jm_edge(int i, int j, double a, double p, double u_imjm, double u_ipjm);
-    void coeff_add_im_edge(int i, int j, double a, double p, double u_imjp, double u_imjm);
+    void coeff_add_jp_edge(int i, int j, double u_ipjp, double u_imjp);
+    void coeff_add_jm_edge(int i, int j, double u_imjm, double u_ipjm);
+    void coeff_add_im_edge(int i, int j, double u_imjp, double u_imjm);
 
-    void coeff_M(int icell, int jcell);  
+    // void coeff_M(int icell, int jcell);  
 
     // void coeff_M_single(int i, int j, double a, double p, double u1, double u2); 
     

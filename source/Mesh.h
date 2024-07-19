@@ -77,7 +77,7 @@ class Mesh {
     double dy() const { return dy_; }
     double hdy() const { return dy()/2.0; }
     double dt() const { return dt_; }
-    double dt_area() const { return dt_ / (dx_ * dy_);}
+    double area_dt() const { return dx_ * dy_ / dt_;}
 
     void indO(const Point& A, Ind* indp) const { 
       // calculate the i,j coordinate relative to the Origin
