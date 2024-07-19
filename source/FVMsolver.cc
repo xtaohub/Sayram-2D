@@ -146,86 +146,49 @@ void FVMSolver::coeff_M_add_dirbc(int i, int j, int inbr) {
 
 
 void FVMSolver::assemble(){ // obtain S * U^-1 and V * U^-1 
-  int i, j;
 
-  // inner grids
-  for (i=1; i<m.nx()-1; ++i){
-    for (j=1; j<m.ny()-1; ++j){
+  // inner cells
+  for (int i=1; i<m.nx()-1; ++i){
+    for (int j=1; j<m.ny()-1; ++j){
 
       for (int inbr = 0; inbr < m.nnbrs(); ++inbr) 
         coeff_M_add_inner(i, j, inbr);
     }
   }
-
-  // corner gird: i==0, j==0, 
-  i = 0;
-  j = 0;
   
-  coeff_M_add_inner(i,j,1); 
-  coeff_M_add_inner(i,j,2); 
-  coeff_M_add_dirbc(i, j, 0); 
-  coeff_M_add_dirbc(i, j, 3); 
+  // row: i == 0 
+  for (int j=0; j<m.ny(); ++j) {
+    coeff_M_add_inner(0,j,2);
+    coeff_M_add_dirbc(0,j,0); 
+  }
+  for (int j=1; j<m.ny(); ++j) coeff_M_add_inner(0,j,3);
+  for (int j=0; j<m.ny()-1; ++j) coeff_M_add_inner(0,j,1);
 
-  // corner gird: i==nx-1, j==0
-  i = nx-1;
-  j = 0;
+  // row i == nx-1 alpha = 90 
+  for (int j=0; j<m.ny(); ++j) {
+    coeff_M_add_inner(m.nx()-1,j,0); 
+    // nothing special for alpha=90 for inbr=2
+  }
+  for (int j=1; j<m.ny(); ++j) coeff_M_add_inner(m.nx()-1,j,3);
+  for (int j=0; j<m.ny()-1; ++j) coeff_M_add_inner(m.nx()-1,j,1);
 
-  coeff_M_add_inner(i, j, 1);
-  coeff_M_add_inner(i, j, 0); 
-  coeff_M_add_dirbc(i, j, 3); 
-
-  // i min boundary, j==0
-  j = 0;
-  for (i=1; i<nx-1; ++i){
-    coeff_M_add_inner(i, j, 1); 
-    coeff_M_add_inner(i, j, 0); 
-    coeff_M_add_inner(i, j, 2); 
-    coeff_M_add_dirbc(i, j, 3); 
+  // col j = 0
+  for (int i=0; i<m.nx(); ++i) {
+    coeff_M_add_inner(i,0,1); 
+    coeff_M_add_dirbc(i,0,3); 
   }
 
-  // corner gird: i==nx-1, j==ny-1
-  i = nx-1;
-  j = ny-1;
+  for (int i=1; i<m.nx(); ++i) coeff_M_add_inner(i,0,0);
+  for (int i=0; i<m.nx()-1; ++i) coeff_M_add_inner(i,0,2);
 
-  //
-  coeff_M_add_inner(i, j, 0);
-  coeff_M_add_inner(i, j, 3);
-  coeff_M_add_dirbc(i, j, 1); 
-
-  i = nx-1;
-  for(j=1; j<ny-1; j++){
-    coeff_M_add_inner(i, j, 1);
-    coeff_M_add_inner(i, j, 3);
-    coeff_M_add_inner(i, j, 0);
+  // col j == ny-1
+  for (int i=0; i<m.nx(); ++i) {
+    coeff_M_add_inner(i,m.ny()-1,3); 
+    coeff_M_add_dirbc(i,m.ny()-1,1); 
   }
 
-  // corner gird: i==0, j==ny-1
-  i = 0;
-  j = ny - 1;
-
-  coeff_M_add_inner(i, j, 3);
-  coeff_M_add_inner(i, j, 2);
-  coeff_M_add_dirbc(i, j, 0); 
-  coeff_M_add_dirbc(i, j, 1); 
-
-  // j max boundary (except corner), j==ny-1
-  j = ny - 1;
-  for (i=1; i<nx-1; ++i){
-    coeff_M_add_inner(i, j, 3);
-    coeff_M_add_inner(i, j, 0);
-    coeff_M_add_inner(i, j, 2);
-    coeff_M_add_dirbc(i, j, 1); 
-  }
-
-  // i min boundary (except corner), i==0
-  i = 0;
-  for(j=1; j<ny-1; j++){
-
-    coeff_M_add_inner(i, j, 1);
-    coeff_M_add_inner(i, j, 3);
-    coeff_M_add_inner(i, j, 2);
-    coeff_M_add_dirbc(i, j, 0); 
-  }
+  for (int i=1; i<m.nx(); ++i) coeff_M_add_inner(i,m.ny()-1,0);
+  for (int i=0; i<m.nx()-1; ++i) coeff_M_add_inner(i,m.ny()-1,2);
 
   V_.setFromTriplets(V_coeffs_.begin(), V_coeffs_.end());
 }
