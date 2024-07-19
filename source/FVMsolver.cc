@@ -127,7 +127,7 @@ void FVMSolver::coeff_M_add_inner(int i, int j, int inbr){
   double aK = coeff_a(alpha_K_(i,j,inbr).A, fA, alpha_K_(i,j,inbr).B, fB);
 
   int rinbr = m.rinbr(inbr); // for the neighboring cell, A and B are reversed. 
-  double aL = coeff_a(alpha_K_(i,j,rinbr).A, fB, alpha_K_(i,j,rinbr).B, fA); 
+  double aL = coeff_a(alpha_K_(ind.i,ind.j,rinbr).A, fB, alpha_K_(ind.i,ind.j,rinbr).B, fA); 
 
   double muK = coeff_mu(aK, aL); 
   double muL = 1.0 - muK; 
@@ -137,7 +137,7 @@ void FVMSolver::coeff_M_add_inner(int i, int j, int inbr){
   double B_sigma_n = bsigma_minus(B_sigma);
 
   double A_K = muK * (alpha_K_(i,j, inbr).A + alpha_K_(i,j, inbr).B) + B_sigma_p / (f_(i, j) + 1e-15);
-  double A_L = muL * (alpha_K_(i,j, rinbr).A + alpha_K_(i,j, inbr).B) + B_sigma_n / (f_(ind.i, ind.j) + 1e-15);
+  double A_L = muL * (alpha_K_(ind.i,ind.j, rinbr).A + alpha_K_(ind.i,ind.j, inbr).B) + B_sigma_n / (f_(ind.i, ind.j) + 1e-15);
 
   V_invU_coeffs_.push_back(T(ind2to1(i,j), ind2to1(i,j), A_K * m.dt_area() / G(a, p)));
   V_invU_coeffs_.push_back(T(ind2to1(i,j), ind2to1(ind.i,ind.j), -A_L * m.dt_area() / G(a, p)));
