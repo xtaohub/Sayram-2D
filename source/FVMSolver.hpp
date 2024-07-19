@@ -100,17 +100,17 @@ class FVMSolver {
 
     void alpha_K(const Eigen::Matrix2d& Lambda_K, const Eigen::Vector2d& K, const Eigen::Vector2d& A, const Eigen::Vector2d& B, double* alpha_KA, double* alpha_KB); 
 
-    // add coefficients to the Matrix M_ for inner grids (j plus (jp) direction flux)
-    void coeff_add_jp(int i, int j, double a, double p, double u_ipjp, double u_imjp);
-
-    // add coefficients to the Matrix M_ for inner grids (jm)
-    void coeff_add_jm(int i, int j, double a, double p, double u_imjm, double u_ipjm);
-
-    // add coefficients to the Matrix M_ for inner grids (ip)
-    void coeff_add_ip(int i, int j, double a, double p, double u_ipjm, double u_ipjp);
-
-    // add coefficients to the Matrix M_ for inner grids (im)
-    void coeff_add_im(int i, int j, double a, double p, double u_imjp, double u_imjm);
+    // // add coefficients to the Matrix M_ for inner grids (j plus (jp) direction flux)
+    // void coeff_add_jp(int i, int j, double a, double p, double u_ipjp, double u_imjp);
+    //
+    // // add coefficients to the Matrix M_ for inner grids (jm)
+    // void coeff_add_jm(int i, int j, double a, double p, double u_imjm, double u_ipjm);
+    //
+    // // add coefficients to the Matrix M_ for inner grids (ip)
+    // void coeff_add_ip(int i, int j, double a, double p, double u_ipjm, double u_ipjp);
+    //
+    // // add coefficients to the Matrix M_ for inner grids (im)
+    // void coeff_add_im(int i, int j, double a, double p, double u_imjp, double u_imjm);
 
     // add coefficients, but the edge condition (i max boundary condition flux is 0, ignored)
     void coeff_add_jp_edge(int i, int j, double a, double p, double u_ipjp, double u_imjp);

@@ -46,7 +46,7 @@ int main() {
 
     FVMSolver solver(m, diffusion, boundary);
     
-    solver.initial();
+    // solver.initial();
 
     string path;
 

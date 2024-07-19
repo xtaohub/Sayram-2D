@@ -29,6 +29,9 @@ FVMSolver::FVMSolver(const Mesh& m_in, const D& d_in, const BoundaryConditions& 
 
     hdx_ = m.dx()/2.0;
     hdy_ = m.dy()/2.0;
+
+    initial(); 
+
   }
 
 void FVMSolver::initial(){
@@ -42,6 +45,8 @@ void FVMSolver::initial(){
     }
   }
   construct_alpha_K();
+
+  set_vertex_f();
 }
 
 void FVMSolver::alpha_K(const Eigen::Matrix2d& Lambda_K, const Eigen::Vector2d& K, const Eigen::Vector2d& A, const Eigen::Vector2d& B, double* alpha_KAp, double* alpha_KBp){
