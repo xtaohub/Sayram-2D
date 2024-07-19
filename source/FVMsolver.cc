@@ -24,7 +24,7 @@ FVMSolver::FVMSolver(const Mesh& m_in, const D& d_in, const BoundaryConditions& 
     R_.resize(nx*ny);
 
     alpha_K_.resize(nx, ny, m.nnbrs()); 
-
+    vertex_f_.resize(nx+1,ny+1); 
     Id_ = Eigen::MatrixXd::Identity(nx*ny, nx*ny);
 
     hdx_ = m.dx()/2.0;
@@ -96,25 +96,34 @@ void FVMSolver::construct_alpha_K(){
 }
 
 void FVMSolver::coeff_M_add_inner(int i, int j, int inbr){
-  Ind ind_A, ind_B, ind; 
+  Ind ind; 
   Edge edge; 
   m.get_nbr_edg(i, j, inbr, &edge); 
   m.get_nbr_ind(i, j, inbr, &ind); 
-  m.get_cell_ind_interp(edge.A, &ind_A);
-  m.get_cell_ind_interp(edge.B, &ind_B);
+  // m.get_cell_ind_interp(edge.A, &ind_A);
+  // m.get_cell_ind_interp(edge.B, &ind_B);
+  //
+  //
+  double ii, jj;
+  ii = round(edge.A(0) - m.xO()) / m.dx(); 
+  jj = round(edge.A(1) - m.yO()) / m.dy(); 
+  double fA = vertex_f_(ii,jj); 
   
-  double fA = vertex_f(ind_A.i, ind_A.j); 
-  double fB = vertex_f(ind_B.i, ind_B.j); 
+  // double fA = vertex_f(ind_A.i, ind_A.j); 
+  // double fB = vertex_f(ind_B.i, ind_B.j); 
+  ii = round(edge.B(0) - m.xO()) / m.dx(); 
+  jj = round(edge.B(1) - m.yO()) / m.dy(); 
+  double fB = vertex_f_(ii,jj); 
 
   double a, p; 
   a = m.x(i); 
   p = m.y(j); 
 
   double aK = coeff_a(alpha_K_(i,j,inbr).A, fA, alpha_K_(i,j,inbr).B, fB);
-  
+
   int rinbr = m.rinbr(inbr); // for the neighboring cell, A and B are reversed. 
   double aL = coeff_a(alpha_K_(i,j,rinbr).A, fB, alpha_K_(i,j,rinbr).B, fA); 
-  
+
   double muK = coeff_mu(aK, aL); 
   double muL = 1.0 - muK; 
 
@@ -211,9 +220,9 @@ void FVMSolver::assemble(){ // obtain S * U^-1 and V * U^-1
   int i, j;
 
   // inner grids
-  for (i=1; i<nx-1; ++i){
+  for (i=1; i<m.nx()-1; ++i){
     a = ALPHA_LC + hdx + dx * i;
-    for (j=1; j<ny-1; ++j){
+    for (j=1; j<m.ny()-1; ++j){
       p = P_MIN + hdy + dy * j;
       // u_ipjp = vertex_f(i,j);
       // u_imjp = vertex_f(i-1,j);
@@ -235,13 +244,14 @@ void FVMSolver::assemble(){ // obtain S * U^-1 and V * U^-1
   j = 0;
   a = ALPHA_LC + hdx + dx * i;
   p = P_MIN + hdy + dy * j;
-  u_ipjp = vertex_f(i, j);
+  u_ipjp = vertex_f_(1, 1);
   u_imjp = boundary_imin(p + hdy);
   u_imjm = boundary_imin(p + hdy);
   u_ipjm = boundary_jmin(a + hdx);
 
   // coeff_add_jp(i, j, a, p, u_ipjp, u_imjp);
   // coeff_add_ip(i, j, a, p, u_ipjm, u_ipjp);
+  
   coeff_M_add_inner(i,j,1); 
   coeff_M_add_inner(i,j,2); 
   coeff_add_im_edge(i, j, a, p, u_imjp, u_imjm);
@@ -254,7 +264,7 @@ void FVMSolver::assemble(){ // obtain S * U^-1 and V * U^-1
   a = ALPHA_LC + hdx + dx * i;
   p = P_MIN + hdy + dy * j;
   u_ipjp = (f_(i, j) + f_(i, j+1)) / 2.0;
-  u_imjp = vertex_f(i-1, j);
+  u_imjp = vertex_f_(i, j+1);
   u_imjm = boundary_jmin(a - hdx);
   u_ipjm = boundary_jmin(a + hdx);
 
@@ -269,8 +279,8 @@ void FVMSolver::assemble(){ // obtain S * U^-1 and V * U^-1
   p = P_MIN + hdy + dy * j;
   for (i=1; i<nx-1; ++i){
     a = ALPHA_LC + hdx + dx * i;
-    u_ipjp = vertex_f(i, j);
-    u_imjp = vertex_f(i-1, j);
+    u_ipjp = vertex_f_(i+1, j+1);
+    u_imjp = vertex_f_(i, j+1);
     u_imjm = boundary_jmin(a - hdx);
     u_ipjm = boundary_jmin(a + hdx);
 
@@ -292,7 +302,7 @@ void FVMSolver::assemble(){ // obtain S * U^-1 and V * U^-1
 
   u_ipjp = boundary_jmax(a + hdx);
   u_imjp = boundary_jmax(a - hdx);
-  u_imjm = vertex_f(i-1, j-1);
+  u_imjm = vertex_f_(i, j);
   u_ipjm = (f_(i, j) + f_(i, j-1)) / 2.0;
 
   // coeff_add_jm(i, j, a, p, u_imjm, u_ipjm);
@@ -309,8 +319,8 @@ void FVMSolver::assemble(){ // obtain S * U^-1 and V * U^-1
     p = P_MIN + hdy + dy * j;
 
     u_ipjp = (f_(i, j) + f_(i, j+1)) / 2.0;
-    u_imjp = vertex_f(i-1, j);
-    u_imjm = vertex_f(i-1, j-1);
+    u_imjp = vertex_f_(i, j+1);
+    u_imjm = vertex_f_(i, j);
     u_ipjm = (f_(i, j) + f_(i, j-1)) / 2.0;
 
     // coeff_add_jp(i, j, a, p, u_ipjp, u_imjp);
@@ -330,7 +340,7 @@ void FVMSolver::assemble(){ // obtain S * U^-1 and V * U^-1
   u_ipjp = boundary_jmax(a + hdx);
   u_imjp = boundary_jmax(a - hdx);
   u_imjm = boundary_imin(p - hdy);
-  u_ipjm = vertex_f(i, j-1);
+  u_ipjm = vertex_f_(i+1, j);
 
   // coeff_add_jm(i, j, a, p, u_imjm, u_ipjm);
   // coeff_add_ip(i, j, a, p, u_ipjm, u_ipjp);
@@ -400,6 +410,28 @@ void FVMSolver::update() {
   solver.factorize(M_);
 
   f_.reshaped() = solver.solve(R_);
+
+  set_vertex_f();
 }
 
+void FVMSolver::set_vertex_f(){
+  for (int i=1; i<m.nx(); ++i)
+    for (int j=1; j<m.ny(); ++j){
+      vertex_f_(i,j) = (f_(i-1,j-1) + f_(i-1,j) + f_(i,j-1) + f_(i,j)) / 4.0; 
+    }
 
+  // i == 0 boundary
+  double a, p;
+  for (int j = 0; j<vertex_f_.ncols(); ++j){
+    p = m.yO()+j*m.dy(); 
+    vertex_f_(0, j) = boundary_imin(p);
+  }
+
+  // j == 0  and j == m.ny() boundary
+  for (int i = 0; i < vertex_f_.nrows(); ++i) {
+    a = m.xO() + i*m.dx(); 
+    vertex_f_(i,0) = boundary_jmin(a);
+    vertex_f_(i,m.ny()) = boundary_jmax(a);  
+  }
+
+}

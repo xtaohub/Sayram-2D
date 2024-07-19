@@ -23,8 +23,8 @@ void Mesh::build_connectivity() {
             nbr_inds(i,j,inbr).i = i-1;
             nbr_inds(i,j,inbr).j = j; 
 
-            B(0) = i*dx();  
-            B(1) = j*dy(); 
+            B(0) = xO_ + i*dx();  
+            B(1) = yO_ + j*dy(); 
 
             A(0) = B(0); 
             A(1) = B(1)+dy(); 

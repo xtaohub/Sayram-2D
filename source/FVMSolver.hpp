@@ -68,6 +68,12 @@ class FVMSolver {
     double hdx_; 
     double hdy_; 
 
+    //
+    // use a matrix to store f at vertices to build a lookup table for fA and fB
+    // vertex_f is of size (nx+1, ny+1)
+    // 
+    Array<double, 2> vertex_f_; 
+
     int ind2to1(int i, int j) const { 
       // map 2d indices to 1, column major
       return j*m.nx()+i; 
@@ -86,6 +92,8 @@ class FVMSolver {
       //
       return (f_(imin,jmin) + f_(imin,jmin+1) + f_(imin+1,jmin) + f_(imin+1,jmin+1)) / 4.0;
     }
+
+    void set_vertex_f(); 
 
     void assemble();
     void construct_alpha_K();

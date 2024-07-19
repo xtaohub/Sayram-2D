@@ -42,8 +42,11 @@ class Mesh {
         // y_ = 0; 
 
         // these two lines need to be changed.
-        x_(0) = ALPHA_LC + dx/2.0; 
-        y_(0) = P_MIN + dy/2.0; 
+        xO_ = ALPHA_LC;
+        yO_ = P_MIN; 
+
+        x_(0) = xO_ + dx/2.0; 
+        y_(0) = yO_ + dy/2.0; 
 
         for (int i=1; i<nx; ++i) x_(i) = x_(0) + i*dx; 
         for (int j=1; j<ny; ++j) y_(j) = y_(0) + j*dy; 
@@ -65,6 +68,8 @@ class Mesh {
     
     double x(int i) const { return x_(i); }
     double y(int j) const { return y_(j); }
+    double xO() const { return xO_; }
+    double yO() const { return yO_; }
     int nx() const { return nx_; }
     int ny() const { return ny_; }
     double dx() const { return dx_; }
@@ -97,6 +102,10 @@ class Mesh {
     double dx_;
     double dy_;
     double dt_; 
+
+    // coordinate origin: corresponds to i-0.5, j-0.5
+    double xO_; 
+    double yO_; 
 
     Eigen::VectorXd x_; 
     Eigen::VectorXd y_; 
