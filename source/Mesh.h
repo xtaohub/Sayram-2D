@@ -79,14 +79,16 @@ class Mesh {
     double dt() const { return dt_; }
     double dt_area() const { return dt_ / (dx_ * dy_);}
 
+    void indO(const Point& A, Ind* indp) const { 
+      // calculate the i,j coordinate relative to the Origin
+      // Note: not the cell index.
+      // This function is useful to calculate fA and fB from interpolation
+      indp->i = round((A(0) - xO()) / dx());
+      indp->j = round((A(1) - yO()) / dy()); 
+    }
+
     int nnbrs() const { return 4; } // each cell has 4 nbrs
     int rinbr(int inbr) const { return rinbr_(inbr); }                                    
-    
-    void get_cell_ind_interp(const Point& A, Ind* indp) const {
-      indp->i = floor((A(0) - x(0))/dx());  
-      indp->j = floor((A(1) - y(0))/dy()); 
-
-    } // get the lowest i,j index for interpolation to obtain fA and fB 
 
     void get_nbr_ind(int i, int j, int inbr, Ind* nbr_indp) const {
       *nbr_indp = nbr_inds(i,j,inbr); 

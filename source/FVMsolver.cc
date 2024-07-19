@@ -77,10 +77,6 @@ void FVMSolver::construct_alpha_K(){
   Eigen::Vector2d K;
 
   Edge edge;  
-  // Eigen::Vector2d v_imjp;
-  // Eigen::Vector2d v_ipjp;
-  // Eigen::Vector2d v_imjm;
-  // Eigen::Vector2d v_ipjm;
 
   for (int i = 0; i < nx; i++){
     a = ALPHA_LC + hdx + dx * i;
@@ -105,20 +101,13 @@ void FVMSolver::coeff_M_add_inner(int i, int j, int inbr){
   Edge edge; 
   m.get_nbr_edg(i, j, inbr, &edge); 
   m.get_nbr_ind(i, j, inbr, &ind); 
-  // m.get_cell_ind_interp(edge.A, &ind_A);
-  // m.get_cell_ind_interp(edge.B, &ind_B);
-  //
-  //
-  double ii, jj;
-  ii = round(edge.A(0) - m.xO()) / m.dx(); 
-  jj = round(edge.A(1) - m.yO()) / m.dy(); 
-  double fA = vertex_f_(ii,jj); 
+
+  Ind indA, indB; 
+  m.indO(edge.A, &indA); 
+  double fA = vertex_f_(indA.i, indA.j); 
   
-  // double fA = vertex_f(ind_A.i, ind_A.j); 
-  // double fB = vertex_f(ind_B.i, ind_B.j); 
-  ii = round(edge.B(0) - m.xO()) / m.dx(); 
-  jj = round(edge.B(1) - m.yO()) / m.dy(); 
-  double fB = vertex_f_(ii,jj); 
+  m.indO(edge.B, &indB); 
+  double fB = vertex_f_(indB.i,indB.j); 
 
   double a, p; 
   a = m.x(i); 
@@ -143,62 +132,6 @@ void FVMSolver::coeff_M_add_inner(int i, int j, int inbr){
   V_invU_coeffs_.push_back(T(ind2to1(i,j), ind2to1(ind.i,ind.j), -A_L * m.dt_area() / G(a, p)));
 
 }
-
-// void FVMSolver::coeff_add_jp(int i, int j, double a, double p, double u_ipjp, double u_imjp){
-//   double a_K = alpha_K_(i,j).jp1.A * u_ipjp + alpha_K_(i,j).jp1.B * u_imjp;
-//   double a_L = alpha_K_(i,j+1).jm1.A * u_imjp + alpha_K_(i,j+1).jm1.B * u_ipjp;
-//   double mu_K = coeff_mu(a_K, a_L);
-//   double mu_L = 1.0 - mu_K;
-//   double B_sigma = mu_L * a_L - mu_K * a_K;
-//   double B_sigma_p = bsigma_plus(B_sigma);
-//   double B_sigma_n = bsigma_minus(B_sigma);
-//   double A_K = mu_K * (alpha_K_(i,j).jp1.A + alpha_K_(i,j).jp1.B) + B_sigma_p / (f_(i, j) + 1e-15);
-//   double A_L = mu_L * (alpha_K_(i,j+1).jm1.A + alpha_K_(i,j+1).jm1.B) + B_sigma_n / (f_(i, j+1) + 1e-15);
-//   V_invU_coeffs_.push_back(T(ind2to1(i,j), ind2to1(i,j), A_K * m.dt_area() / G(a, p)));
-//   V_invU_coeffs_.push_back(T(ind2to1(i,j), ind2to1(i,j+1), -A_L * m.dt_area() / G(a, p)));
-// }
-//
-// void FVMSolver::coeff_add_jm(int i, int j, double a, double p, double u_imjm, double u_ipjm){
-//   double a_K = alpha_K_(i,j).jm1.A * u_imjm + alpha_K_(i,j).jm1.B * u_ipjm;
-//   double a_L = alpha_K_(i,j-1).jp1.A * u_ipjm + alpha_K_(i,j-1).jp1.B * u_imjm;
-//   double mu_K = coeff_mu(a_K, a_L);
-//   double mu_L = 1.0 - mu_K;
-//   double B_sigma = mu_L * a_L - mu_K * a_K;
-//   double B_sigma_p = bsigma_plus(B_sigma);
-//   double B_sigma_n = bsigma_minus(B_sigma);
-//   double A_K = mu_K * (alpha_K_(i,j).jm1.A + alpha_K_(i,j).jm1.B) + B_sigma_p / (f_(i, j) + 1e-15);
-//   double A_L = mu_L * (alpha_K_(i,j-1).jp1.A + alpha_K_(i,j-1).jp1.B) + B_sigma_n / (f_(i, j-1) + 1e-15);
-//   V_invU_coeffs_.push_back(T(ind2to1(i,j), ind2to1(i,j), A_K * m.dt_area() / G(a, p)));
-//   V_invU_coeffs_.push_back(T(ind2to1(i,j), ind2to1(i,j-1), -A_L * m.dt_area() / G(a, p)));
-// }
-//
-// void FVMSolver::coeff_add_ip(int i, int j, double a, double p, double u_ipjm, double u_ipjp){
-//   double a_K = alpha_K_(i,j).ip1.A * u_ipjm + alpha_K_(i,j).ip1.B * u_ipjp;
-//   double a_L = alpha_K_(i+1, j).ip1.A * u_ipjp + alpha_K_(i+1, j).ip1.B * u_ipjm;
-//   double mu_K = coeff_mu(a_K, a_L);
-//   double mu_L = 1.0 - mu_K;
-//   double B_sigma = mu_L * a_L - mu_K * a_K;
-//   double B_sigma_p = bsigma_plus(B_sigma);
-//   double B_sigma_n = bsigma_minus(B_sigma);
-//   double A_K = mu_K * (alpha_K_(i,j).ip1.A + alpha_K_(i,j).ip1.B) + B_sigma_p / (f_(i, j) + 1e-15);
-//   double A_L = mu_L * (alpha_K_(i+1, j).im1.A + alpha_K_(i+1, j).im1.B) + B_sigma_n / (f_(i+1, j) + 1e-15);
-//   V_invU_coeffs_.push_back(T(ind2to1(i,j), ind2to1(i,j), A_K * m.dt_area() / G(a, p)));
-//   V_invU_coeffs_.push_back(T(ind2to1(i,j), ind2to1(i+1,j), -A_L * m.dt_area() / G(a, p)));
-// }
-//
-// void FVMSolver::coeff_add_im(int i, int j, double a, double p, double u_imjp, double u_imjm){
-//   double a_K = alpha_K_(i,j).im1.A * u_imjp + alpha_K_(i,j).im1.B * u_imjm;
-//   double a_L = alpha_K_(i-1, j).ip1.A * u_imjm + alpha_K_(i-1,j).ip1.B * u_imjp;
-//   double mu_K = coeff_mu(a_K, a_L);
-//   double mu_L = 1.0 - mu_K;
-//   double B_sigma = mu_L * a_L - mu_K * a_K;
-//   double B_sigma_p = bsigma_plus(B_sigma);
-//   double B_sigma_n = bsigma_minus(B_sigma);
-//   double A_K = mu_K * (alpha_K_(i,j).im1.A + alpha_K_(i,j).im1.B) + B_sigma_p / (f_(i, j) + 1e-15);
-//   double A_L = mu_L * (alpha_K_(i-1, j).ip1.A + alpha_K_(i-1, j).ip1.B) + B_sigma_n / (f_(i-1, j) + 1e-15);
-//   V_invU_coeffs_.push_back(T(ind2to1(i,j), ind2to1(i,j), A_K * m.dt_area() / G(a, p)));
-//   V_invU_coeffs_.push_back(T(ind2to1(i,j), ind2to1(i-1,j), -A_L * m.dt_area() / G(a, p)));
-// }
 
 void FVMSolver::coeff_add_jp_edge(int i, int j, double a, double p, double u_ipjp, double u_imjp){
   double a_K = alpha_K_(i,j, 1).A * u_ipjp + alpha_K_(i,j,1).B * u_imjp;
@@ -226,19 +159,8 @@ void FVMSolver::assemble(){ // obtain S * U^-1 and V * U^-1
 
   // inner grids
   for (i=1; i<m.nx()-1; ++i){
-    a = ALPHA_LC + hdx + dx * i;
     for (j=1; j<m.ny()-1; ++j){
-      p = P_MIN + hdy + dy * j;
-      // u_ipjp = vertex_f(i,j);
-      // u_imjp = vertex_f(i-1,j);
-      // u_imjm = vertex_f(i-1, j-1);
-      // u_ipjm = vertex_f(i,j-1);
-      //
-      // coeff_add_jp(i, j, a, p, u_ipjp, u_imjp);
-      // coeff_add_jm(i, j, a, p, u_imjm, u_ipjm);
-      // coeff_add_im(i, j, a, p, u_imjp, u_imjm);
-      // coeff_add_ip(i, j, a, p, u_ipjm, u_ipjp);
-      //
+
       for (int inbr = 0; inbr < m.nnbrs(); ++inbr) 
         coeff_M_add_inner(i, j, inbr);
     }
@@ -253,9 +175,6 @@ void FVMSolver::assemble(){ // obtain S * U^-1 and V * U^-1
   u_imjp = boundary_imin(p + hdy);
   u_imjm = boundary_imin(p + hdy);
   u_ipjm = boundary_jmin(a + hdx);
-
-  // coeff_add_jp(i, j, a, p, u_ipjp, u_imjp);
-  // coeff_add_ip(i, j, a, p, u_ipjm, u_ipjp);
   
   coeff_M_add_inner(i,j,1); 
   coeff_M_add_inner(i,j,2); 
@@ -273,8 +192,6 @@ void FVMSolver::assemble(){ // obtain S * U^-1 and V * U^-1
   u_imjm = boundary_jmin(a - hdx);
   u_ipjm = boundary_jmin(a + hdx);
 
-  // coeff_add_jp(i, j, a, p, u_ipjp, u_imjp);
-  // coeff_add_im(i, j, a, p, u_imjp, u_imjm);
   coeff_M_add_inner(i, j, 1);
   coeff_M_add_inner(i, j, 0); 
   coeff_add_jm_edge(i, j, a, p, u_imjm, u_ipjm);
@@ -288,10 +205,6 @@ void FVMSolver::assemble(){ // obtain S * U^-1 and V * U^-1
     u_imjp = vertex_f_(i, j+1);
     u_imjm = boundary_jmin(a - hdx);
     u_ipjm = boundary_jmin(a + hdx);
-
-    // coeff_add_jp(i, j, a, p, u_ipjp, u_imjp);
-    // coeff_add_im(i, j, a, p, u_imjp, u_imjm);
-    // coeff_add_ip(i, j, a, p, u_ipjm, u_ipjp);
 
     coeff_M_add_inner(i, j, 1); 
     coeff_M_add_inner(i, j, 0); 
@@ -310,8 +223,6 @@ void FVMSolver::assemble(){ // obtain S * U^-1 and V * U^-1
   u_imjm = vertex_f_(i, j);
   u_ipjm = (f_(i, j) + f_(i, j-1)) / 2.0;
 
-  // coeff_add_jm(i, j, a, p, u_imjm, u_ipjm);
-  // coeff_add_im(i, j, a, p, u_imjp, u_imjm);
   //
   coeff_M_add_inner(i, j, 0);
   coeff_M_add_inner(i, j, 3);
@@ -328,9 +239,6 @@ void FVMSolver::assemble(){ // obtain S * U^-1 and V * U^-1
     u_imjm = vertex_f_(i, j);
     u_ipjm = (f_(i, j) + f_(i, j-1)) / 2.0;
 
-    // coeff_add_jp(i, j, a, p, u_ipjp, u_imjp);
-    // coeff_add_jm(i, j, a, p, u_imjm, u_ipjm);
-    // coeff_add_im(i, j, a, p, u_imjp, u_imjm);
     coeff_M_add_inner(i, j, 1);
     coeff_M_add_inner(i, j, 3);
     coeff_M_add_inner(i, j, 0);
@@ -367,9 +275,6 @@ void FVMSolver::assemble(){ // obtain S * U^-1 and V * U^-1
     u_imjm = vertex_f(i-1, j-1);
     u_ipjm = vertex_f(i, j-1);
 
-    // coeff_add_jm(i, j, a, p, u_imjm, u_ipjm);
-    // coeff_add_im(i, j, a, p, u_imjp, u_imjm);
-    // coeff_add_ip(i, j, a, p, u_ipjm, u_ipjp);
     coeff_M_add_inner(i, j, 3);
     coeff_M_add_inner(i, j, 0);
     coeff_M_add_inner(i, j, 2);
@@ -386,10 +291,6 @@ void FVMSolver::assemble(){ // obtain S * U^-1 and V * U^-1
     u_imjp = boundary_imin(p + hdy);
     u_imjm = boundary_imin(p - hdy);
     u_ipjm = vertex_f(i, j-1);
-
-    // coeff_add_jp(i, j, a, p, u_ipjp, u_imjp);
-    // coeff_add_jm(i, j, a, p, u_imjm, u_ipjm);
-    // coeff_add_ip(i, j, a, p, u_ipjm, u_ipjp);
 
     coeff_M_add_inner(i, j, 1);
     coeff_M_add_inner(i, j, 3);
