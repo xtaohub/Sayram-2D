@@ -13,26 +13,23 @@
 // TODO MKL
 // #define EIGEN_USE_MKL_ALL
 // #define EIGEN_VECTORIZE_SSE4_2
-#define EIGEN_NO_DEBUG
+
 #include <iostream>
-// #include <emmintrin.h>
-// TODO MKL
-// #include "mkl.h"
 #include <cassert>
 #include "Mesh.h"
 #include "D.h"
-#include "BoundaryConditions.h"
-#include "Parameters.hpp"
-#include "FVMSolver.hpp"
-#include "Eigen/Dense"
-#include "Eigen/Core"
-#include "Eigen/Sparse"
+#include "BCs.h"
+#include "Parameters.h"
+#include "Solver.h"
 #include <ctime>
-// #include <suitesparse/umfpack.h>
 
 typedef Eigen::Triplet<double> T;
 
 int main() {
+
+    Eigen::Vector2i a; 
+
+    a(2) = 5; 
 
     // Create grid object
     Mesh m(nx, ny, dx, dy, dt);
@@ -42,11 +39,9 @@ int main() {
     diffusion.constructD(0.0);
 
     // TODO BoundaryConditions modularization
-    BoundaryConditions boundary(0, 0.0);
+    BCs boundary(0, 0.0);
 
-    FVMSolver solver(m, diffusion, boundary);
-    
-    // solver.initial();
+    Solver solver(m, diffusion, boundary);
 
     string path;
 
@@ -69,7 +64,7 @@ int main() {
     
             ofstream outFile(path);
             assert(outFile);
-    
+
             for (double value : solver.f().reshaped()) {
                 outFile << value << std::endl;
             }

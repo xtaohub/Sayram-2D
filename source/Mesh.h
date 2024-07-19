@@ -11,9 +11,9 @@
 #ifndef MESH_H_
 #define MESH_H_
 
-#include "Parameters.hpp" 
+#include "common.h"
+#include "Parameters.h" 
 #include "Array.h"
-#include "Eigen/Core"
 
 struct Ind{
   int i; 

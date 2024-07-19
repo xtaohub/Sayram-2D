@@ -1,5 +1,7 @@
-#ifndef COMMON_HPP_
-#define COMMON_HPP_
+#ifndef COMMON_H_
+#define COMMON_H_
+
+// #define EIGEN_NO_DEBUG
 
 #include <iostream>
 #include <iomanip>
@@ -7,7 +9,9 @@
 #include <sstream>
 #include <string>
 #include <cmath>
+#include "Eigen/Dense"
 #include "Eigen/Sparse" 
+#include "Eigen/Core"
 
 typedef Eigen::SparseMatrix<double> SpMat;
 typedef Eigen::Triplet<double> T;

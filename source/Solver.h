@@ -1,5 +1,5 @@
 /*
- * File:        FVMsolver.h
+ * File:        Solver.h
  * Author:      Xin Tao <xtao@ustc.edu.cn>
  *              Peng Peng <pp140594@mail.ustc.edu.cn>
  * Date:        05/12/2024 
@@ -11,32 +11,31 @@
 #ifndef FVM_SOLVER_H
 #define FVM_SOLVER_H
 
+#include "common.h"
 #include "Mesh.h"
 #include "D.h"
-#include "BoundaryConditions.h"
-#include "Eigen/Core"
-#include "Parameters.hpp"
-#include "Eigen/Sparse"
+#include "BCs.h"
+#include "Parameters.h"
 #include "Array.h"
 
-struct NTPFA_nodes{ // two points A,B used in Nonlinear Two Point Approximation
+struct NTPFA_node{ // two points A,B used in Nonlinear Two Point Approximation
   double A;
   double B;
 }; 
 
-class FVMSolver {
+class Solver {
   public:
-    FVMSolver(const Mesh& m_in, const D& d_in, const BoundaryConditions& bc_in);
+    Solver(const Mesh& m_in, const D& d_in, const BCs& bcs_in);
 
     void update();
     const Eigen::MatrixXd& f() const { return f_; }
 
-    void initial();
-
   private:
     const Mesh& m;
     const D& d; 
-    const BoundaryConditions& bc;
+    const BCs& bcs;
+
+    friend class BC; 
 
     // M f = S
     Eigen::SparseLU<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> solver;
@@ -50,7 +49,7 @@ class FVMSolver {
     Eigen::VectorXd S_;
     Eigen::VectorXd R_;
 
-    Array<NTPFA_nodes, 3> alpha_K_; 
+    Array<NTPFA_node, 3> alpha_osf_; // alpha_one_sided_flux
 
     //
     // use a matrix to store f at vertices to build a lookup 
@@ -66,11 +65,11 @@ class FVMSolver {
     void set_vertex_f(); 
 
     void assemble();
-    void construct_alpha_K();
 
     void construct_U_();
 
-    void alpha_K(const Eigen::Matrix2d& Lambda_K, const Eigen::Vector2d& K, const Eigen::Vector2d& A, const Eigen::Vector2d& B, double* alpha_KA, double* alpha_KB); 
+    void construct_alpha_osf();
+    void alpha_osf_func(const Eigen::Matrix2d& Lambda_K, const Point& K, const Point& A, const Point& B, NTPFA_node* nodep);
 
     // add coefficient to M corresponds to the inbr cell of cell (i,j)
     // Here: the inbr neighbor is an inner cell.
@@ -107,21 +106,8 @@ class FVMSolver {
       return (std::abs(bsigma) - std::abs(bsigma))/2.0;
     }
 
-    double init_f(double a, double p){
-      return exp(-(p2e(p, gE0) - 0.2) / 0.1) * (sin(a) - sin(ALPHA_LC)) / (p * p);
-    }
 
-    double boundary_imin(double p){
-        return 0.0;
-    }
-
-    double boundary_jmin(double a){
-      return exp(-(p2e(P_MIN, gE0) - 0.2) / 0.1) * (sin(a) - sin(ALPHA_LC)) / (P_MIN * P_MIN);
-    }
-
-    double boundary_jmax(double a){
-      return 0.0;
-    }
+    void init();
 
 };
 

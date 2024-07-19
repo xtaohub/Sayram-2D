@@ -15,8 +15,8 @@
 #include <cmath>
 #include <vector>
 #include "D.h"
-#include "Parameters.hpp"
-#include "common.hpp"
+#include "Parameters.h"
+#include "common.h"
 
 D::D(const Mesh& mesh) : m(mesh) {
     // Initialize matrices Dap, Dpp, and Daa based on mesh size

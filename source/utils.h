@@ -1,9 +1,8 @@
-#ifndef UTILS_HPP_
-#define UTILS_HPP_
+#ifndef UTILS_H_
+#define UTILS_H_
 
 #include <cmath>
-#include <cassert>
-#include "common.hpp"
+#include "common.h"
 
 inline double p2e(double p, double E0){ // convert momentum to energy
   return sqrt(p * p * gC * gC + E0 * E0) - E0; 

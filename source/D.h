@@ -11,7 +11,7 @@
 #ifndef D_H_
 #define D_H_
 
-#include "Eigen/Core"
+#include "common.h"
 #include "Mesh.h"
 
 class D {

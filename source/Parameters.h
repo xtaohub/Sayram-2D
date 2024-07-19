@@ -1,8 +1,8 @@
-#ifndef PARAMETERS_HPP_
-#define PARAMETERS_HPP_
+#ifndef PARAMETERS_H_
+#define PARAMETERS_H_
 
-#include "utils.hpp"
-#include "common.hpp"
+#include "utils.h"
+#include "common.h"
 
 const double ALPHA_LC = gPI * 5 / 180;
 const double ALPHA_MAX = gPI / 2;
