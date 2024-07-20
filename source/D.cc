@@ -50,102 +50,97 @@ void D::updateCoefficients(double t) {
 
 
 // read diffusion coefficients from file
-void D::read_d(const Parameters& par, std::string address, Eigen::MatrixXd& D_raw){
+void D::read_d(std::string address, Eigen::MatrixXd& D_raw){
 
     std::ifstream fin(address);
     assert(fin.is_open());
     std::string line;
 
-    for (int i = 0; i < par.nalpha_D() + 1; i++){
-        getline(fin, line);
-        if (i > 0){
-            for (int j = 0; j < par.nE_D(); j++){
-                try{
-                    double temp = std::stod(line.substr((5 + 15) * j + 4, 16));
-                    D_raw(i - 1, j) = temp;
-                } catch (const std::exception& e){
-                    std::cout<< "File "<< address << " has data error." << std::endl;
-                }
-            }
+    const double denormalize_factor = gME * gME * gC * gC;
+    const double second_to_day = 3600 * 24;
+
+    int nalpha, nenergy;
+    fin >> nalpha >> nenergy;
+
+    for (int i = 0; i < nalpha; i++){
+        for (int j = 0; j < nenergy; j++){
+            fin >> D_raw(i, j);
+            D_raw(i, j) *= denormalize_factor * second_to_day;
         }
     }
 }
 
 
-std::vector<double> D::locate(const Parameters& par, int i, int j){
+void D::locate(const Parameters& par, double a, double p, loc_info& loc){
     std::vector<double> locinfo = {0.0, 0.0, 0.0, 0.0};
-    double a = (m.x(i)) / gPI * 180.0 - 1;
-    double af = floor(a);
-    double p = m.y(j);
+    double a_ = (a - par.alpha_min_D()) / gPI * 180.0;
+    double a_f = floor(a_);
     double logE = (log(p2e(p, gE0)) - log(par.Emin_D())) / par.dlogE_D();
-    double logEf = floor(logE);
-    locinfo[2] = a - af;
-    locinfo[3] = logE - logEf;
+    double logE_f = floor(logE);
+    loc.a_dec = a_ - a_f;
+    loc.logE_dec = logE - logE_f;
     // edge judege:
-    if (abs(locinfo[2]) < 1e-6) {
-        locinfo[0] = -af;
+    if (abs(loc.a_dec) < 1e-6) {
+        loc.a_floor = -round(a_f);
     } else {
-        locinfo[0] = af;
+        loc.a_floor = round(a_f);
     }
-    if (abs(locinfo[3]) < 1e-6) {
-        locinfo[1] = -logEf;
+    if (abs(loc.logE_dec) < 1e-6) {
+        loc.logE_floor = -round(logE_f);
     } else {
-        locinfo[1] = logEf;
+        loc.logE_floor = round(logE_f);
     }
-    return locinfo;
 }
 
 
 void D::constructD(const Parameters& par, double t){
+    double a, p;
     Eigen::MatrixXd Daa_raw(par.nalpha_D(), par.nE_D());
     Eigen::MatrixXd Dap_raw(par.nalpha_D(), par.nE_D());
     Eigen::MatrixXd Dpp_raw(par.nalpha_D(), par.nE_D());
 
-    std::string address1 = "D/AlbertYoung_chorus/AlbertYoung_chorus.Daa";
-    std::string address2 = "D/AlbertYoung_chorus/AlbertYoung_chorus.Dap";
-    std::string address3 = "D/AlbertYoung_chorus/AlbertYoung_chorus.Dpp";
+    std::string address1 = "D/" + par.dID() + "/" + par.dID() + ".Daa";
+    std::string address2 = "D/" + par.dID() + "/" + par.dID() + ".Dap";
+    std::string address3 = "D/" + par.dID() + "/" + par.dID() + ".Dpp";
 
-    const double denormalize_factor = gME * gME * gC * gC;
+    read_d(address1, Daa_raw);
+    read_d(address2, Dap_raw);
+    read_d(address3, Dpp_raw);
 
-    read_d(par, address1, Daa_raw);
-    read_d(par, address2, Dap_raw);
-    read_d(par, address3, Dpp_raw);
+    loc_info loc;
 
     for(int i = 0; i < m.nx(); i++){
+        a = m.x(i);
         for(int j = 0; j < m.ny(); j++){
-            double p = m.y(j);
-            std::vector<double> loc = locate(par, i, j);
-            int locx = int(loc[0]);
-            int locy = int(loc[1]);
-            double da = loc[2];
-            double dp = loc[3];
-            if(loc[0] < 0 and loc[1] < 0){
-                Daa(i, j) = Daa_raw(-locx, -locy) * denormalize_factor / (p * p);
-                Dap(i, j) = Dap_raw(-locx, -locy) * denormalize_factor / p;
-                Dpp(i, j) = Dpp_raw(-locx, -locy) * denormalize_factor;
+            p = m.y(j);
+            locate(par, a, p, loc);
+            if(loc.a_floor < 0 and loc.logE_floor < 0){
+                Daa(i, j) = Daa_raw(-loc.a_floor, -loc.logE_floor) / (p * p);
+                Dap(i, j) = Dap_raw(-loc.a_floor, -loc.logE_floor) / p;
+                Dpp(i, j) = Dpp_raw(-loc.a_floor, -loc.logE_floor);
             }
-            else if(loc[0] < 0) {
-                double w1 = 1.0 / dp;
-                double w2 = 1.0 / (1.0 - dp);
-                Daa(i, j) = (w1 * Daa_raw(-locx, locy) + w2 * Daa_raw(-locx, locy + 1)) / (w1 + w2) * denormalize_factor / (p * p);
-                Dap(i, j) = (w1 * Dap_raw(-locx, locy) + w2 * Dap_raw(-locx, locy + 1)) / (w1 + w2) * denormalize_factor / p;
-                Dpp(i, j) = (w1 * Dpp_raw(-locx, locy) + w2 * Dpp_raw(-locx, locy + 1)) / (w1 + w2) * denormalize_factor;
+            else if(loc.a_floor < 0) {
+                double w1 = 1.0 / loc.logE_dec;
+                double w2 = 1.0 / (1.0 - loc.logE_dec);
+                Daa(i, j) = (w1 * Daa_raw(-loc.a_floor, loc.logE_floor) + w2 * Daa_raw(-loc.a_floor, loc.logE_floor + 1)) / (w1 + w2) / (p * p);
+                Dap(i, j) = (w1 * Dap_raw(-loc.a_floor, loc.logE_floor) + w2 * Dap_raw(-loc.a_floor, loc.logE_floor + 1)) / (w1 + w2) / p;
+                Dpp(i, j) = (w1 * Dpp_raw(-loc.a_floor, loc.logE_floor) + w2 * Dpp_raw(-loc.a_floor, loc.logE_floor + 1)) / (w1 + w2);
             }
-            else if(loc[1] < 0) {
-                double w1 = 1.0 / da;
-                double w2 = 1.0 / (1.0 - da);
-                Daa(i, j) = (w1 * Daa_raw(locx, -locy) + w2 * Daa_raw(locx + 1, -locy)) / (w1 + w2) * denormalize_factor / (p * p);
-                Dap(i, j) = (w1 * Dap_raw(locx, -locy) + w2 * Dap_raw(locx + 1, -locy)) / (w1 + w2) * denormalize_factor / p;
-                Dpp(i, j) = (w1 * Dpp_raw(locx, -locy) + w2 * Dpp_raw(locx + 1, -locy)) / (w1 + w2) * denormalize_factor;
+            else if(loc.logE_floor < 0) {
+                double w1 = 1.0 / loc.a_dec;
+                double w2 = 1.0 / (1.0 - loc.a_dec);
+                Daa(i, j) = (w1 * Daa_raw(loc.a_floor, -loc.logE_floor) + w2 * Daa_raw(loc.a_floor + 1, -loc.logE_floor)) / (w1 + w2) / (p * p);
+                Dap(i, j) = (w1 * Dap_raw(loc.a_floor, -loc.logE_floor) + w2 * Dap_raw(loc.a_floor + 1, -loc.logE_floor)) / (w1 + w2) / p;
+                Dpp(i, j) = (w1 * Dpp_raw(loc.a_floor, -loc.logE_floor) + w2 * Dpp_raw(loc.a_floor + 1, -loc.logE_floor)) / (w1 + w2);
             }
             else {
-                double w1 = 1.0 / sqrt(da * da + dp * dp);
-                double w2 = 1.0 / sqrt(da * da + (1.0 - dp) * (1.0 - dp));
-                double w3 = 1.0 / sqrt((1.0 - da) * (1.0 - da) + (1.0 - dp) * (1.0 - dp));
-                double w4 = 1.0 / sqrt((1.0 - da) * (1.0 - da) + dp * dp);
-                Daa(i, j) = (w1 * Daa_raw(locx, locy) + w2 * Daa_raw(locx, locy + 1) + w3 * Daa_raw(locx + 1, locy + 1) + w4 * Daa_raw(locx + 1, locy)) / (w1 + w2 + w3 + w4) * denormalize_factor / (p * p);
-                Dap(i, j) = (w1 * Dap_raw(locx, locy) + w2 * Dap_raw(locx, locy + 1) + w3 * Dap_raw(locx + 1, locy + 1) + w4 * Dap_raw(locx + 1, locy)) / (w1 + w2 + w3 + w4) * denormalize_factor / p;
-                Dpp(i, j) = (w1 * Dpp_raw(locx, locy) + w2 * Dpp_raw(locx, locy + 1) + w3 * Dpp_raw(locx + 1, locy + 1) + w4 * Dpp_raw(locx + 1, locy)) / (w1 + w2 + w3 + w4) * denormalize_factor;
+                double w1 = 1.0 / sqrt(loc.a_dec * loc.a_dec + loc.logE_dec * loc.logE_dec);
+                double w2 = 1.0 / sqrt(loc.a_dec * loc.a_dec + (1.0 - loc.logE_dec) * (1.0 - loc.logE_dec));
+                double w3 = 1.0 / sqrt((1.0 - loc.a_dec) * (1.0 - loc.a_dec) + (1.0 - loc.logE_dec) * (1.0 - loc.logE_dec));
+                double w4 = 1.0 / sqrt((1.0 - loc.a_dec) * (1.0 - loc.a_dec) + loc.logE_dec * loc.logE_dec);
+                Daa(i, j) = (w1 * Daa_raw(loc.a_floor, loc.logE_floor) + w2 * Daa_raw(loc.a_floor, loc.logE_floor + 1) + w3 * Daa_raw(loc.a_floor + 1, loc.logE_floor + 1) + w4 * Daa_raw(loc.a_floor + 1, loc.logE_floor)) / (w1 + w2 + w3 + w4) / (p * p);
+                Dap(i, j) = (w1 * Dap_raw(loc.a_floor, loc.logE_floor) + w2 * Dap_raw(loc.a_floor, loc.logE_floor + 1) + w3 * Dap_raw(loc.a_floor + 1, loc.logE_floor + 1) + w4 * Dap_raw(loc.a_floor + 1, loc.logE_floor)) / (w1 + w2 + w3 + w4) / p;
+                Dpp(i, j) = (w1 * Dpp_raw(loc.a_floor, loc.logE_floor) + w2 * Dpp_raw(loc.a_floor, loc.logE_floor + 1) + w3 * Dpp_raw(loc.a_floor + 1, loc.logE_floor + 1) + w4 * Dpp_raw(loc.a_floor + 1, loc.logE_floor)) / (w1 + w2 + w3 + w4);
             }
         }
     }

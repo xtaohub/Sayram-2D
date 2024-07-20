@@ -15,6 +15,14 @@
 #include "Parameters.h"
 #include "Mesh.h"
 
+struct loc_info{
+  double a_dec; // decimal part of coordinate a
+  double logE_dec;
+  int a_floor; // if a is just on an edge, take opposite a value as a marker
+  int logE_floor;
+}; 
+
+
 class D {
 public:
     D(const Parameters& paras_in, const Mesh& mesh_in);
@@ -37,9 +45,9 @@ private:
     // Update diffusion coefficients with time
     void updateCoefficients(double t);
 
-    void read_d(const Parameters& par, std::string address, Eigen::MatrixXd& D_raw);
+    void read_d(std::string address, Eigen::MatrixXd& D_raw);
 
-    std::vector<double> locate(const Parameters& par, int i, int j);
+    void locate(const Parameters& par, double a, double p, loc_info& loc);
 };
 
 #endif /* D_H_ */
