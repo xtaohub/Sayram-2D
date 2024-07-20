@@ -29,25 +29,25 @@ struct Edge{
 
 class Mesh {
   public:
-    Mesh(int nx, int ny, double dx, double dy, double dt): x_(nx), y_(ny) {
+    Mesh(const Parameters& p): x_(p.nalpha()), y_(p.nE()) {
 
-        nx_ = nx; 
-        ny_ = ny; 
-        dx_ = dx; 
-        dy_ = dy; 
-        dt_ = dt; 
+        nx_ = p.nalpha(); 
+        ny_ = p.nE();
+        dx_ = p.dalpha();
+        dy_ = p.dp();
+        dt_ = p.dt(); 
 
         // these two lines need to be changed.
-        xO_ = ALPHA_LC;
-        yO_ = P_MIN; 
+        xO_ = p.alpha_lc(); 
+        yO_ = p.pmin();
 
-        x_(0) = xO() + dx/2.0; 
-        y_(0) = yO() + dy/2.0; 
+        x_(0) = xO() + dx()/2.0; 
+        y_(0) = yO() + dy()/2.0; 
 
-        for (int i=1; i<nx; ++i) x_(i) = x_(0) + i*dx; 
-        for (int j=1; j<ny; ++j) y_(j) = y_(0) + j*dy; 
+        for (int i=1; i<nx(); ++i) x_(i) = x_(0) + i*dx(); 
+        for (int j=1; j<ny(); ++j) y_(j) = y_(0) + j*dy(); 
 
-        Shape3 nbrs_shape = {nx, ny, 4}; 
+        Shape3 nbrs_shape = {nx(), ny(), 4}; 
         nbr_inds.resize(nbrs_shape); 
         edges.resize(nbrs_shape); 
         build_connectivity(); 

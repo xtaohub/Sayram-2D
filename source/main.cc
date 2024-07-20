@@ -16,24 +16,25 @@
 
 #include <iostream>
 #include <cassert>
+#include "Parameters.h"
 #include "Mesh.h"
 #include "D.h"
 #include "BCs.h"
-#include "Parameters.h"
 #include "Solver.h"
 #include <ctime>
 
-int main() {
+int main(int argc, char** argv) {
+
+  Parameters paras(argc,argv); 
 
   // Create grid object
-  Mesh m(nx, ny, dx, dy, dt);
+  Mesh m(paras);
 
   // Create diffusion coefficients object
-  D diffusion(m);
-  diffusion.constructD(0.0);
+  D diffusion(paras, m);
 
   // TODO BoundaryConditions modularization
-  BCs boundary(0, 0.0);
+  BCs boundary(paras);
 
   Solver solver(m, diffusion, boundary);
 
@@ -45,15 +46,14 @@ int main() {
   start = clock();
 
   // Time loop for solving
-  for (int k = 0; k < steps; ++k) {
+  for (int k = 1; k <= paras.nsteps(); ++k) {
 
     // Solve using FVM solver
     solver.update();
 
-    if(k % printstep == printstep - 1){
+    if(k % paras.save_every_step() == 0){
 
-      std::cout << "Time step: " << k << std::endl;
-      path = "./output/SMPPFV/smppfv" + std::to_string(int((k + 1) / printstep));
+      path = paras.output_path() + "/" + paras.run_id() + std::to_string(int((k) / paras.save_every_step()));
 
       ofstream outFile(path);
       assert(outFile);

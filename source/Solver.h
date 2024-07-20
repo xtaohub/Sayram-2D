@@ -35,7 +35,7 @@ class Solver {
     const D& d; 
     const BCs& bcs;
 
-    // M f = S
+    // M f = R
     Eigen::SparseLU<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> solver;
 
     SpMat M_;

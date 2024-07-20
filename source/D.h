@@ -12,29 +12,34 @@
 #define D_H_
 
 #include "common.h"
+#include "Parameters.h"
 #include "Mesh.h"
 
 class D {
 public:
-    D(const Mesh& mesh);
-    D(const Mesh& mesh, const Eigen::MatrixXd& Daa_in, const Eigen::MatrixXd& Dap_in, const Eigen::MatrixXd& Dpp_in);
+    D(const Parameters& paras_in, const Mesh& mesh_in);
 
     double getDap(double t, int i, int j) const;
     double getDpp(double t, int i, int j) const;
     double getDaa(double t, int i, int j) const;
 
-    // Update diffusion coefficients with time
-    void updateCoefficients(double t);
-
-    void constructD(double t);
+    void constructD(const Parameters& par, double t);
 
 private:
+    
+    const Parameters& paras; 
+    const Mesh& m; 
 
     Eigen::MatrixXd Daa;
     Eigen::MatrixXd Dap;
     Eigen::MatrixXd Dpp;
 
-    const Mesh& m;
+    // Update diffusion coefficients with time
+    void updateCoefficients(double t);
+
+    void read_d(const Parameters& par, std::string address, Eigen::MatrixXd& D_raw);
+
+    std::vector<double> locate(const Parameters& par, int i, int j);
 };
 
 #endif /* D_H_ */

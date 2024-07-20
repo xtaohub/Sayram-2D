@@ -17,14 +17,14 @@
 
 class BCs {
 public:
-    BCs(int grid, float diffusion) {};
+    BCs(const Parameters& p_in): paras(p_in) {};
 
     // Apply boundary conditions to the given solution matrix f
     void applyBCs(Eigen::MatrixXd& f);
 
     // Define your boundary condition functions here
     double init_f(double a, double p) const{
-      return exp(-(p2e(p, gE0) - 0.2) / 0.1) * (sin(a) - sin(ALPHA_LC)) / (p * p);
+      return exp(-(p2e(p, gE0) - 0.2) / 0.1) * (sin(a) - sin(paras.alpha_lc())) / (p * p);
     }
 
     double amin(double p) const{
@@ -32,12 +32,15 @@ public:
     }
 
     double pmin(double a) const{
-      return exp(-(p2e(P_MIN, gE0) - 0.2) / 0.1) * (sin(a) - sin(ALPHA_LC)) / (P_MIN * P_MIN);
+      return exp(-(p2e(paras.pmin(), gE0) - 0.2) / 0.1) * (sin(a) - sin(paras.alpha_lc())) / (paras.pmin() * paras.pmin());
     }
 
     double pmax(double a) const{
       return 0.0;
     }
+
+private:
+    const Parameters& paras; 
 
 };
 

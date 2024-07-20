@@ -32,9 +32,9 @@ Solver::Solver(const Mesh& m_in, const D& d_in, const BCs& bcs_in)
 void Solver::init(){
   double a;
   double p;
-  for (int i = 0; i < nx; i++){
+  for (int i = 0; i < m.nx(); i++){
     a = m.x(i);
-    for (int j = 0; j < ny; j++){
+    for (int j = 0; j < m.ny(); j++){
       p = m.y(j);
       f_(i,j) = bcs.init_f(a, p);
     }
@@ -70,9 +70,9 @@ void Solver::construct_alpha_osf(){
   Point K;
   Edge edge;  
 
-  for (int i = 0; i < nx; i++){
+  for (int i = 0; i < m.nx(); i++){
     a = m.x(i);
-    for (int j = 0; j < ny; j++){
+    for (int j = 0; j < m.ny(); j++){
       p = m.y(j);
 
       Lambda_K << d.getDaa(0.0, i, j) * G(a, p), d.getDap(0.0, i, j) * G(a, p), 

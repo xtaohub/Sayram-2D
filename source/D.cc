@@ -15,26 +15,15 @@
 #include <cmath>
 #include <vector>
 #include "D.h"
-#include "Parameters.h"
 #include "common.h"
 
-D::D(const Mesh& mesh) : m(mesh) {
+D::D(const Parameters& paras_in, const Mesh& mesh_in) : paras(paras_in), m(mesh_in) {
     // Initialize matrices Dap, Dpp, and Daa based on mesh size
     Daa = Eigen::MatrixXd::Zero(m.nx(), m.ny());
     Dap = Eigen::MatrixXd::Zero(m.nx(), m.ny());
     Dpp = Eigen::MatrixXd::Zero(m.nx(), m.ny());
-}
 
-D::D(const Mesh& mesh, const Eigen::MatrixXd& Daa_in, const Eigen::MatrixXd& Dap_in, const Eigen::MatrixXd& Dpp_in): m(mesh) {
-
-    Daa = Eigen::MatrixXd::Zero(m.nx(), m.ny());
-    Dap = Eigen::MatrixXd::Zero(m.nx(), m.ny());
-    Dpp = Eigen::MatrixXd::Zero(m.nx(), m.ny());
-
-    Daa = Daa_in;
-    Dap = Dap_in;
-    Dpp = Dpp_in; 
-
+    constructD(paras, 0.0);
 }
 
 double D::getDap(double t, int i, int j) const {
@@ -61,16 +50,16 @@ void D::updateCoefficients(double t) {
 
 
 // read diffusion coefficients from file
-void read_d(std::string address, Eigen::MatrixXd& D_raw){
+void D::read_d(const Parameters& par, std::string address, Eigen::MatrixXd& D_raw){
 
     std::ifstream fin(address);
     assert(fin.is_open());
     std::string line;
 
-    for (int i = 0; i < 91; i++){
+    for (int i = 0; i < par.nalpha_D() + 1; i++){
         getline(fin, line);
         if (i > 0){
-            for (int j = 0; j < 49; j++){
+            for (int j = 0; j < par.nE_D(); j++){
                 try{
                     double temp = std::stod(line.substr((5 + 15) * j + 4, 16));
                     D_raw(i - 1, j) = temp;
@@ -83,12 +72,12 @@ void read_d(std::string address, Eigen::MatrixXd& D_raw){
 }
 
 
-std::vector<double> locate(int i, int j){
+std::vector<double> D::locate(const Parameters& par, int i, int j){
     std::vector<double> locinfo = {0.0, 0.0, 0.0, 0.0};
-    double a = (ALPHA_LC + hdx + dx * i) / gPI * 180.0 - 1;
+    double a = (m.x(i)) / gPI * 180.0 - 1;
     double af = floor(a);
-    double p = P_MIN + hdy + dy * j;
-    double logE = (log(p2e(p, gE0)) - log(E_RANGE[0])) / dlogE;
+    double p = m.y(j);
+    double logE = (log(p2e(p, gE0)) - log(par.Emin_D())) / par.dlogE_D();
     double logEf = floor(logE);
     locinfo[2] = a - af;
     locinfo[3] = logE - logEf;
@@ -107,10 +96,10 @@ std::vector<double> locate(int i, int j){
 }
 
 
-void D::constructD(double t){
-    Eigen::MatrixXd Daa_raw(90, 49);
-    Eigen::MatrixXd Dap_raw(90, 49);
-    Eigen::MatrixXd Dpp_raw(90, 49);
+void D::constructD(const Parameters& par, double t){
+    Eigen::MatrixXd Daa_raw(par.nalpha_D(), par.nE_D());
+    Eigen::MatrixXd Dap_raw(par.nalpha_D(), par.nE_D());
+    Eigen::MatrixXd Dpp_raw(par.nalpha_D(), par.nE_D());
 
     std::string address1 = "D/AlbertYoung_chorus/AlbertYoung_chorus.Daa";
     std::string address2 = "D/AlbertYoung_chorus/AlbertYoung_chorus.Dap";
@@ -118,14 +107,14 @@ void D::constructD(double t){
 
     const double denormalize_factor = gME * gME * gC * gC;
 
-    read_d(address1, Daa_raw);
-    read_d(address2, Dap_raw);
-    read_d(address3, Dpp_raw);
+    read_d(par, address1, Daa_raw);
+    read_d(par, address2, Dap_raw);
+    read_d(par, address3, Dpp_raw);
 
-    for(int i = 0; i < nx; i++){
-        for(int j = 0; j < ny; j++){
-            double p = P_MIN + hdy + dy * j;
-            std::vector<double> loc = locate(i, j);
+    for(int i = 0; i < m.nx(); i++){
+        for(int j = 0; j < m.ny(); j++){
+            double p = m.y(j);
+            std::vector<double> loc = locate(par, i, j);
             int locx = int(loc[0]);
             int locy = int(loc[1]);
             double da = loc[2];
