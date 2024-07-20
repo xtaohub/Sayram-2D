@@ -97,7 +97,7 @@ void Solver::coeff_add_inner(int i, int j, int inbr){
   Ind indA, indB; 
   m.indO(edge.A, &indA); 
   double fA = vertex_f_(indA.i, indA.j); 
-  
+
   m.indO(edge.B, &indB); 
   double fB = vertex_f_(indB.i,indB.j); 
 
@@ -116,7 +116,7 @@ void Solver::coeff_add_inner(int i, int j, int inbr){
   double A_K = muK * (alpha_osf_(i,j, inbr).A + alpha_osf_(i,j, inbr).B) + B_sigma_p / (f_(i, j) + 1e-15);
   double A_L = muL * (alpha_osf_(ind.i,ind.j, rinbr).A + alpha_osf_(ind.i,ind.j, inbr).B) + B_sigma_n / (f_(ind.i, ind.j) + 1e-15);
 
-  long ii = ind2to1(i,j), jj = ind2to1(ind.i, ind.j); 
+  long ii = m.ind2to1(i,j), jj = m.ind2to1(ind.i, ind.j); 
   M_coeffs_.push_back(T(ii, ii, A_K));
   M_coeffs_.push_back(T(ii, jj, -A_L));
 
@@ -129,13 +129,13 @@ void Solver::coeff_add_dirbc(int i, int j, int inbr) {
   Ind indA, indB; 
   m.indO(edge.A, &indA); 
   double fA = vertex_f_(indA.i, indA.j); 
-  
+
   m.indO(edge.B, &indB); 
   double fB = vertex_f_(indB.i,indB.j); 
 
   double aK = alpha_osf_(i,j,inbr).A * fA + alpha_osf_(i,j,inbr).B * fB; 
 
-  long ii = ind2to1(i,j);
+  long ii = m.ind2to1(i,j);
   R_(ii) += aK; 
   M_coeffs_.push_back(T(ii, ii, (alpha_osf_(i,j,inbr).A + alpha_osf_(i,j,inbr).B)));
 }
@@ -151,7 +151,7 @@ void Solver::assemble(){ // obtain S * U^-1 and V * U^-1
         coeff_add_inner(i, j, inbr);
     }
   }
-  
+
   // row: i == 0 
   for (int j=0; j<m.ny(); ++j) {
     coeff_add_inner(0,j,m.inbr_ip());
@@ -194,7 +194,7 @@ void Solver::assemble(){ // obtain S * U^-1 and V * U^-1
     a = m.x(i);
     for (int j=0; j<m.ny(); ++j) {
       p = m.y(j);
-      ii = ind2to1(i,j);
+      ii = m.ind2to1(i,j);
       Uii = G(a, p) * m.area_dt();
       M_coeffs_.push_back(T(ii, ii, Uii));
       R_(ii) += Uii * f_(i,j);
@@ -215,6 +215,7 @@ void Solver::update() {
   solver.factorize(M_);
   f_.reshaped() = solver.solve(R_);
 
+  construct_alpha_osf();
   update_vertex_f();
 }
 

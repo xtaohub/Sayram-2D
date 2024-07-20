@@ -73,6 +73,10 @@ class Mesh {
     double dt() const { return dt_; }
     double area_dt() const { return dx_ * dy_ / dt_;}
 
+    int ind2to1(int i, int j) const { // map 2d indices to 1, column major
+      return j*nx()+i; 
+    }
+
     void indO(const Point& A, Ind* indp) const { 
       // calculate the i,j coordinate relative to the Origin
       // Note: not the cell index.

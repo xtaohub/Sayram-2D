@@ -8,8 +8,8 @@
  *
  */
 
-#ifndef FVM_SOLVER_H
-#define FVM_SOLVER_H
+#ifndef SOLVER_H
+#define SOLVER_H
 
 #include "common.h"
 #include "Mesh.h"
@@ -35,8 +35,6 @@ class Solver {
     const D& d; 
     const BCs& bcs;
 
-    friend class BC; 
-
     // M f = S
     Eigen::SparseLU<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> solver;
 
@@ -54,10 +52,6 @@ class Solver {
     // vertex_f is of size (nx+1, ny+1)
     // 
     Array<double, 2> vertex_f_; 
-
-    int ind2to1(int i, int j) const { // map 2d indices to 1, column major
-      return j*m.nx()+i; 
-    }
 
     void update_vertex_f(); 
 
@@ -81,25 +75,16 @@ class Solver {
       }
     }
 
-    double bsigma_inner_cells(double aK, double muK, double aL, double muL) const { 
-      return muL*aL-muK*aK;  
-    }
-
-    double bsigma_boundary_cells(double aK){
-      return -aK; 
-    }
-
     double bsigma_plus(double bsigma){
-      return (std::abs(bsigma) + std::abs(bsigma))/2.0;
+      return (std::abs(bsigma) + bsigma)/2.0;
     }
 
     double bsigma_minus(double bsigma){
-      return (std::abs(bsigma) - std::abs(bsigma))/2.0;
+      return (std::abs(bsigma) - bsigma)/2.0;
     }
-
 
     void init();
 
 };
 
-#endif /* FVM_SOLVER_H */
+#endif /* SOLVER_H */
