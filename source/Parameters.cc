@@ -63,8 +63,15 @@ void Parameters::read_inp_file(){
   ireader.read("nalpha_D", &nalpha_D_);
   ireader.read("alpha_min_D", &alpha_min_D_);
   ireader.read("alpha_max_D", &alpha_max_D_);
+
+  alpha_min_D_ = alpha_min_D_ * gPI / 180.0; 
+  alpha_max_D_ = alpha_max_D_ * gPI / 180.0; 
+  dalpha_D_ = (alpha_max_D_ - alpha_min_D_)/(nalpha_D_ - 1); 
+
   ireader.read("nE_D", &nE_D_);
   ireader.read("Emin_D", &Emin_D_);
   ireader.read("Emax_D", &Emax_D_);
+
+  dlogE_D_ = (log(Emax_D_) - log(Emin_D_)) / (nE_D_ - 1); 
 
 }

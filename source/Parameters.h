@@ -37,11 +37,14 @@ public:
 
   const string& dID() const { return dID_; }
   int nalpha_D() const { return nalpha_D_; }
+  double alpha_min_D() const { return alpha_min_D_; }
+  double alpha_max_D() const { return alpha_max_D_; }
+  double dalpha_D() const { return dalpha_D_; }
+
   int nE_D() const { return nE_D_; }
-  double alpha_min_D() const { return alpha_min_D_ * gPI / 180.0; }
-  double alpha_max_D() const { return alpha_max_D_ * gPI / 180.0; }
   double Emin_D() const { return Emin_D_; }
-  double dlogE_D() const { return (log(Emax_D_) - log(Emin_D_)) / (nE_D_ - 1); }
+  double Emax_D() const { return Emax_D_; }
+  double dlogE_D() const { return dlogE_D_; }
 
 private:
   string inp_file_; 
@@ -68,12 +71,16 @@ private:
   string output_path_; 
 
   string dID_;
+
   double nalpha_D_;
   double alpha_min_D_;
   double alpha_max_D_;
+  double dalpha_D_; 
+
   double nE_D_;
   double Emin_D_;
   double Emax_D_;
+  int dlogE_D_;  
 
   void handle_main_input(int argc, char* argv[]);
   void read_inp_file(); 

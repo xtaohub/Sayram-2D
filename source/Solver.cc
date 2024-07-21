@@ -75,8 +75,8 @@ void Solver::construct_alpha_osf(){
     for (int j = 0; j < m.ny(); j++){
       p = m.y(j);
 
-      Lambda_K << d.getDaa(0.0, i, j) * G(a, p), d.getDap(0.0, i, j) * G(a, p), 
-               d.getDap(0.0, i, j) * G(a, p), d.getDpp(0.0, i, j) * G(a, p);
+      Lambda_K << d.Daa(0.0, i, j) * G(a, p), d.Dap(0.0, i, j) * G(a, p), 
+               d.Dap(0.0, i, j) * G(a, p), d.Dpp(0.0, i, j) * G(a, p);
 
       K  << a, p;
 
