@@ -39,8 +39,11 @@ void Parameters::read_inp_file(){
   ireader.read("run_id", &run_id_);
   ireader.read("nalpha", &nalpha_);
   ireader.read("nE", &nE_);
-  ireader.read("alpha_lc", &alpha_lc_);
-  ireader.read("alpha_max", &alpha_max_);
+   
+  ireader.read("L", &L_);
+  alpha_lc_ = asin(pow(pow(L_,5)*(4*L_-3), -0.25)); 
+  alpha_max_ = gPI/2.0; 
+
   ireader.read("Emin", &Emin_);
   ireader.read("Emax", &Emax_);
 
@@ -49,7 +52,6 @@ void Parameters::read_inp_file(){
 
   ireader.read("T", &T_);
   ireader.read("nsteps", &nsteps_);
-
 
   ireader.set_section("diagnostics");
 

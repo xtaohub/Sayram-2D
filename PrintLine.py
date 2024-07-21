@@ -19,8 +19,12 @@ try:
     E_MAX = float(config.get('basic', 'Emax'))  # MeV
     nx = int(config.get('basic', 'nalpha'))
     ny = int(config.get('basic', 'nE'))
-    ALPHA_LC = float(config.get('basic', 'alpha_lc'))
-    ALPHA_MAX = float(config.get('basic', 'alpha_max'))
+    L = float(config.get('basic', 'L'))
+    ALPHA_LC = np.rad2deg(np.arcsin((L**5*(4*L-3))**(-1.0/4)))
+    # ALPHA_LC = float(config.get('basic', 'alpha_lc'))
+    # ALPHA_MAX = float(config.get('basic', 'alpha_max'))
+    # ALPHA_MAX = np.pi/2.0
+    ALPHA_MAX=90
     path = config.get('basic', 'run_id')
 except Exception as e:
     print("section_name or option_name wrong, check the input file.")
