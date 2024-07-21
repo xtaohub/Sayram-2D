@@ -19,9 +19,6 @@ class BCs {
 public:
     BCs(const Parameters& p_in): paras(p_in) {};
 
-    // Apply boundary conditions to the given solution matrix f
-    void applyBCs(Eigen::MatrixXd& f);
-
     // Define your boundary condition functions here
     double init_f(double a, double p) const{
       return exp(-(p2e(p, gE0) - 0.2) / 0.1) * (sin(a) - sin(paras.alpha_lc())) / (p * p);

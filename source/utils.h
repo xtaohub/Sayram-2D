@@ -12,9 +12,4 @@ inline double e2p(double E, double E0){ // convert energy to momentum
   return sqrt(E * (E + 2 * E0)) / gC; 
 }
 
-inline double G(double alpha, double p){
-  double t = 1.30 - 0.56 * sin(alpha);
-  return p * p * t * sin(alpha) * cos(alpha);
-}
-
 #endif

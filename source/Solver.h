@@ -83,6 +83,11 @@ class Solver {
       return (std::abs(bsigma) - bsigma)/2.0;
     }
 
+    double G(double alpha, double p){
+      double t = 1.30 - 0.56 * sin(alpha);
+      return p * p * t * sin(alpha) * cos(alpha);
+    }
+
     void init();
 
 };

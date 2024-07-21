@@ -72,7 +72,7 @@ private:
 
   string dID_;
 
-  double nalpha_D_;
+  int nalpha_D_;
   double alpha_min_D_;
   double alpha_max_D_;
   double dalpha_D_; 

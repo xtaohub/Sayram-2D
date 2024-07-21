@@ -128,7 +128,6 @@ void D::constructD(const Parameters& par, double t){
             p = m.y(j);
             
             locate(a, p, &loc);  
-
             
             Daa_(i,j) = Dinterp(Daa_raw, loc) / (p*p); 
             Dap_(i,j) = Dinterp(Dap_raw, loc) / p; 

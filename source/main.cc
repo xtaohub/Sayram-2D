@@ -8,12 +8,6 @@
  *
  */
 
-// #define EIGEN_USE_THREADS
-
-// TODO MKL
-// #define EIGEN_USE_MKL_ALL
-// #define EIGEN_VECTORIZE_SSE4_2
-
 #include <iostream>
 #include <cassert>
 #include "Parameters.h"
@@ -27,13 +21,12 @@ int main(int argc, char** argv) {
 
   Parameters paras(argc,argv); 
 
-  // Create grid object
+  // Create mesh 
   Mesh m(paras);
 
   // Create diffusion coefficients object
   D diffusion(paras, m);
 
-  // TODO BoundaryConditions modularization
   BCs boundary(paras);
 
   Solver solver(m, diffusion, boundary);
