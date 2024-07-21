@@ -10,9 +10,11 @@
 
 
 #include "Solver.h"
+#include "Parameters.h"
+#include <limits>
 
-Solver::Solver(const Mesh& m_in, const D& d_in, const BCs& bcs_in)
-  : m(m_in), d(d_in), bcs(bcs_in){
+Solver::Solver(const Parameters& paras_in, const Mesh& m_in, const D& d_in, const BCs& bcs_in)
+  : paras(paras_in), m(m_in), d(d_in), bcs(bcs_in){
 
     int nx = m.nx();
     int ny = m.ny();
@@ -20,6 +22,8 @@ Solver::Solver(const Mesh& m_in, const D& d_in, const BCs& bcs_in)
     M_.resize(nx*ny,nx*ny);
 
     f_.resize(nx,ny);
+    tau_.resize(nx, ny); 
+
     R_.resize(nx*ny);
 
     alpha_osf_.resize(nx, ny, m.nnbrs()); 
@@ -37,6 +41,13 @@ void Solver::init(){
     for (int j = 0; j < m.ny(); j++){
       p = m.y(j);
       f_(i,j) = bcs.init_f(a, p);
+
+      if (a < paras.alpha_lc()) {
+        tau_(i,j) = 0.00001; // replace this with 1/4 of bounce period
+      }
+      else {
+        tau_(i,j) = std::numeric_limits<double>::max();
+      }
     }
   }
 
@@ -155,7 +166,7 @@ void Solver::assemble(){ // obtain S * U^-1 and V * U^-1
   // row: i == 0 
   for (int j=0; j<m.ny(); ++j) {
     coeff_add_inner(0,j,m.inbr_ip());
-    coeff_add_dirbc(0,j,m.inbr_im()); 
+    // coeff_add_dirbc(0,j,m.inbr_im()); 
   }
   for (int j=1; j<m.ny(); ++j) coeff_add_inner(0,j,m.inbr_jm());
   for (int j=0; j<m.ny()-1; ++j) coeff_add_inner(0,j,m.inbr_jp());
@@ -214,6 +225,11 @@ void Solver::update() {
   solver.analyzePattern(M_);
   solver.factorize(M_);
   f_.reshaped() = solver.solve(R_);
+
+  for (int i=0; i<m.nx(); ++i)
+    for (int j=0; j<m.ny(); ++j) {
+      f_(i,j) *= exp(-m.dt()/tau_(i,j)); 
+    }
 
   construct_alpha_osf();
   update_vertex_f();

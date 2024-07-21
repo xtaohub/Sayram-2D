@@ -17,8 +17,8 @@ public:
   int nalpha() const { return nalpha_; }
   int nE() const { return nE_; }
   double alpha_lc() const { return alpha_lc_; }
-  double alpha_max() const { return alpha_max_; }
-  double dalpha() const { return (alpha_max() - alpha_lc())  / nalpha_; }
+  double alpha_min() const { return 0.0; }
+  double alpha_max() const { return gPI/2.0; }
 
   double L() const { return L_; }
 
@@ -31,7 +31,6 @@ public:
 
   double pmin() const { return pmin_; }
   double pmax() const { return pmax_; }
-  double dp() const { return (pmax() - pmin()) / nE_; }
 
   int nplots() const { return nplots_; }
   int save_every_step() const { return save_every_step_; }

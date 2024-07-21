@@ -33,13 +33,13 @@ class Mesh {
 
         nx_ = p.nalpha(); 
         ny_ = p.nE();
-        dx_ = p.dalpha();
-        dy_ = p.dp();
         dt_ = p.dt(); 
 
-        // these two lines need to be changed.
-        xO_ = p.alpha_lc(); 
+        xO_ = p.alpha_min(); 
         yO_ = p.pmin();
+
+        dx_ = (p.alpha_max() - p.alpha_min()) / p.nalpha(); 
+        dy_ = (p.pmax() - p.pmin()) / p.nE(); 
 
         x_(0) = xO() + dx()/2.0; 
         y_(0) = yO() + dy()/2.0; 
@@ -61,7 +61,10 @@ class Mesh {
         rinbr_(3) = 1; 
 
       }
-    
+
+    const Eigen::VectorXd& x() const { return x_; }
+    const Eigen::VectorXd& y() const { return y_; }
+
     double x(int i) const { return x_(i); }
     double y(int j) const { return y_(j); }
     double xO() const { return xO_; }

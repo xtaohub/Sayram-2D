@@ -12,6 +12,11 @@ Parameters::Parameters(int argc, char** argv){
 
   output_path_ = "./output/" + run_id() + "/"; 
   fs::create_directories(output_path_); 
+
+ // copy the parameter file 
+  string paras_file = "./output/" + run_id() + "/" + run_id() + ".ini";
+  string command = "cp " + inp_file() + " " +  paras_file;
+  system(command.c_str());
 }
 
 void Parameters::handle_main_input(int argc, char* argv[]){

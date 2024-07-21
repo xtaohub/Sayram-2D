@@ -25,12 +25,13 @@ struct NTPFA_node{ // two points A,B used in Nonlinear Two Point Approximation
 
 class Solver {
   public:
-    Solver(const Mesh& m_in, const D& d_in, const BCs& bcs_in);
+    Solver(const Parameters& paras_in, const Mesh& m_in, const D& d_in, const BCs& bcs_in);
 
     void update();
     const Eigen::MatrixXd& f() const { return f_; }
 
   private:
+    const Parameters& paras; 
     const Mesh& m;
     const D& d; 
     const BCs& bcs;
@@ -43,6 +44,8 @@ class Solver {
 
     Eigen::MatrixXd f_;
     Eigen::VectorXd R_;
+
+    Eigen::MatrixXd tau_; 
 
     Array<NTPFA_node, 3> alpha_osf_; // alpha_one_sided_flux
 

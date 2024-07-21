@@ -29,9 +29,23 @@ int main(int argc, char** argv) {
 
   BCs boundary(paras);
 
-  Solver solver(m, diffusion, boundary);
+  Solver solver(paras, m, diffusion, boundary);
 
-  string path;
+  string filename;
+  ofstream out; 
+
+  // output coordinates 
+  filename = paras.output_path() + "/" + paras.run_id() + "_x.dat";
+  out.open(filename); 
+  assert(out);
+  out << m.x() << std::endl;  
+  out.close();
+
+  filename = paras.output_path() + "/" + paras.run_id() + "_y.dat";
+  out.open(filename); 
+  assert(out);
+  out << m.y() << std::endl;  
+  out.close();
 
   // The timer
   clock_t start, end;
@@ -45,16 +59,10 @@ int main(int argc, char** argv) {
     solver.update();
 
     if(k % paras.save_every_step() == 0){
-
-      path = paras.output_path() + "/" + paras.run_id() + std::to_string(int((k) / paras.save_every_step()));
-
-      ofstream outFile(path);
-      assert(outFile);
-
-      for (double value : solver.f().reshaped()) {
-        outFile << value << std::endl;
-      }
-      outFile.close();
+      filename = paras.output_path() + "/" + paras.run_id() + std::to_string(int((k) / paras.save_every_step()));
+      out.open(filename);
+      out << solver.f(); 
+      out.close();
     }
   }
   end = clock();

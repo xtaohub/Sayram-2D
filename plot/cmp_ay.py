@@ -3,8 +3,9 @@ import matplotlib.pyplot as plt
 import configparser
 import sys
 
+run_id = 'albert_young'
 config = configparser.ConfigParser()
-defalut_filename = 'p.ini'
+defalut_filename = '../output/' + run_id + '/' + run_id + '.ini'
 
 if len(sys.argv) < 2:
     config.read(defalut_filename)
@@ -49,17 +50,15 @@ p2 = calP(2.0)
 P_MIN = calP(E_MIN)
 P_MAX = calP(E_MAX)
 
-
-
 x1 = np.linspace(ALPHA_LC, ALPHA_MAX, nx)
 x2 = np.linspace(ALPHA_LC + (ALPHA_MAX - ALPHA_LC) / (2 * nx), ALPHA_MAX - (ALPHA_MAX - ALPHA_LC) / (2 * nx), nx)
 
 # Tao's data
-with open("p80x80/p80x802") as dT01:
+with open("../output/p80x80/p80x802") as dT01:
     dataT01_ = dT01.readlines()
 del (dataT01_[0])
 
-with open("p80x80/p80x8020") as dT10:
+with open("../output/p80x80/p80x8020") as dT10:
     dataT10_ = dT10.readlines()
 del (dataT10_[0])
 
@@ -68,19 +67,24 @@ y_05_0 = np.exp(-(0.5 - 0.2) / 0.1) * (np.sin(alphav * np.pi / 180) - np.sin(ALP
 y_20_0 = np.exp(-(2.0 - 0.2) / 0.1) * (np.sin(alphav * np.pi / 180) - np.sin(ALPHA_LC * np.pi / 180))
 
 
-with open("output/" + path + "/" + path + "1") as raw01:
-    d01 = raw01.readlines()
-    
-with open("output/" + path + "/" + path + "10") as raw10:
-    d10 = raw10.readlines()
+file1 = "../output/" + path + "/" + path + "1"
+# with open() as raw01:
+#     d01 = raw01.readlines()
 
-data01 = np.zeros((nx, ny))
-data10 = np.zeros((nx, ny))
+file10 = "../output/" + path + "/" + path + "10"
+# with open() as raw10:
+#     d10 = raw10.readlines()
+#
+# data01 = np.zeros((nx, ny))
+# data10 = np.zeros((nx, ny))
+#
+# for i in range(nx):
+#     for j in range(ny):
+#         data01[i, j] = float(d01[nx*j + i])
+#         data10[i, j] = float(d10[nx*j + i])
 
-for i in range(nx):
-    for j in range(ny):
-        data01[i, j] = float(d01[nx*j + i])
-        data10[i, j] = float(d10[nx*j + i])
+data01 = np.loadtxt(file1)
+data10 = np.loadtxt(file10)
 
 pos_p1 = ((p1-P_MIN - (P_MAX - P_MIN) / 100) / (P_MAX - P_MIN) * ny)
 p1_floor = int(pos_p1)
