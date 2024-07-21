@@ -43,7 +43,7 @@ void Solver::init(){
       f_(i,j) = bcs.init_f(a, p);
 
       if (a < paras.alpha_lc()) {
-        tau_(i,j) = 0.00001; // replace this with 1/4 of bounce period
+        tau_(i,j) = 0.1; // replace this with 1/4 of bounce period
       }
       else {
         tau_(i,j) = std::numeric_limits<double>::max();
@@ -152,7 +152,7 @@ void Solver::coeff_add_dirbc(int i, int j, int inbr) {
 }
 
 
-void Solver::assemble(){ // obtain S * U^-1 and V * U^-1 
+void Solver::assemble(){ // obtain M and R 
 
   // inner cells
   for (int i=1; i<m.nx()-1; ++i){
