@@ -1,9 +1,31 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.interpolate import griddata
+import configparser
+import sys
 
-E_MIN = 0.2  # MeV
-E_MAX = 5  # MeV
+config = configparser.ConfigParser()
+defalut_filename = 'p.ini'
+
+if len(sys.argv) < 2:
+    config.read(defalut_filename)
+elif len(sys.argv) == 2:
+    config.read(sys.argv[1])
+else:
+    print("NParas() > 2! This program takes at most one argument: the parameter file name.")
+    sys.exit(1)
+
+try:
+    E_MIN = float(config.get('basic', 'Emin'))  # MeV
+    E_MAX = float(config.get('basic', 'Emax'))  # MeV
+    nx = int(config.get('basic', 'nalpha'))
+    ny = int(config.get('basic', 'nE'))
+    ALPHA_LC = float(config.get('basic', 'alpha_lc'))
+    ALPHA_MAX = float(config.get('basic', 'alpha_max'))
+    path = config.get('basic', 'run_id')
+except Exception as e:
+    print("section_name or option_name wrong, check the input file.")
+    sys.exit(1)
+
 E0 = 0.511875
 c = 1.0
 dlogE = (np.log(E_MAX) - np.log(E_MIN)) / (80 - 1)
@@ -17,15 +39,16 @@ def locateE(Ec):
     return (np.log(Ec) - np.log(E_MIN)) / dlogE
 
 
+# the p value at E = 0.5 and E = 2.0
 p1 = calP(0.5)
 p2 = calP(2.0)
 P_MIN = calP(E_MIN)
 P_MAX = calP(E_MAX)
 
-nx = 20
-ny = 30
-x1 = np.linspace(5, 90, nx)
-x2 = np.linspace(5 + 85 / (2 * nx), 90 - 85 / (2 * nx), nx)
+
+
+x1 = np.linspace(ALPHA_LC, ALPHA_MAX, nx)
+x2 = np.linspace(ALPHA_LC + (ALPHA_MAX - ALPHA_LC) / (2 * nx), ALPHA_MAX - (ALPHA_MAX - ALPHA_LC) / (2 * nx), nx)
 
 # Tao's data
 with open("p80x80/p80x802") as dT01:
@@ -36,38 +59,38 @@ with open("p80x80/p80x8020") as dT10:
     dataT10_ = dT10.readlines()
 del (dataT10_[0])
 
-alphav = np.linspace(5, 90, 80)
-y_05_0 = np.exp(-(0.5 - 0.2) / 0.1) * (np.sin(alphav * np.pi / 180) - np.sin(5.0 * np.pi / 180))
-y_20_0 = np.exp(-(2.0 - 0.2) / 0.1) * (np.sin(alphav * np.pi / 180) - np.sin(5.0 * np.pi / 180))
+alphav = np.linspace(ALPHA_LC, ALPHA_MAX, 80)
+y_05_0 = np.exp(-(0.5 - 0.2) / 0.1) * (np.sin(alphav * np.pi / 180) - np.sin(ALPHA_LC * np.pi / 180))
+y_20_0 = np.exp(-(2.0 - 0.2) / 0.1) * (np.sin(alphav * np.pi / 180) - np.sin(ALPHA_LC * np.pi / 180))
 
 
-with open("output/SMPPFV/smppfv2") as raw0:
-    d0 = raw0.readlines()
+with open("output/" + path + "/" + path + "1") as raw01:
+    d01 = raw01.readlines()
     
-with open("output/SMPPFV/smppfv20") as raw1:
-    d1 = raw1.readlines()
+with open("output/" + path + "/" + path + "10") as raw10:
+    d10 = raw10.readlines()
 
-data0 = np.zeros((nx, ny))
-data1 = np.zeros((nx, ny))
+data01 = np.zeros((nx, ny))
+data10 = np.zeros((nx, ny))
 
 for i in range(nx):
     for j in range(ny):
-        data0[i, j] = float(d0[nx*j + i])
-        data1[i, j] = float(d1[nx*j + i])
+        data01[i, j] = float(d01[nx*j + i])
+        data10[i, j] = float(d10[nx*j + i])
 
 pos_p1 = ((p1-P_MIN - (P_MAX - P_MIN) / 100) / (P_MAX - P_MIN) * ny)
-loc_p1 = int(pos_p1)
-w1 = pos_p1 - loc_p1
+p1_floor = int(pos_p1)
+w1 = pos_p1 - p1_floor
 w2 = 1 - w1
-y_0s05 = (data0[:, loc_p1] * 1/w1 / (1/w1 + 1/w2) + data0[:, loc_p1 + 1] * 1/w2 / (1/w1 + 1/w2)) * p1**2
-y_1s05 = (data1[:, loc_p1] * 1/w1 / (1/w1 + 1/w2) + data1[:, loc_p1 + 1] * 1/w2 / (1/w1 + 1/w2)) * p1**2
+y_0s05 = (data01[:, p1_floor] * 1/w1 / (1/w1 + 1/w2) + data01[:, p1_floor + 1] * 1/w2 / (1/w1 + 1/w2)) * p1**2
+y_1s05 = (data10[:, p1_floor] * 1/w1 / (1/w1 + 1/w2) + data10[:, p1_floor + 1] * 1/w2 / (1/w1 + 1/w2)) * p1**2
 
 pos_p2 = ((p2-P_MIN - (P_MAX - P_MIN) / 100) / (P_MAX - P_MIN) * ny)
-loc_p2 = int(pos_p2)
-w1 = pos_p2 - loc_p2
+p2_floor = int(pos_p2)
+w1 = pos_p2 - p2_floor
 w2 = 1 - w1
-y_0s20 = (data0[:, loc_p2] * 1/w1 / (1/w1 + 1/w2) + data0[:, loc_p2 + 1] * 1/w2 / (1/w1 + 1/w2)) * p2**2
-y_1s20 = (data1[:, loc_p2] * 1/w1 / (1/w1 + 1/w2) + data1[:, loc_p2 + 1] * 1/w2 / (1/w1 + 1/w2)) * p2**2
+y_0s20 = (data01[:, p2_floor] * 1/w1 / (1/w1 + 1/w2) + data01[:, p2_floor + 1] * 1/w2 / (1/w1 + 1/w2)) * p2**2
+y_1s20 = (data10[:, p2_floor] * 1/w1 / (1/w1 + 1/w2) + data10[:, p2_floor + 1] * 1/w2 / (1/w1 + 1/w2)) * p2**2
 
 
 e1 = 0.5
@@ -75,7 +98,7 @@ pos1 = int((calP(e1) - P_MIN) / (P_MAX - P_MIN) * 400)
 e2 = 2.0
 pos2 = int((calP(e2) - P_MIN) / (P_MAX - P_MIN) * 400)
 
-xx_range = np.linspace(5, 90, 400)
+xx_range = np.linspace(ALPHA_LC, ALPHA_MAX, 400)
 
 
 dataT01 = np.zeros((80, 80), dtype=float)
