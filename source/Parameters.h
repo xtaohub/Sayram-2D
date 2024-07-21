@@ -77,10 +77,10 @@ private:
   double alpha_max_D_;
   double dalpha_D_; 
 
-  double nE_D_;
+  int nE_D_;
   double Emin_D_;
   double Emax_D_;
-  int dlogE_D_;  
+  double dlogE_D_;  
 
   void handle_main_input(int argc, char* argv[]);
   void read_inp_file(); 

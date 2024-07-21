@@ -15,13 +15,6 @@
 #include "Parameters.h"
 #include "Mesh.h"
 
-// struct loc_info{
-//   double a_dec; // decimal part of coordinate a
-//   double logE_dec;
-//   int a_floor; // if a is just on an edge, take opposite a value as a marker
-//   int logE_floor;
-// }; 
-
 struct Loc{
   int i0;
   int j0; 

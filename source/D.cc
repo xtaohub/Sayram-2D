@@ -55,28 +55,6 @@ void D::read_d(std::string address, Eigen::MatrixXd* D_rawp){
     }
 }
 
-//
-// void D::locate(const Parameters& par, double a, double p, loc_info& loc){
-//     std::vector<double> locinfo = {0.0, 0.0, 0.0, 0.0};
-//     double a_ = (a - par.alpha_min_D()) / gPI * 180.0;
-//     double a_f = floor(a_);
-//     double logE = (log(p2e(p, gE0)) - log(par.Emin_D())) / par.dlogE_D();
-//     double logE_f = floor(logE);
-//     loc.a_dec = a_ - a_f;
-//     loc.logE_dec = logE - logE_f;
-//     // edge judege:
-//     if (abs(loc.a_dec) < 1e-6) {
-//         loc.a_floor = -round(a_f);
-//     } else {
-//         loc.a_floor = round(a_f);
-//     }
-//     if (abs(loc.logE_dec) < 1e-6) {
-//         loc.logE_floor = -round(logE_f);
-//     } else {
-//         loc.logE_floor = round(logE_f);
-//     }
-// }
-
 void D::locate(double alpha, double p, Loc* locp){
     int i0, j0;
     double wi, wj;
@@ -149,43 +127,12 @@ void D::constructD(const Parameters& par, double t){
         for(int j = 0; j < m.ny(); j++){
             p = m.y(j);
             
-            locate(a, p, &loc);             
+            locate(a, p, &loc);  
+
             
             Daa_(i,j) = Dinterp(Daa_raw, loc) / (p*p); 
             Dap_(i,j) = Dinterp(Dap_raw, loc) / p; 
             Dpp_(i,j) = Dinterp(Dpp_raw, loc);
-
-
-            // locate(par, a, p, loc);
-
-            // if(loc.a_floor < 0 and loc.logE_floor < 0){
-            //     Daa_(i, j) = Daa_raw(-loc.a_floor, -loc.logE_floor) / (p * p);
-            //     Dap_(i, j) = Dap_raw(-loc.a_floor, -loc.logE_floor) / p;
-            //     Dpp_(i, j) = Dpp_raw(-loc.a_floor, -loc.logE_floor);
-            // }
-            // else if(loc.a_floor < 0) {
-            //     double w1 = 1.0 / loc.logE_dec;
-            //     double w2 = 1.0 / (1.0 - loc.logE_dec);
-            //     Daa_(i, j) = (w1 * Daa_raw(-loc.a_floor, loc.logE_floor) + w2 * Daa_raw(-loc.a_floor, loc.logE_floor + 1)) / (w1 + w2) / (p * p);
-            //     Dap_(i, j) = (w1 * Dap_raw(-loc.a_floor, loc.logE_floor) + w2 * Dap_raw(-loc.a_floor, loc.logE_floor + 1)) / (w1 + w2) / p;
-            //     Dpp_(i, j) = (w1 * Dpp_raw(-loc.a_floor, loc.logE_floor) + w2 * Dpp_raw(-loc.a_floor, loc.logE_floor + 1)) / (w1 + w2);
-            // }
-            // else if(loc.logE_floor < 0) {
-            //     double w1 = 1.0 / loc.a_dec;
-            //     double w2 = 1.0 / (1.0 - loc.a_dec);
-            //     Daa_(i, j) = (w1 * Daa_raw(loc.a_floor, -loc.logE_floor) + w2 * Daa_raw(loc.a_floor + 1, -loc.logE_floor)) / (w1 + w2) / (p * p);
-            //     Dap_(i, j) = (w1 * Dap_raw(loc.a_floor, -loc.logE_floor) + w2 * Dap_raw(loc.a_floor + 1, -loc.logE_floor)) / (w1 + w2) / p;
-            //     Dpp_(i, j) = (w1 * Dpp_raw(loc.a_floor, -loc.logE_floor) + w2 * Dpp_raw(loc.a_floor + 1, -loc.logE_floor)) / (w1 + w2);
-            // }
-            // else {
-            //     double w1 = 1.0 / sqrt(loc.a_dec * loc.a_dec + loc.logE_dec * loc.logE_dec);
-            //     double w2 = 1.0 / sqrt(loc.a_dec * loc.a_dec + (1.0 - loc.logE_dec) * (1.0 - loc.logE_dec));
-            //     double w3 = 1.0 / sqrt((1.0 - loc.a_dec) * (1.0 - loc.a_dec) + (1.0 - loc.logE_dec) * (1.0 - loc.logE_dec));
-            //     double w4 = 1.0 / sqrt((1.0 - loc.a_dec) * (1.0 - loc.a_dec) + loc.logE_dec * loc.logE_dec);
-            //     Daa_(i, j) = (w1 * Daa_raw(loc.a_floor, loc.logE_floor) + w2 * Daa_raw(loc.a_floor, loc.logE_floor + 1) + w3 * Daa_raw(loc.a_floor + 1, loc.logE_floor + 1) + w4 * Daa_raw(loc.a_floor + 1, loc.logE_floor)) / (w1 + w2 + w3 + w4) / (p * p);
-            //     Dap_(i, j) = (w1 * Dap_raw(loc.a_floor, loc.logE_floor) + w2 * Dap_raw(loc.a_floor, loc.logE_floor + 1) + w3 * Dap_raw(loc.a_floor + 1, loc.logE_floor + 1) + w4 * Dap_raw(loc.a_floor + 1, loc.logE_floor)) / (w1 + w2 + w3 + w4) / p;
-            //     Dpp_(i, j) = (w1 * Dpp_raw(loc.a_floor, loc.logE_floor) + w2 * Dpp_raw(loc.a_floor, loc.logE_floor + 1) + w3 * Dpp_raw(loc.a_floor + 1, loc.logE_floor + 1) + w4 * Dpp_raw(loc.a_floor + 1, loc.logE_floor)) / (w1 + w2 + w3 + w4);
-            // }
         }
     }
 }
