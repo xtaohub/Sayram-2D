@@ -21,7 +21,7 @@ public:
 
     // Define your boundary condition functions here
     double init_f(double a, double p) const{
-      return exp(-(p2e(p, gE0) - 0.2) / 0.1) * (sin(a) - sin(paras.alpha_lc())) / (p * p);
+      return exp(-(p2e(p, gE0) - 0.2) / 0.1) * sin(a) / (p * p);
     }
 
     double amin(double p) const{
@@ -29,7 +29,7 @@ public:
     }
 
     double pmin(double a) const{
-      return exp(-(p2e(paras.pmin(), gE0) - 0.2) / 0.1) * (sin(a) - sin(paras.alpha_lc())) / (paras.pmin() * paras.pmin());
+      return init_f(a, paras.pmin()); 
     }
 
     double pmax(double a) const{

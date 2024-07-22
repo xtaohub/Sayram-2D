@@ -166,7 +166,7 @@ void Solver::assemble(){ // obtain M and R
   // row: i == 0 
   for (int j=0; j<m.ny(); ++j) {
     coeff_add_inner(0,j,m.inbr_ip());
-    // coeff_add_dirbc(0,j,m.inbr_im()); 
+    // coeff_add_dirbc(0,j,m.inbr_im());  // nothing special for alpha=0 for inbr=inbr_im()
   }
   for (int j=1; j<m.ny(); ++j) coeff_add_inner(0,j,m.inbr_jm());
   for (int j=0; j<m.ny()-1; ++j) coeff_add_inner(0,j,m.inbr_jp());
@@ -174,7 +174,7 @@ void Solver::assemble(){ // obtain M and R
   // row i == nx-1 alpha = 90 
   for (int j=0; j<m.ny(); ++j) {
     coeff_add_inner(m.nx()-1,j,m.inbr_im()); 
-    // nothing special for alpha=90 for inbr=2
+    // nothing special for alpha=90 for inbr=inbr_ip()
   }
   for (int j=1; j<m.ny(); ++j) coeff_add_inner(m.nx()-1,j,m.inbr_jm());
   for (int j=0; j<m.ny()-1; ++j) coeff_add_inner(m.nx()-1,j,m.inbr_jp());
@@ -241,15 +241,16 @@ void Solver::update_vertex_f(){
       vertex_f_(i,j) = (f_(i-1,j-1) + f_(i-1,j) + f_(i,j-1) + f_(i,j)) / 4.0; 
     }
 
-  // i == 0 boundary
-  double a, p;
-  for (int j = 0; j<vertex_f_.ncols(); ++j){
-    p = m.yO()+j*m.dy(); 
-    vertex_f_(0, j) = bcs.amin(p);
+  double a;
+
+  // i == 0 and m.nx() boundary
+  for (int j = 1; j<m.ny(); ++j){
+    vertex_f_(0, j) = vertex_f_(1,j);
+    vertex_f_(m.nx(), j) = vertex_f_(m.nx()-1,j);
   }
 
   // j == 0  and j == m.ny() boundary
-  for (int i = 0; i < vertex_f_.nrows(); ++i) {
+  for (int i = 0; i <= m.nx(); ++i) {
     a = m.xO() + i*m.dx(); 
     vertex_f_(i,0) = bcs.pmin(a); 
     vertex_f_(i,m.ny()) = bcs.pmax(a); 

@@ -115,6 +115,7 @@ if __name__ == '__main__':
     axes[0].plot(alphav, f0510, ls = '--', color='C1')
 
     axes[0].set(yscale='log', ylim=(1e-5, 1e1))
+    # axes[0].set(yscale='log')
 
     axes[1].plot(ay_alphav, f2000_ay, color='k')
     axes[1].plot(ay_alphav, f2001_ay)
@@ -124,6 +125,7 @@ if __name__ == '__main__':
     axes[1].plot(alphav, f2010, ls = '--', color='C1')
 
     axes[1].set(yscale='log', ylim=(1e-10, 1e-2))
+    # axes[1].set(yscale='log')
    
     plt.show()
 
