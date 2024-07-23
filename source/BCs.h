@@ -24,10 +24,6 @@ public:
       return exp(-(p2e(p, gE0) - 0.2) / 0.1) * sin(a) / (p * p);
     }
 
-    double amin(double p) const{
-        return 0.0;
-    }
-
     double pmin(double a) const{
       return init_f(a, paras.pmin()); 
     }

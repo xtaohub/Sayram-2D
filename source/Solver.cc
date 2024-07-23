@@ -36,6 +36,12 @@ Solver::Solver(const Parameters& paras_in, const Mesh& m_in, const D& d_in, cons
 void Solver::init(){
   double a;
   double p;
+  double T0 = 1.3802;
+  double T1 = 0.7405;
+  double theta_m = asin(sqrt(1.0 / paras.L()));
+  double y_theta = pow(1+3*cos(theta_m)*cos(theta_m), -0.25) * pow(sin(theta_m), 3);
+  double T_y = T0 - 0.5 * (T0 - T1) * (y_theta + sqrt(y_theta));
+
   for (int i = 0; i < m.nx(); i++){
     a = m.x(i);
     for (int j = 0; j < m.ny(); j++){
@@ -43,7 +49,7 @@ void Solver::init(){
       f_(i,j) = bcs.init_f(a, p);
 
       if (a < paras.alpha_lc()) {
-        tau_(i,j) = 0.1; // replace this with 1/4 of bounce period
+        tau_(i,j) = paras.L() * R_E * (gE0 + p2e(p, gE0)) / p * T_y / (3e8 * 3600 * 24) ; 
       }
       else {
         tau_(i,j) = std::numeric_limits<double>::max();
