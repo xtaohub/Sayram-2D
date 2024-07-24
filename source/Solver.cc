@@ -52,7 +52,7 @@ void Solver::init(){
         theta_m = asin(pow(2*pow(sin(a),2), 1.0/6));
         y_theta = pow(1+3*cos(theta_m)*cos(theta_m), -0.25) * pow(sin(theta_m), 3);
         T_y = T0 - 0.5 * (T0 - T1) * (y_theta + sqrt(y_theta));
-        tau_(i,j) = paras.L() * R_E * (gE0 + p2e(p, gE0)) / p * T_y / (3e8 * 3600 * 24) ; 
+        tau_(i,j) = paras.L() * R_E * ((gE0 + p2e(p, gE0)) / (gC * gC)) / p * T_y / (3e8 * 3600 * 24) ; 
       }
       else {
         tau_(i,j) = std::numeric_limits<double>::max();
