@@ -56,7 +56,10 @@ def ay_init():
     return y05_0, y20_0
 
 def p2e(p, E0=0.511875, cv=1):
-    return np.sqrt(p**2* cv**2 + E0**2) - E0;
+    return np.sqrt(p**2* cv**2 + E0**2) - E0
+
+def e2p(E, E0=0.511875, cv=1):
+    return np.sqrt(E * (E + 2 * E0)) / cv 
 
 def read_xy(run_id):
     xfname = fname_base(run_id) + '_x.dat'
@@ -89,11 +92,11 @@ if __name__ == '__main__':
     f01 = np.loadtxt(fnamed01)
     f10 = np.loadtxt(fnamed10)
 
-    f0501 = f1d(f01, alphav, ev, 0.5)
-    f0510 = f1d(f10, alphav, ev, 0.5)
+    f0501 = f1d(f01, alphav, ev, 0.5) * e2p(0.5)**2
+    f0510 = f1d(f10, alphav, ev, 0.5) * e2p(0.5)**2
 
-    f2001 = f1d(f01, alphav, ev, 2.0)
-    f2010 = f1d(f10, alphav, ev, 2.0)
+    f2001 = f1d(f01, alphav, ev, 2.0) * e2p(2.0)**2
+    f2010 = f1d(f10, alphav, ev, 2.0) * e2p(2.0)**2
 
     ay_alphav, ay_logev = ay_coord()
     ay_01, ay_10 = read_ay()

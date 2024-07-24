@@ -22,10 +22,6 @@ try:
     ny = int(config.get('basic', 'nE'))
     L = float(config.get('basic', 'L'))
     ALPHA_LC = np.rad2deg(np.arcsin((L**5*(4*L-3))**(-1.0/4)))
-    # ALPHA_LC = float(config.get('basic', 'alpha_lc'))
-    # ALPHA_MAX = float(config.get('basic', 'alpha_max'))
-    # ALPHA_MAX = np.pi/2.0
-    ALPHA_MAX=90
     path = config.get('basic', 'run_id')
 except Exception as e:
     print("section_name or option_name wrong, check the input file.")
@@ -34,6 +30,8 @@ except Exception as e:
 E0 = 0.511875
 c = 1.0
 dlogE = (np.log(E_MAX) - np.log(E_MIN)) / (80 - 1)
+ALPHA_MAX = 90
+ALPHA_0 = 0
 
 
 def calP(Ec):
@@ -50,8 +48,7 @@ p2 = calP(2.0)
 P_MIN = calP(E_MIN)
 P_MAX = calP(E_MAX)
 
-x1 = np.linspace(ALPHA_LC, ALPHA_MAX, nx)
-x2 = np.linspace(ALPHA_LC + (ALPHA_MAX - ALPHA_LC) / (2 * nx), ALPHA_MAX - (ALPHA_MAX - ALPHA_LC) / (2 * nx), nx)
+x = np.linspace(ALPHA_0 + (ALPHA_MAX - ALPHA_0) / (2 * nx), ALPHA_MAX - (ALPHA_MAX - ALPHA_0) / (2 * nx), nx)
 
 # Tao's data
 with open("../output/p80x80/p80x802") as dT01:
@@ -68,32 +65,19 @@ y_20_0 = np.exp(-(2.0 - 0.2) / 0.1) * (np.sin(alphav * np.pi / 180) - np.sin(ALP
 
 
 file1 = "../output/" + path + "/" + path + "1"
-# with open() as raw01:
-#     d01 = raw01.readlines()
-
 file10 = "../output/" + path + "/" + path + "10"
-# with open() as raw10:
-#     d10 = raw10.readlines()
-#
-# data01 = np.zeros((nx, ny))
-# data10 = np.zeros((nx, ny))
-#
-# for i in range(nx):
-#     for j in range(ny):
-#         data01[i, j] = float(d01[nx*j + i])
-#         data10[i, j] = float(d10[nx*j + i])
 
 data01 = np.loadtxt(file1)
 data10 = np.loadtxt(file10)
 
-pos_p1 = ((p1-P_MIN - (P_MAX - P_MIN) / 100) / (P_MAX - P_MIN) * ny)
+pos_p1 = ((p1-P_MIN - (P_MAX - P_MIN) / (2 * ny)) / (P_MAX - P_MIN) * ny)
 p1_floor = int(pos_p1)
 w1 = pos_p1 - p1_floor
 w2 = 1 - w1
 y_0s05 = (data01[:, p1_floor] * 1/w1 / (1/w1 + 1/w2) + data01[:, p1_floor + 1] * 1/w2 / (1/w1 + 1/w2)) * p1**2
 y_1s05 = (data10[:, p1_floor] * 1/w1 / (1/w1 + 1/w2) + data10[:, p1_floor + 1] * 1/w2 / (1/w1 + 1/w2)) * p1**2
 
-pos_p2 = ((p2-P_MIN - (P_MAX - P_MIN) / 100) / (P_MAX - P_MIN) * ny)
+pos_p2 = ((p2-P_MIN - (P_MAX - P_MIN) / (2 * ny)) / (P_MAX - P_MIN) * ny)
 p2_floor = int(pos_p2)
 w1 = pos_p2 - p2_floor
 w2 = 1 - w1
@@ -137,8 +121,8 @@ ax1 = fig.add_subplot(1, 2, 1)
 l1, = plt.semilogy(alphav, y_05_0, color="black", label='T = 0.0day')
 l2, = plt.semilogy(alphav, y_05_t01, color="blue", label='T = 0.1day')
 l3, = plt.semilogy(alphav, y_05_t10, color="red", label='T = 1.0day')
-l4, = plt.semilogy(x2, y_0s05, "b--", label='0.1d')
-l5, = plt.semilogy(x2, y_1s05, "r--", label='1.0d')
+l4, = plt.semilogy(x, y_0s05, "b--", label='0.1d')
+l5, = plt.semilogy(x, y_1s05, "r--", label='1.0d')
 
 
 plt.title("0.5MeV", fontsize=16)
@@ -152,11 +136,11 @@ plt.ylim(1e-3, 1)
 ax2 = fig.add_subplot(1, 2, 2)
 
 
-l1, = plt.semilogy(alphav, y_20_0, color="black", label='T = 0.0 day')
+l1, = plt.semilogy(alphav, y_20_0, color="black", label='T = ALPHA_0 day')
 l2, = plt.semilogy(alphav, y_20_t01, color="blue", label='layer method')
 l3, = plt.semilogy(alphav, y_20_t10, color="red", label='T = 1.0day')
-l4, = plt.semilogy(x2, y_0s20, "b--", label='PPFV,SM')
-l5, = plt.semilogy(x2, y_1s20, "r--", label='PPFV,SM')
+l4, = plt.semilogy(x, y_0s20, "b--", label='PPFV,SM')
+l5, = plt.semilogy(x, y_1s20, "r--", label='PPFV,SM')
 
 
 plt.title("2MeV", fontsize=16)
