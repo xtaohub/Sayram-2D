@@ -20,15 +20,15 @@ public:
     BCs(const Parameters& p_in): paras(p_in) {};
 
     // Define your boundary condition functions here
-    double init_f(double a, double p) const{
-      return exp(-(p2e(p, gE0) - 0.2) / 0.1) * sin(a) / (p * p);
+    double init_f(double a0, double p) const{
+      return exp(-(p2e(p, gE0) - 0.2) / 0.1) * sin(a0) / (p * p);
     }
 
-    double pmin(double a) const{
-      return init_f(a, paras.pmin()); 
+    double pmin(double t, double a0) const{
+      return init_f(a0, paras.pmin()); 
     }
 
-    double pmax(double a) const{
+    double pmax(double t, double a0) const{
       return 0.0;
     }
 

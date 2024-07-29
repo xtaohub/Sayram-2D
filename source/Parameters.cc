@@ -42,12 +42,12 @@ void Parameters::read_inp_file(){
   ireader.set_section("basic");
 
   ireader.read("run_id", &run_id_);
-  ireader.read("nalpha", &nalpha_);
+  ireader.read("nalpha0", &nalpha0_);
   ireader.read("nE", &nE_);
    
   ireader.read("L", &L_);
-  alpha_lc_ = asin(pow(pow(L_,5)*(4*L_-3), -0.25)); 
-  alpha_max_ = gPI/2.0; 
+  alpha0_lc_ = asin(pow(pow(L_,5)*(4*L_-3), -0.25)); 
+  alpha0_max_ = gPI/2.0; 
 
   ireader.read("Emin", &Emin_);
   ireader.read("Emax", &Emax_);
@@ -67,13 +67,13 @@ void Parameters::read_inp_file(){
   ireader.set_section("diffusion_coefficients"); 
 
   ireader.read("dID", &dID_);
-  ireader.read("nalpha_D", &nalpha_D_);
-  ireader.read("alpha_min_D", &alpha_min_D_);
-  ireader.read("alpha_max_D", &alpha_max_D_);
+  ireader.read("nalpha0_D", &nalpha0_D_);
+  ireader.read("alpha0_min_D", &alpha0_min_D_);
+  ireader.read("alpha0_max_D", &alpha0_max_D_);
 
-  alpha_min_D_ = alpha_min_D_ * gPI / 180.0; 
-  alpha_max_D_ = alpha_max_D_ * gPI / 180.0; 
-  dalpha_D_ = (alpha_max_D_ - alpha_min_D_)/(nalpha_D_ - 1); 
+  alpha0_min_D_ = alpha0_min_D_ * gPI / 180.0; 
+  alpha0_max_D_ = alpha0_max_D_ * gPI / 180.0; 
+  dalpha0_D_ = (alpha0_max_D_ - alpha0_min_D_)/(nalpha0_D_ - 1); 
 
   ireader.read("nE_D", &nE_D_);
   ireader.read("Emin_D", &Emin_D_);

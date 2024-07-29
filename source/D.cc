@@ -42,12 +42,12 @@ void D::read_d(std::string address, Eigen::MatrixXd* D_rawp){
     const double denormalize_factor = gME * gME * gC * gC;
     const double second_to_day = 3600 * 24;
 
-    int nalpha, nenergy;
+    int nalpha0, nenergy;
 
-    nalpha = paras.nalpha_D();
+    nalpha0 = paras.nalpha0_D();
     nenergy = paras.nE_D();
 
-    for (int i = 0; i < nalpha; i++){
+    for (int i = 0; i < nalpha0; i++){
         for (int j = 0; j < nenergy; j++){
             fin >> D_raw(i, j);
             D_raw(i, j) *= denormalize_factor * second_to_day;
@@ -55,26 +55,26 @@ void D::read_d(std::string address, Eigen::MatrixXd* D_rawp){
     }
 }
 
-void D::locate(double alpha, double p, Loc* locp){
+void D::locate(double alpha0, double p, Loc* locp){
     int i0, j0;
     double wi, wj;
     double logE = log(p2e(p, gE0)); 
 
-    double pos_alpha = (alpha - paras.alpha_min_D()) / paras.dalpha_D(); 
+    double pos_alpha0 = (alpha0 - paras.alpha0_min_D()) / paras.dalpha0_D(); 
     double pos_p = (logE - log(paras.Emin_D())) / paras.dlogE_D(); 
 
-    i0 = floor(pos_alpha); 
+    i0 = floor(pos_alpha0); 
     j0 = floor(pos_p); 
 
-    if (i0 >= 0 && i0 < paras.nalpha_D()) {
-      wi = 1 - (pos_alpha - i0); 
+    if (i0 >= 0 && i0 < paras.nalpha0_D()) {
+      wi = 1 - (pos_alpha0 - i0); 
     } 
     else if (i0 < 0) {
       i0 = 0;
       wi = 1;
     }
-    else if (i0 >= paras.nalpha_D()) {
-      i0 = paras.nalpha_D() - 2; 
+    else if (i0 >= paras.nalpha0_D()) {
+      i0 = paras.nalpha0_D() - 2; 
       wi = 0.0; 
     }
 
@@ -110,9 +110,9 @@ double Dinterp(const Eigen::MatrixXd& Draw, const Loc& loc){
 void D::constructD(const Parameters& par, double t){
     double a, p;
 
-    Eigen::MatrixXd Daa_raw(par.nalpha_D(), par.nE_D());
-    Eigen::MatrixXd Dap_raw(par.nalpha_D(), par.nE_D());
-    Eigen::MatrixXd Dpp_raw(par.nalpha_D(), par.nE_D());
+    Eigen::MatrixXd Daa_raw(par.nalpha0_D(), par.nE_D());
+    Eigen::MatrixXd Dap_raw(par.nalpha0_D(), par.nE_D());
+    Eigen::MatrixXd Dpp_raw(par.nalpha0_D(), par.nE_D());
 
     std::string dfile_base = "D/" + par.dID() + "/" + par.dID() + ".";
 

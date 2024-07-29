@@ -28,6 +28,7 @@ class Solver {
     Solver(const Parameters& paras_in, const Mesh& m_in, const D& d_in, const BCs& bcs_in);
 
     void update();
+    double t() const { return t_; }
     const Eigen::MatrixXd& f() const { return f_; }
 
   private:
@@ -35,6 +36,8 @@ class Solver {
     const Mesh& m;
     const D& d; 
     const BCs& bcs;
+
+    double t_; 
 
     // M f = R
     Eigen::SparseLU<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> solver;
@@ -92,6 +95,8 @@ class Solver {
     }
 
     void init();
+
+    double bounce_period(double a, double p) const; 
 
 };
 

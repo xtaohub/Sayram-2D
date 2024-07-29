@@ -14,11 +14,11 @@ public:
   const string& run_id() const { return run_id_; }
   const string& inp_file() const { return inp_file_; }
 
-  int nalpha() const { return nalpha_; }
+  int nalpha0() const { return nalpha0_; }
   int nE() const { return nE_; }
-  double alpha_lc() const { return alpha_lc_; }
-  double alpha_min() const { return 0.0; }
-  double alpha_max() const { return gPI/2.0; }
+  double alpha0_lc() const { return alpha0_lc_; }
+  double alpha0_min() const { return 0.0; }
+  double alpha0_max() const { return gPI/2.0; }
 
   double L() const { return L_; }
 
@@ -37,10 +37,10 @@ public:
   const string& output_path() const { return output_path_; }
 
   const string& dID() const { return dID_; }
-  int nalpha_D() const { return nalpha_D_; }
-  double alpha_min_D() const { return alpha_min_D_; }
-  double alpha_max_D() const { return alpha_max_D_; }
-  double dalpha_D() const { return dalpha_D_; }
+  int nalpha0_D() const { return nalpha0_D_; }
+  double alpha0_min_D() const { return alpha0_min_D_; }
+  double alpha0_max_D() const { return alpha0_max_D_; }
+  double dalpha0_D() const { return dalpha0_D_; }
 
   int nE_D() const { return nE_D_; }
   double Emin_D() const { return Emin_D_; }
@@ -51,12 +51,12 @@ private:
   string inp_file_; 
 
   string run_id_;
-  double nalpha_;
+  double nalpha0_;
   double nE_;
 
   double L_; 
-  double alpha_lc_;
-  double alpha_max_; 
+  double alpha0_lc_;
+  double alpha0_max_; 
 
   double Emin_;
   double Emax_; 
@@ -74,10 +74,10 @@ private:
 
   string dID_;
 
-  int nalpha_D_;
-  double alpha_min_D_;
-  double alpha_max_D_;
-  double dalpha_D_; 
+  int nalpha0_D_;
+  double alpha0_min_D_;
+  double alpha0_max_D_;
+  double dalpha0_D_; 
 
   int nE_D_;
   double Emin_D_;

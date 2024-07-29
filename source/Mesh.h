@@ -29,16 +29,16 @@ struct Edge{
 
 class Mesh {
   public:
-    Mesh(const Parameters& p): x_(p.nalpha()), y_(p.nE()) {
+    Mesh(const Parameters& p): x_(p.nalpha0()), y_(p.nE()) {
 
-        nx_ = p.nalpha(); 
+        nx_ = p.nalpha0(); 
         ny_ = p.nE();
         dt_ = p.dt(); 
 
-        xO_ = p.alpha_min(); 
+        xO_ = p.alpha0_min(); 
         yO_ = p.pmin();
 
-        dx_ = (p.alpha_max() - p.alpha_min()) / p.nalpha(); 
+        dx_ = (p.alpha0_max() - p.alpha0_min()) / p.nalpha0(); 
         dy_ = (p.pmax() - p.pmin()) / p.nE(); 
 
         x_(0) = xO() + dx()/2.0; 

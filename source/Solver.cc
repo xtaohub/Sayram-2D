@@ -29,30 +29,35 @@ Solver::Solver(const Parameters& paras_in, const Mesh& m_in, const D& d_in, cons
     alpha_osf_.resize(nx, ny, m.nnbrs()); 
     vertex_f_.resize(nx+1,ny+1); 
 
+
     init(); 
 
   }
 
-void Solver::init(){
-  double a;
-  double p;
+double Solver::bounce_period(double a0, double p) const{
   double T0 = 1.3802;
   double T1 = 0.7405;
-  double theta_m;
-  double y_theta;
-  double T_y;
+  double y; 
+  double Ty; 
+
+  y = std::sin(a0); 
+  Ty = T0 - 0.5 * (T0 - T1) * (y + sqrt(y));
+
+  return 4*paras.L() * gRE * ((gE0 + p2e(p, gE0)) / (gC * gC)) / p * Ty / (3e8 * 3600 * 24); 
+}
+
+void Solver::init(){
+  double a0;
+  double p;
 
   for (int i = 0; i < m.nx(); i++){
-    a = m.x(i);
+    a0 = m.x(i);
     for (int j = 0; j < m.ny(); j++){
       p = m.y(j);
-      f_(i,j) = bcs.init_f(a, p);
+      f_(i,j) = bcs.init_f(a0, p);
 
-      if (a < paras.alpha_lc()) {
-        theta_m = asin(pow(2*pow(sin(a),2), 1.0/6));
-        y_theta = pow(1+3*cos(theta_m)*cos(theta_m), -0.25) * pow(sin(theta_m), 3);
-        T_y = T0 - 0.5 * (T0 - T1) * (y_theta + sqrt(y_theta));
-        tau_(i,j) = paras.L() * R_E * ((gE0 + p2e(p, gE0)) / (gC * gC)) / p * T_y / (3e8 * 3600 * 24) ; 
+      if (a0 < paras.alpha0_lc()) {
+        tau_(i,j) = bounce_period(a0, p) / 4.0;  
       }
       else {
         tau_(i,j) = std::numeric_limits<double>::max();
@@ -60,6 +65,7 @@ void Solver::init(){
     }
   }
 
+  t_ = 0;
   construct_alpha_osf();
   update_vertex_f();
 }
@@ -86,19 +92,19 @@ void Solver::construct_alpha_osf(){
 
   Eigen::Matrix2d Lambda_K;
 
-  double a, p;
+  double a0, p;
   Point K;
   Edge edge;  
 
   for (int i = 0; i < m.nx(); i++){
-    a = m.x(i);
+    a0 = m.x(i);
     for (int j = 0; j < m.ny(); j++){
       p = m.y(j);
 
-      Lambda_K << d.Daa(0.0, i, j) * G(a, p), d.Dap(0.0, i, j) * G(a, p), 
-               d.Dap(0.0, i, j) * G(a, p), d.Dpp(0.0, i, j) * G(a, p);
+      Lambda_K << d.Daa(t(), i, j) * G(a0, p), d.Dap(t(), i, j) * G(a0, p), 
+               d.Dap(t(), i, j) * G(a0, p), d.Dpp(t(), i, j) * G(a0, p);
 
-      K  << a, p;
+      K  << a0, p;
 
       for (int inbr=0; inbr<m.nnbrs(); ++inbr){
         m.get_nbr_edg(i, j, inbr, &edge);  
@@ -239,7 +245,8 @@ void Solver::update() {
     for (int j=0; j<m.ny(); ++j) {
       f_(i,j) *= exp(-m.dt()/tau_(i,j)); 
     }
-
+  
+  t_ += m.dt(); 
   construct_alpha_osf();
   update_vertex_f();
 }
@@ -250,7 +257,7 @@ void Solver::update_vertex_f(){
       vertex_f_(i,j) = (f_(i-1,j-1) + f_(i-1,j) + f_(i,j-1) + f_(i,j)) / 4.0; 
     }
 
-  double a;
+  double a0;
 
   // i == 0 and m.nx() boundary
   for (int j = 1; j<m.ny(); ++j){
@@ -260,9 +267,9 @@ void Solver::update_vertex_f(){
 
   // j == 0  and j == m.ny() boundary
   for (int i = 0; i <= m.nx(); ++i) {
-    a = m.xO() + i*m.dx(); 
-    vertex_f_(i,0) = bcs.pmin(a); 
-    vertex_f_(i,m.ny()) = bcs.pmax(a); 
+    a0 = m.xO() + i*m.dx(); 
+    vertex_f_(i,0) = bcs.pmin(t(), a0); 
+    vertex_f_(i,m.ny()) = bcs.pmax(t(), a0); 
   }
 
 }

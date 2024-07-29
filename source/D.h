@@ -43,7 +43,7 @@ private:
 
     // Update diffusion coefficients with time
     void updateCoefficients(double t);
-    void locate(double alpha, double p, Loc* locp);
+    void locate(double alpha0, double p, Loc* locp);
     void read_d(std::string address, Eigen::MatrixXd* D_rawp);
 };
 
