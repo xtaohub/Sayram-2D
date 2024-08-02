@@ -16,7 +16,10 @@
 #include "D.h"
 #include "BCs.h"
 #include "Parameters.h"
-#include "Array.h"
+#include <vector>
+#include <xtensor/xarray.hpp>
+#include <xtensor/xio.hpp>
+
 
 struct NTPFA_node{ // two points A,B used in Nonlinear Two Point Approximation
   double A;
@@ -50,14 +53,14 @@ class Solver {
 
     Eigen::MatrixXd tau_; 
 
-    Array<NTPFA_node, 3> alpha_osf_; // alpha_one_sided_flux
+    xt::xarray<NTPFA_node> alpha_osf_; // alpha_one_sided_flux
 
     //
     // use a matrix to store f at vertices to build a lookup 
     // table for fA and fB
     // vertex_f is of size (nx+1, ny+1)
     // 
-    Array<double, 2> vertex_f_; 
+    xt::xarray<double> vertex_f_; 
 
     void update_vertex_f(); 
 

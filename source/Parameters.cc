@@ -44,6 +44,8 @@ void Parameters::read_inp_file(){
   ireader.read("run_id", &run_id_);
   ireader.read("nalpha0", &nalpha0_);
   ireader.read("nE", &nE_);
+
+  assert(nE_ > 0 && nalpha0_ > 0);
    
   ireader.read("L", &L_);
   alpha0_lc_ = asin(pow(pow(L_,5)*(4*L_-3), -0.25)); 

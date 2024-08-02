@@ -9,6 +9,7 @@
 
 #include "Mesh.h"
 
+
 void Mesh::build_connectivity() {
 
       int inbr; 
@@ -16,8 +17,8 @@ void Mesh::build_connectivity() {
       Point A; 
       Point B; 
 
-      for (int i=0; i<nx(); ++i) {
-        for (int j=0; j<ny(); ++j) {
+      for (std::size_t i=0; i<nx(); ++i) {
+        for (std::size_t j=0; j<ny(); ++j) {
           // nbr 0
             inbr = 0; 
             nbr_inds(i,j,inbr).i = i-1;
