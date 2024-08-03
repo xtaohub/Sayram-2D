@@ -25,8 +25,8 @@ struct Ind{
 typedef Eigen::Vector2d Point;  // each point has two coordinates, Point(0) -- x, Point(1) -- y
 
 struct Edge{
-  Point A; 
-  Point B;
+  Point A = {0, 0}; 
+  Point B = {0, 0};
 }; 
 
 class Mesh {
