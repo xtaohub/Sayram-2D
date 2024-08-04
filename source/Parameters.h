@@ -51,8 +51,8 @@ private:
   string inp_file_; 
 
   string run_id_;
-  double nalpha0_;
-  double nE_;
+  int nalpha0_;
+  int nE_;
 
   double L_; 
   double alpha0_lc_;
