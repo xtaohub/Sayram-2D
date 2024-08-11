@@ -1,10 +1,10 @@
 # fvm2d
 
-fvm2d is a C++ program using positivity-preserving finite volume method to simulate 2D diffusion of phase space density of electrons in structured mesh by solving 2D Fokker-Planck equation in ${(\alpha, p)}$ coordinates, which supports the input of parameters to change different mesh, range or time step.
+fvm2d is a C++ program that employs a positivity-preserving finite volume method to simulate the 2D diffusion of phase space density of electrons in structured mesh. It solves the 2D Fokker-Planck equation in ${(\alpha, p)}$ coordinates and allows for the adjustment of parameters to modify the mesh, range, or time step.
 
 ## Install
 
-fvm2d involves several C++ package, so it is necessary to install or add them to your environment before compiling or running the program. The packages and corresponding websites are as follows,
+fvm2d involves several C++ packages, so you need to install or add them to your environment before compiling or running the program. The packages and their corresponding websites are as follows:
 
 [Eigen](https://eigen.tuxfamily.org),
 
@@ -12,7 +12,7 @@ fvm2d involves several C++ package, so it is necessary to install or add them to
 
 [xtl](https://github.com/xtensor-stack/xtl).
 
-After the preparation, fvm2d can be simply run after compiling command:
+After the preparation, fvm2d can be simply run after the following compilation command:
 
 ```C++
 make
@@ -34,13 +34,13 @@ $$
 \frac{\partial f}{\partial t} = \sum_{i,j}\frac{1}{G}\frac{\partial}{\partial Q_i}(GD_{Q_iQ_j}\frac{\partial f}{\partial Q_j}),
 $$
 
-which can be adopt to describe the relativistic electron flux in Earth’s outer radiation belt. And the math tool we use is Positivity-Preserving Finite Volume (PPFV) method developed by [Gao and Wu](http://epubs.siam.org/doi/10.1137/140972470), which preserve the monotone and positivity of diffusion results and the time step is not subject to the CFL condition.
+which can be used to describe the relativistic electron flux in Earth’s outer radiation belt. And the mathematical tool employed is Positivity-Preserving Finite Volume (PPFV) method developed by [Gao and Wu](http://epubs.siam.org/doi/10.1137/140972470), which preserves the monotonicity and positivity of diffusion results and does not impose restrictions on the time step according to the CFL condition.
 
-As for the construction of the code, the main calculating and solving parts are in the **source** folder, in which we read the parameters from **p.ini** (default) and diffusion coefficients from **D** folder, construct mesh, solve the equation and finally output the files to **output** folder. And the **plot** folder implements the drawing function by Python, sampling and comparing the results in 0.5MeV and 2MeV at 0.1 day and 1.0 day (by default).
+As for the construction of the code, the main computational and solving components are located in the **source** folder. Here we read the parameters from **p.ini** (default) and diffusion coefficients from **D** folder, construct mesh, solve the equation and finally output the files to the **output** folder. Additionally, the **plot** folder contains Python scripts that implement the drawing functions,performing sampling and comparing the results for energies of 0.5MeV and 2MeV at 0.1 day and 1.0 day (by default).
 
 ## Parameter
 
-As mentioned in part Introduction, the diffusion coefficients are stored in **D** folder, you can add the relating diffusion coefficients you need to the folder and make several change in **p.ini** (default), or make a new ini file (for example **new.ini**) in the same path to change parameters including the reference path, mesh dense, solving domain range and time step. Detailed information can be referred in the defalut **p.ini**. If you choose to make a new ini file, the running command will be like:
+As mentioned in part Introduction, the diffusion coefficients are stored in **D** folder, you can add the relating diffusion coefficients you need to the folder and make the appropriate changes in **p.ini** (default), or create a new ini file (for example **new.ini**) in the same path to adjust parameters such as the reference path, mesh dense, solving domain range and time step. Detailed information can be found in the defalut **p.ini**. If you choose to create a new ini file, the running command will be as follows:
 
 ```C++
 ./fvm2d new.ini
