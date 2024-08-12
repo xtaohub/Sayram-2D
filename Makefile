@@ -3,7 +3,6 @@
 
 CC = g++
 LOCAL_INCLUDE = /Users/xtao/local/include
-# HDF5_LIB = /Users/xtao/local/lib
 SRC_DIR := source
 BUILD_DIR = build
 

@@ -14,8 +14,8 @@
 #include "common.h"
 #include "Parameters.h" 
 #include <vector>
-#include <xtensor/xarray.hpp>
-#include <xtensor/xio.hpp>
+#include "xtensor/xtensor.hpp"
+#include "xtensor/xio.hpp"
 
 struct Ind{
   int i; 
@@ -126,8 +126,8 @@ class Mesh {
 
     Eigen::Vector4i rinbr_; 
 
-    xt::xarray<Ind> nbr_inds;
-    xt::xarray<Edge> edges;
+    xt::xtensor<Ind,3> nbr_inds;
+    xt::xtensor<Edge,3> edges;
 
 
     void build_connectivity();
