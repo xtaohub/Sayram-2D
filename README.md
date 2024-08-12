@@ -50,10 +50,20 @@ to involve a second variable input to declare that a different file is chosen to
 
 ## Contributing to fvm2d
 
-We love pull requests from everyone, and we'd be grateful that if you have any advice, bug report, and improvement ideas to share with us.
+If you have any suggestions, please contact Peng Peng at pp140594 "AT" mail.ustc.edu.cn or Xin Tao at (xtao "AT" ustc.edu.cn) 
 
-You can contact to Peng by sending an email to pp140594@mail.ustc.edu.cn
+If you base your research on this code, please consider citing the following paper:
+
+Peng et al. (2024), Modeling radiation belt dynamics using a positivity-preserving finite volume method on general meshes, JGR: Space Physics, doi: XXXXXX
 
 ## License
 
-TODO
+Copyright <2024> Xin TAo 
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
