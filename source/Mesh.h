@@ -13,7 +13,9 @@
 
 #include "common.h"
 #include "Parameters.h" 
-#include "Array.h"
+#include <vector>
+#include "xtensor/xtensor.hpp"
+#include "xtensor/xio.hpp"
 
 struct Ind{
   int i; 
@@ -23,8 +25,8 @@ struct Ind{
 typedef Eigen::Vector2d Point;  // each point has two coordinates, Point(0) -- x, Point(1) -- y
 
 struct Edge{
-  Point A; 
-  Point B;
+  Point A = {0, 0}; 
+  Point B = {0, 0};
 }; 
 
 class Mesh {
@@ -44,12 +46,12 @@ class Mesh {
         x_(0) = xO() + dx()/2.0; 
         y_(0) = yO() + dy()/2.0; 
 
-        for (int i=1; i<nx(); ++i) x_(i) = x_(0) + i*dx(); 
-        for (int j=1; j<ny(); ++j) y_(j) = y_(0) + j*dy(); 
+        for (std::size_t i=1; i<nx(); ++i) x_(i) = x_(0) + i*dx(); 
+        for (std::size_t j=1; j<ny(); ++j) y_(j) = y_(0) + j*dy(); 
 
-        Shape3 nbrs_shape = {nx(), ny(), 4}; 
-        nbr_inds.resize(nbrs_shape); 
-        edges.resize(nbrs_shape); 
+        nbr_inds.resize({nx(), ny(), 4});
+        edges.resize({nx(), ny(), 4});
+
         build_connectivity(); 
 
         // The reverse inbr number.
@@ -69,8 +71,8 @@ class Mesh {
     double y(int j) const { return y_(j); }
     double xO() const { return xO_; }
     double yO() const { return yO_; }
-    int nx() const { return nx_; }
-    int ny() const { return ny_; }
+    std::size_t nx() const { return nx_; }
+    std::size_t ny() const { return ny_; }
     double dx() const { return dx_; }
     double dy() const { return dy_; }
     double dt() const { return dt_; }
@@ -88,7 +90,7 @@ class Mesh {
       indp->j = round((A(1) - yO()) / dy()); 
     }
 
-    int nnbrs() const { return 4; } // each cell has 4 nbrs
+    std::size_t nnbrs() const { return 4; } // each cell has 4 nbrs
                                     
     // define the neighbor # of four adjacent cells
     // im -- (i-1, j); jp -- (i,j+1)
@@ -109,8 +111,8 @@ class Mesh {
     }
 
   private:
-    int nx_;
-    int ny_;
+    std::size_t nx_;
+    std::size_t ny_;
     double dx_;
     double dy_;
     double dt_; 
@@ -124,8 +126,9 @@ class Mesh {
 
     Eigen::Vector4i rinbr_; 
 
-    Array<Ind, 3> nbr_inds; 
-    Array<Edge,3> edges; 
+    xt::xtensor<Ind,3> nbr_inds;
+    xt::xtensor<Edge,3> edges;
+
 
     void build_connectivity();
 };

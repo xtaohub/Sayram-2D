@@ -16,19 +16,17 @@
 Solver::Solver(const Parameters& paras_in, const Mesh& m_in, const D& d_in, const BCs& bcs_in)
   : paras(paras_in), m(m_in), d(d_in), bcs(bcs_in){
 
-    int nx = m.nx();
-    int ny = m.ny();
+    std::size_t nx = m.nx();
+    std::size_t ny = m.ny();
 
     M_.resize(nx*ny,nx*ny);
 
     f_.resize(nx,ny);
     tau_.resize(nx, ny); 
-
     R_.resize(nx*ny);
 
-    alpha_osf_.resize(nx, ny, m.nnbrs()); 
-    vertex_f_.resize(nx+1,ny+1); 
-
+    alpha_osf_.resize({nx, ny, m.nnbrs()});
+    vertex_f_.resize({nx+1, ny+1});
 
     init(); 
 
@@ -50,9 +48,9 @@ void Solver::init(){
   double a0;
   double p;
 
-  for (int i = 0; i < m.nx(); i++){
+  for (std::size_t i = 0; i < m.nx(); i++){
     a0 = m.x(i);
-    for (int j = 0; j < m.ny(); j++){
+    for (std::size_t j = 0; j < m.ny(); j++){
       p = m.y(j);
       f_(i,j) = bcs.init_f(a0, p);
 
@@ -96,9 +94,9 @@ void Solver::construct_alpha_osf(){
   Point K;
   Edge edge;  
 
-  for (int i = 0; i < m.nx(); i++){
+  for (std::size_t i = 0; i < m.nx(); i++){
     a0 = m.x(i);
-    for (int j = 0; j < m.ny(); j++){
+    for (std::size_t j = 0; j < m.ny(); j++){
       p = m.y(j);
 
       Lambda_K << d.Daa(t(), i, j) * G(a0, p), d.Dap(t(), i, j) * G(a0, p), 
@@ -106,7 +104,7 @@ void Solver::construct_alpha_osf(){
 
       K  << a0, p;
 
-      for (int inbr=0; inbr<m.nnbrs(); ++inbr){
+      for (size_t inbr=0; inbr<m.nnbrs(); ++inbr){
         m.get_nbr_edg(i, j, inbr, &edge);  
         alpha_osf_func(Lambda_K, K, edge.A, edge.B, &alpha_osf_(i,j, inbr)); 
       }
@@ -170,55 +168,55 @@ void Solver::coeff_add_dirbc(int i, int j, int inbr) {
 void Solver::assemble(){ // obtain M and R 
 
   // inner cells
-  for (int i=1; i<m.nx()-1; ++i){
-    for (int j=1; j<m.ny()-1; ++j){
+  for (std::size_t i=1; i<m.nx()-1; ++i){
+    for (std::size_t j=1; j<m.ny()-1; ++j){
 
-      for (int inbr = 0; inbr < m.nnbrs(); ++inbr) 
+      for (size_t inbr = 0; inbr < m.nnbrs(); ++inbr) 
         coeff_add_inner(i, j, inbr);
     }
   }
 
   // row: i == 0 
-  for (int j=0; j<m.ny(); ++j) {
+  for (std::size_t j=0; j<m.ny(); ++j) {
     coeff_add_inner(0,j,m.inbr_ip());
     // coeff_add_dirbc(0,j,m.inbr_im());  // nothing special for alpha=0 for inbr=inbr_im()
   }
-  for (int j=1; j<m.ny(); ++j) coeff_add_inner(0,j,m.inbr_jm());
-  for (int j=0; j<m.ny()-1; ++j) coeff_add_inner(0,j,m.inbr_jp());
+  for (std::size_t j=1; j<m.ny(); ++j) coeff_add_inner(0,j,m.inbr_jm());
+  for (std::size_t j=0; j<m.ny()-1; ++j) coeff_add_inner(0,j,m.inbr_jp());
 
   // row i == nx-1 alpha = 90 
-  for (int j=0; j<m.ny(); ++j) {
+  for (std::size_t j=0; j<m.ny(); ++j) {
     coeff_add_inner(m.nx()-1,j,m.inbr_im()); 
     // nothing special for alpha=90 for inbr=inbr_ip()
   }
-  for (int j=1; j<m.ny(); ++j) coeff_add_inner(m.nx()-1,j,m.inbr_jm());
-  for (int j=0; j<m.ny()-1; ++j) coeff_add_inner(m.nx()-1,j,m.inbr_jp());
+  for (std::size_t j=1; j<m.ny(); ++j) coeff_add_inner(m.nx()-1,j,m.inbr_jm());
+  for (std::size_t j=0; j<m.ny()-1; ++j) coeff_add_inner(m.nx()-1,j,m.inbr_jp());
 
   // col j = 0
-  for (int i=0; i<m.nx(); ++i) {
+  for (std::size_t i=0; i<m.nx(); ++i) {
     coeff_add_inner(i,0,m.inbr_jp()); 
     coeff_add_dirbc(i,0,m.inbr_jm()); 
   }
 
-  for (int i=1; i<m.nx(); ++i) coeff_add_inner(i,0,m.inbr_im());
-  for (int i=0; i<m.nx()-1; ++i) coeff_add_inner(i,0,m.inbr_ip());
+  for (std::size_t i=1; i<m.nx(); ++i) coeff_add_inner(i,0,m.inbr_im());
+  for (std::size_t i=0; i<m.nx()-1; ++i) coeff_add_inner(i,0,m.inbr_ip());
 
   // col j == ny-1
-  for (int i=0; i<m.nx(); ++i) {
+  for (std::size_t i=0; i<m.nx(); ++i) {
     coeff_add_inner(i,m.ny()-1,m.inbr_jm()); 
     coeff_add_dirbc(i,m.ny()-1,m.inbr_jp()); 
   }
 
-  for (int i=1; i<m.nx(); ++i) coeff_add_inner(i,m.ny()-1,m.inbr_im());
-  for (int i=0; i<m.nx()-1; ++i) coeff_add_inner(i,m.ny()-1,m.inbr_ip());
+  for (std::size_t i=1; i<m.nx(); ++i) coeff_add_inner(i,m.ny()-1,m.inbr_im());
+  for (std::size_t i=0; i<m.nx()-1; ++i) coeff_add_inner(i,m.ny()-1,m.inbr_ip());
 
   double a, p;
   long ii;
   double Uii;
 
-  for (int i=0; i<m.nx(); ++i) {
+  for (std::size_t i=0; i<m.nx(); ++i) {
     a = m.x(i);
-    for (int j=0; j<m.ny(); ++j) {
+    for (std::size_t j=0; j<m.ny(); ++j) {
       p = m.y(j);
       ii = m.ind2to1(i,j);
       Uii = G(a, p) * m.area_dt();
@@ -241,8 +239,8 @@ void Solver::update() {
   solver.factorize(M_);
   f_.reshaped() = solver.solve(R_);
 
-  for (int i=0; i<m.nx(); ++i)
-    for (int j=0; j<m.ny(); ++j) {
+  for (std::size_t i=0; i<m.nx(); ++i)
+    for (std::size_t j=0; j<m.ny(); ++j) {
       f_(i,j) *= exp(-m.dt()/tau_(i,j)); 
     }
   
@@ -252,24 +250,23 @@ void Solver::update() {
 }
 
 void Solver::update_vertex_f(){
-  for (int i=1; i<m.nx(); ++i)
-    for (int j=1; j<m.ny(); ++j){
+  for (std::size_t i=1; i<m.nx(); ++i)
+    for (std::size_t j=1; j<m.ny(); ++j){
       vertex_f_(i,j) = (f_(i-1,j-1) + f_(i-1,j) + f_(i,j-1) + f_(i,j)) / 4.0; 
     }
 
   double a0;
 
   // i == 0 and m.nx() boundary
-  for (int j = 1; j<m.ny(); ++j){
+  for (std::size_t j = 1; j<m.ny(); ++j){
     vertex_f_(0, j) = vertex_f_(1,j);
     vertex_f_(m.nx(), j) = vertex_f_(m.nx()-1,j);
   }
 
   // j == 0  and j == m.ny() boundary
-  for (int i = 0; i <= m.nx(); ++i) {
+  for (std::size_t i = 0; i <= m.nx(); ++i) {
     a0 = m.xO() + i*m.dx(); 
     vertex_f_(i,0) = bcs.pmin(t(), a0); 
     vertex_f_(i,m.ny()) = bcs.pmax(t(), a0); 
   }
-
 }

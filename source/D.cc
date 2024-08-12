@@ -122,9 +122,9 @@ void D::constructD(const Parameters& par, double t){
 
     Loc loc; 
 
-    for(int i = 0; i < m.nx(); i++){
+    for(std::size_t i = 0; i < m.nx(); i++){
         a = m.x(i);
-        for(int j = 0; j < m.ny(); j++){
+        for(std::size_t j = 0; j < m.ny(); j++){
             p = m.y(j);
             
             locate(a, p, &loc);  
