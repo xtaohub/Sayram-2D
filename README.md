@@ -13,6 +13,11 @@ After this, you may generate the executable (fvm2d) using
 ```C++
 make
 ```
+If nothing happens or if you encounter any error when run the generated code, you could clean up the old files before compiling the code by using 
+
+```C++
+make clean
+```
 
 then you can run it as 
 
