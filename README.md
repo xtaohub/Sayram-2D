@@ -8,7 +8,7 @@ fvm2d involves several open source C++ packages, so you need to install or add t
 
 [Eigen](https://eigen.tuxfamily.org), [xtensor](https://github.com/xtensor-stack/xtensor), [xtl](https://github.com/xtensor-stack/xtl).
 
-One easy way would be simply add these libraries to the ```source``` folder of fvm2d.
+One easy approach would be to simply add these libraries to the ```source``` folder of fvm2d.
 
 After this, you may generate the executable (fvm2d) using  
 
