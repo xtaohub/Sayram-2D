@@ -57,10 +57,6 @@ For time dependent diffusion coefficients, boundary conditions, you will need to
 
 If you have any suggestions, please contact Peng Peng at pp140594 "AT" mail.ustc.edu.cn or Xin Tao at xtao "AT" ustc.edu.cn. 
 
-If you base your research on this code, please consider citing the following paper:
-
-Peng et al. (2024), Modeling radiation belt dynamics using a positivity-preserving finite volume method on general meshes, JGR: Space Physics, doi: XXXXXX
-
 ## License
 
 Copyright (c) 2024 Xin Tao 
