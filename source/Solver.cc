@@ -179,8 +179,14 @@ void Solver::assemble(){ // obtain M and R
   // row: i == 0 
   for (std::size_t j=0; j<m.ny(); ++j) {
     coeff_add_inner(0,j,m.inbr_ip());
-    // coeff_add_dirbc(0,j,m.inbr_im());  // nothing special for alpha=0 for inbr=inbr_im()
   }
+
+  if (paras.alpha0_min_bct() != 0) { // Dirichilet bc at alpha0 = alpha0_lc
+    for (std::size_t j=0; j<m.ny(); ++j) {
+      coeff_add_dirbc(0,j,m.inbr_im()); 
+    }
+  }
+
   for (std::size_t j=1; j<m.ny(); ++j) coeff_add_inner(0,j,m.inbr_jm());
   for (std::size_t j=0; j<m.ny()-1; ++j) coeff_add_inner(0,j,m.inbr_jp());
 
@@ -239,11 +245,13 @@ void Solver::update() {
   solver.factorize(M_);
   f_.reshaped() = solver.solve(R_);
 
-  for (std::size_t i=0; i<m.nx(); ++i)
-    for (std::size_t j=0; j<m.ny(); ++j) {
-      f_(i,j) *= exp(-m.dt()/tau_(i,j)); 
-    }
-  
+  if (paras.alpha0_min_bct() == 0) {
+    for (std::size_t i=0; i<m.nx(); ++i)
+      for (std::size_t j=0; j<m.ny(); ++j) {
+        f_(i,j) *= exp(-m.dt()/tau_(i,j)); 
+      }
+  }
+
   t_ += m.dt(); 
   construct_alpha_osf();
   update_vertex_f();
@@ -259,10 +267,21 @@ void Solver::update_vertex_f(){
 
   // i == 0 and m.nx() boundary
   for (std::size_t j = 1; j<m.ny(); ++j){
-    vertex_f_(0, j) = vertex_f_(1,j);
     vertex_f_(m.nx(), j) = vertex_f_(m.nx()-1,j);
   }
 
+  if (paras.alpha0_min_bct() == 0) {
+    for (std::size_t j = 1; j<m.ny(); ++j){
+      vertex_f_(0,j) = vertex_f_(1,j); 
+    }
+  }
+  else {
+    double p0; 
+    for (std::size_t j = 1; j<m.ny(); ++j){
+      p0 = m.yO() + j*m.dy();
+      vertex_f_(0,j) = bcs.alpha0_lc(t(), p0);
+    }
+  }
   // j == 0  and j == m.ny() boundary
   for (std::size_t i = 0; i <= m.nx(); ++i) {
     a0 = m.xO() + i*m.dx(); 

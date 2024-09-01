@@ -21,7 +21,16 @@ public:
 
     // Define your boundary condition functions here
     double init_f(double a0, double p) const{
-      return exp(-(p2e(p, gE0) - 0.2) / 0.1) * sin(a0) / (p * p);
+      if (paras.alpha0_min_bct() == 0){
+        return exp(-(p2e(p, gE0) - 0.2) / 0.1) * sin(a0) / (p * p);
+      }
+      else {
+        return exp(-(p2e(p, gE0) - 0.2) / 0.1) * (sin(a0)-sin(paras.alpha0_lc())) / (p * p);
+      }
+    }
+
+    double alpha0_lc(double t, double p) const { 
+      return 0.0;
     }
 
     double pmin(double t, double a0) const{
