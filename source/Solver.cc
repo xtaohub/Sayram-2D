@@ -157,7 +157,7 @@ void Solver::assemble(){ // obtain M and R
 
   // row: i == 0 
   for (std::size_t j=0; j<m.ny(); ++j) {
-    // coeff_add_inner(0,j,m.inbr_ip()); // nothing special for alpha=0 for inbr=inbr_im()
+    coeff_add_inner(0,j,m.inbr_ip()); 
     coeff_add_dirbc(0,j,m.inbr_im());  
   }
   for (std::size_t j=1; j<m.ny(); ++j) coeff_add_inner(0,j,m.inbr_jm());
