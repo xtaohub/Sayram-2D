@@ -92,9 +92,9 @@ class Solver {
       return (std::abs(bsigma) - bsigma)/2.0;
     }
 
-    double G(double alpha, double p){
-      double t = 1.30 - 0.56 * sin(alpha);
-      return p * p * t * sin(alpha) * cos(alpha);
+    double G(double alpha, double p){ // this is the Jacobian for (a0, log(p))
+      double T = 1.30 - 0.56 * sin(alpha);
+      return p * p * p * T * sin(alpha) * cos(alpha);
     }
 
     void init();

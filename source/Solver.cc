@@ -51,7 +51,7 @@ void Solver::init(){
   for (std::size_t i = 0; i < m.nx(); i++){
     a0 = m.x(i);
     for (std::size_t j = 0; j < m.ny(); j++){
-      p = m.y(j);
+      p = m.p(j);
       f_(i,j) = bcs.init_f(a0, p);
 
       if (a0 < paras.alpha0_lc()) {
@@ -90,19 +90,21 @@ void Solver::construct_alpha_osf(){
 
   Eigen::Matrix2d Lambda_K;
 
-  double a0, p;
+  double x, y, p, a0;
   Point K;
   Edge edge;  
 
   for (std::size_t i = 0; i < m.nx(); i++){
-    a0 = m.x(i);
+    x = m.x(i);
+    a0 = x; 
     for (std::size_t j = 0; j < m.ny(); j++){
-      p = m.y(j);
+      y = m.y(j);
+      p = m.p(j); 
 
-      Lambda_K << d.Daa(t(), i, j) * G(a0, p), d.Dap(t(), i, j) * G(a0, p), 
-               d.Dap(t(), i, j) * G(a0, p), d.Dpp(t(), i, j) * G(a0, p);
+      Lambda_K << d.Daa(t(), i, j) * G(a0, p), d.Day(t(), i, j) * G(a0, p), 
+               d.Day(t(), i, j) * G(a0, p), d.Dyy(t(), i, j) * G(a0, p);
 
-      K  << a0, p;
+      K  << x, y;
 
       for (size_t inbr=0; inbr<m.nnbrs(); ++inbr){
         m.get_nbr_edg(i, j, inbr, &edge);  
@@ -216,16 +218,16 @@ void Solver::assemble(){ // obtain M and R
   for (std::size_t i=1; i<m.nx(); ++i) coeff_add_inner(i,m.ny()-1,m.inbr_im());
   for (std::size_t i=0; i<m.nx()-1; ++i) coeff_add_inner(i,m.ny()-1,m.inbr_ip());
 
-  double a, p;
+  double a0, p;
   long ii;
   double Uii;
 
   for (std::size_t i=0; i<m.nx(); ++i) {
-    a = m.x(i);
+    a0 = m.x(i);
     for (std::size_t j=0; j<m.ny(); ++j) {
-      p = m.y(j);
+      p = m.p(j);
       ii = m.ind2to1(i,j);
-      Uii = G(a, p) * m.area_dt();
+      Uii = G(a0, p) * m.area_dt();
       M_coeffs_.push_back(T(ii, ii, Uii));
       R_(ii) += Uii * f_(i,j);
     }
@@ -276,10 +278,11 @@ void Solver::update_vertex_f(){
     }
   }
   else {
-    double p0; 
+    double y, p; 
     for (std::size_t j = 1; j<m.ny(); ++j){
-      p0 = m.yO() + j*m.dy();
-      vertex_f_(0,j) = bcs.alpha0_lc(t(), p0);
+      y = m.yO() + j*m.dy();
+      p = std::exp(y); 
+      vertex_f_(0,j) = bcs.alpha0_lc(t(), p);
     }
   }
   // j == 0  and j == m.ny() boundary
