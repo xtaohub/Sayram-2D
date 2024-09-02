@@ -12,7 +12,7 @@ One easy approach would be to simply add these libraries to the ```source``` fol
 
 ## Changes to the Makefile
 
-If you put the above open source libraries to the ```source`` folder, then you could comment 
+If you put the above open source libraries to the ```source``` folder, then you could comment 
 
 ```
 LOCAL_INCLUDE = /Users/xtao/local/include
@@ -77,17 +77,19 @@ For time dependent diffusion coefficients, boundary conditions, you will need to
 -- The default version of the fvm2d is to compare the fvm2d results with that of Albert and Young, GRL, 2005. The corresponding is that 
 
 $$
-f(\alpha_0 = \alpha_{0,\text{LC}} = 0.
+f(\alpha_0 = \alpha_{0,\text{LC}}) = 0.
 $$
 
 It is also possible to change the boundary condition to 
 
 $$
-\left.\frac{\partial f}{\partial \alpha_0)\right|_{\alpha_0 = 0} = 0.
+\left.\frac{\partial f}{\partial \alpha_0}\right|_{\alpha_0 = 0} = 0.
 $$
-In this case, the input diffusion coefficients and initial conditions of f are both changed. For initial f, see BCs.h. For D, you need to modify p.ini so that alpha0_min = 0 instead of 1.
 
--- The input D was provided by Dr. Jay Albert, and all three D's have dimension [p^2]/[t]. So use this kind of D, we processed D accordingly before providing it to the main solver. Depending on your D, you might need to modify the "D.h" and "D.cc" class.
+In this case, the input diffusion coefficients and initial conditions of f are both changed. For initial f, see **BCs.h**. For D, you need to modify **p.ini** so that **alpha0_min_D = 0** instead of 1. Do not expect agreement for this case, due to the change to the initial f.
+
+-- The input D was provided by Dr. Jay Albert, and all three D's have dimension [p^2]/[t]. To use this kind of D, we processed D accordingly (see **D.cc**) before providing it to the main solver. Depending on your D, you might need to modify the **D.h** and **D.cc** class.
+
 ## Contributing to fvm2d
 
 If you have any suggestions, please contact Peng Peng at pp140594 "AT" mail.ustc.edu.cn or Xin Tao at xtao "AT" ustc.edu.cn. 
