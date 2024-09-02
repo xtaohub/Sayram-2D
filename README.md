@@ -8,7 +8,27 @@ fvm2d involves several open source C++ packages, so you need to install or add t
 
 [Eigen](https://eigen.tuxfamily.org), [xtensor](https://github.com/xtensor-stack/xtensor), [xtl](https://github.com/xtensor-stack/xtl).
 
-One easy approach would be to simply add these libraries to the ```source``` folder of fvm2d.
+One easy approach would be to simply add these libraries to the ```source``` folder of fvm2d. 
+
+## Changes to the Makefile
+
+If you put the above open source libraries to the ```source`` folder, then you could comment 
+
+```
+LOCAL_INCLUDE = /Users/xtao/local/include
+```
+and change 
+```
+CCFLAGS = -Wall -Wno-class-memaccess -O2 -I$(LOCAL_INCLUDE)
+```
+to 
+```
+CCFLAGS = -Wall -Wno-class-memaccess -O2 
+```
+
+If you put the libraries in a foler whose path is PATH, then you need to modify "LOCAL_INCLUDE" accordingly. 
+
+## Compile
 
 After this, you may generate the executable (fvm2d) using  
 
@@ -53,6 +73,21 @@ to use "new.ini" as the input parameter file.
 
 For time dependent diffusion coefficients, boundary conditions, you will need to modify the corresponding source code.
 
+## THINGS TO NOTE:
+-- The default version of the fvm2d is to compare the fvm2d results with that of Albert and Young, GRL, 2005. The corresponding is that 
+
+$$
+f(\alpha_0 = \alpha_{0,\text{LC}} = 0.
+$$
+
+It is also possible to change the boundary condition to 
+
+$$
+\left.\frac{\partial f}{\partial \alpha_0)\right|_{\alpha_0 = 0} = 0.
+$$
+In this case, the input diffusion coefficients and initial conditions of f are both changed. For initial f, see BCs.h. For D, you need to modify p.ini so that alpha0_min = 0 instead of 1.
+
+-- The input D was provided by Dr. Jay Albert, and all three D's have dimension [p^2]/[t]. So use this kind of D, we processed D accordingly before providing it to the main solver. Depending on your D, you might need to modify the "D.h" and "D.cc" class.
 ## Contributing to fvm2d
 
 If you have any suggestions, please contact Peng Peng at pp140594 "AT" mail.ustc.edu.cn or Xin Tao at xtao "AT" ustc.edu.cn. 
@@ -66,5 +101,3 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-

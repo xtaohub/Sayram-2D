@@ -20,7 +20,8 @@ def parse_ini(run_id):
         paras['E_MAX'] = float(config.get('basic', 'Emax'))  # MeV
         paras['nx'] = int(config.get('basic', 'nalpha'))
         paras['ny'] = int(config.get('basic', 'nE'))
-        paras['ALPHA_LC'] = float(config.get('basic', 'alpha0_lc'))
+        paras['L'] = float(config.get('basic', 'L'))
+        paras['ALPHA_LC'] = np.rad2deg(np.arcsin((paras['L']**5*(4*paras['L']-3))**(-1.0/4)))
         paras['ALPHA_MAX']=90
     except Exception as e:
         print("section_name or option_name wrong, check the input file.")
@@ -61,22 +62,19 @@ def e2p(E, E0=0.511875, cv=1):
     return np.sqrt(E * (E + 2 * E0)) / cv 
 
 def read_xy(run_id):
-    xfname = fname_base(run_id) + '_x.dat'
-    yfname = fname_base(run_id) + '_y.dat'
+    xfname = fname_base(run_id) + '_a0.dat'
+    yfname = fname_base(run_id) + '_E.dat'
     
     alphav = np.loadtxt(xfname)
-    p = np.loadtxt(yfname)
-
-    alphav = np.rad2deg(alphav)
-    ev = p2e(p)
+    ev = np.loadtxt(yfname)
 
     return alphav, ev
 
-def f1d(fmat, alphav, ev, e):
-    points = (alphav, ev)
+def f1d(fmat, alphav, logev, loge):
+    points = (alphav, logev)
     xi = np.zeros((alphav.size, 2))
     xi[:,0] = alphav[:]
-    xi[:,1] = e 
+    xi[:,1] = loge 
 
     return interpn(points, fmat, xi)
 
@@ -84,6 +82,7 @@ if __name__ == '__main__':
 
     run_id = 'albert_young'
     alphav, ev = read_xy(run_id)
+    logev = np.log(ev)
 
     fnamed01 = fname_base(run_id) + '1'   
     fnamed10 = fname_base(run_id) + '10'
@@ -91,11 +90,11 @@ if __name__ == '__main__':
     f01 = np.loadtxt(fnamed01)
     f10 = np.loadtxt(fnamed10)
 
-    f0501 = f1d(f01, alphav, ev, 0.5) * e2p(0.5)**2
-    f0510 = f1d(f10, alphav, ev, 0.5) * e2p(0.5)**2
+    f0501 = f1d(f01, alphav, logev, np.log(0.5)) * e2p(0.5)**2
+    f0510 = f1d(f10, alphav, logev, np.log(0.5)) * e2p(0.5)**2
 
-    f2001 = f1d(f01, alphav, ev, 2.0) * e2p(2.0)**2
-    f2010 = f1d(f10, alphav, ev, 2.0) * e2p(2.0)**2
+    f2001 = f1d(f01, alphav, logev, np.log(2.0)) * e2p(2.0)**2
+    f2010 = f1d(f10, alphav, logev, np.log(2.0)) * e2p(2.0)**2
 
     ay_alphav, ay_logev = ay_coord()
     ay_01, ay_10 = read_ay()

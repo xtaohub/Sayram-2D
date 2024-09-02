@@ -2,8 +2,7 @@
 # This Makefile used be used in the parent folder of source ("../")
 
 CC = g++
-LOCAL_INCLUDE = /Users/xtao/local/include # change to your own include path
-# HDF5_LIB = /Users/username/local/lib
+LOCAL_INCLUDE = /Users/xtao/local/include
 SRC_DIR := source
 BUILD_DIR = build
 
@@ -12,7 +11,7 @@ SRCS := $(shell find $(SRC_DIR)/* -name \*.cc)
 OBJS := $(addprefix $(BUILD_DIR)/, $(SRCS:.cc=.o))
 DEPS := $(addprefix $(BUILD_DIR)/, $(SRCS:.cc=.d))
 
-CCFLAGS = -Wall -Wno-class-memaccess -O2 -fopenmp -I$(LOCAL_INCLUDE) 
+CCFLAGS = -Wall -Wno-class-memaccess -O2 -I$(LOCAL_INCLUDE) 
 CCFLAGS += $(DIRS:%=-I%)
 CCFLAGS += 
 
