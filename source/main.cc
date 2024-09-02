@@ -15,6 +15,7 @@
 #include "D.h"
 #include "BCs.h"
 #include "Solver.h"
+#include "utils.h"
 #include <ctime>
 
 int main(int argc, char** argv) {
@@ -34,17 +35,21 @@ int main(int argc, char** argv) {
   string filename;
   ofstream out; 
 
+  Eigen::VectorXd a0(m.nx()), E(m.ny()); 
+
   // output coordinates 
-  filename = paras.output_path() + "/" + paras.run_id() + "_x.dat";
+  filename = paras.output_path() + "/" + paras.run_id() + "_a0.dat";
   out.open(filename); 
   assert(out);
-  out << m.x() << std::endl;  
+  a0 = m.x() * 180.0/gPI; 
+  out << a0 << std::endl;  
   out.close();
 
-  filename = paras.output_path() + "/" + paras.run_id() + "_y.dat";
+  filename = paras.output_path() + "/" + paras.run_id() + "_E.dat";
   out.open(filename); 
   assert(out);
-  out << m.y() << std::endl;  
+  for (std::size_t i=0; i<m.ny(); ++i) E(i) = p2e(m.p(i), gE0);
+  out << E << std::endl;  
   out.close();
 
   // The timer

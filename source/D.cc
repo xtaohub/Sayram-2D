@@ -23,6 +23,9 @@ D::D(const Parameters& paras_in, const Mesh& mesh_in) : paras(paras_in), m(mesh_
     Dap_ = Eigen::MatrixXd::Zero(m.nx(), m.ny());
     Dpp_ = Eigen::MatrixXd::Zero(m.nx(), m.ny());
 
+    Day_ = Eigen::MatrixXd::Zero(m.nx(), m.ny());
+    Dyy_ = Eigen::MatrixXd::Zero(m.nx(), m.ny());
+
     constructD(paras, 0.0);
 }
 
@@ -125,13 +128,16 @@ void D::constructD(const Parameters& par, double t){
     for(std::size_t i = 0; i < m.nx(); i++){
         a = m.x(i);
         for(std::size_t j = 0; j < m.ny(); j++){
-            p = m.y(j);
+            p = m.p(j);
             
             locate(a, p, &loc);  
             
             Daa_(i,j) = Dinterp(Daa_raw, loc) / (p*p); 
             Dap_(i,j) = Dinterp(Dap_raw, loc) / p; 
             Dpp_(i,j) = Dinterp(Dpp_raw, loc);
+
+            Day_(i,j) = Dap_(i,j) / p; 
+            Dyy_(i,j) = Dpp_(i,j) / (p*p); 
         }
     }
 }

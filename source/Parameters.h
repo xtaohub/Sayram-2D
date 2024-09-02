@@ -16,8 +16,12 @@ public:
 
   int nalpha0() const { return nalpha0_; }
   int nE() const { return nE_; }
-  double alpha0_lc() const { return alpha0_lc_ * gPI / 180.0; }
-  double alpha0_max() const { return alpha0_max_ * gPI / 180.0; }
+  double alpha0_lc() const { return alpha0_lc_; }
+  int alpha0_min_bct() const { return alpha0_min_bct_; }
+  double alpha0_min() const { return alpha0_min_; }
+  double alpha0_max() const { return alpha0_max_; }
+
+  double L() const { return L_; }
 
   double Emin() const { return Emin_; }
   double Emax() const { return Emax_; }
@@ -51,8 +55,11 @@ private:
   int nalpha0_;
   int nE_;
 
+  double L_; 
   double alpha0_lc_;
+  double alpha0_min_; 
   double alpha0_max_; 
+  int alpha0_min_bct_; 
 
   double Emin_;
   double Emax_; 

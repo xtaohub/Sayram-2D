@@ -30,6 +30,10 @@ public:
     double Dap(double t, int i, int j) const { return Dap_(i,j); }
     double Dpp(double t, int i, int j) const { return Dpp_(i,j); }
 
+    // y = log(p)
+    double Day(double t, int i, int j) const { return Day_(i,j); }
+    double Dyy(double t, int i, int j) const { return Dyy_(i,j); }
+
     void constructD(const Parameters& par, double t);
 
 private:
@@ -40,6 +44,9 @@ private:
     Eigen::MatrixXd Daa_;
     Eigen::MatrixXd Dap_;
     Eigen::MatrixXd Dpp_;
+
+    Eigen::MatrixXd Day_;
+    Eigen::MatrixXd Dyy_;
 
     // Update diffusion coefficients with time
     void updateCoefficients(double t);

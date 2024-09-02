@@ -17,8 +17,8 @@
 #include "BCs.h"
 #include "Parameters.h"
 #include <vector>
-#include <xtensor/xtensor.hpp>
-#include <xtensor/xio.hpp>
+#include "xtensor/xtensor.hpp"
+#include "xtensor/xio.hpp"
 
 
 struct NTPFA_node{ // two points A,B used in Nonlinear Two Point Approximation
@@ -50,6 +50,8 @@ class Solver {
 
     Eigen::MatrixXd f_;
     Eigen::VectorXd R_;
+
+    Eigen::MatrixXd tau_; 
 
     xt::xtensor<NTPFA_node,3> alpha_osf_; // alpha_one_sided_flux
 
@@ -90,12 +92,15 @@ class Solver {
       return (std::abs(bsigma) - bsigma)/2.0;
     }
 
-    double G(double alpha, double p){
-      double t = 1.30 - 0.56 * sin(alpha);
-      return p * p * t * sin(alpha) * cos(alpha);
+    double G(double alpha, double p){ // this is the Jacobian for (a0, log(p))
+      double T = 1.30 - 0.56 * sin(alpha);
+      return p * p * p * T * sin(alpha) * cos(alpha);
     }
 
     void init();
+
+    double bounce_period(double a, double p) const; 
+
 };
 
 #endif /* SOLVER_H */

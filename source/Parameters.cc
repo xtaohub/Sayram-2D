@@ -47,8 +47,17 @@ void Parameters::read_inp_file(){
 
   assert(nE_ > 0 && nalpha0_ > 0);
    
-  ireader.read("alpha0_lc", &alpha0_lc_);
-  ireader.read("alpha0_max", &alpha0_max_);
+  ireader.read("L", &L_);
+  ireader.read("alpha0_min_bct", &alpha0_min_bct_); 
+
+  alpha0_lc_ = asin(pow(pow(L_,5)*(4*L_-3), -0.25)); 
+
+  if (alpha0_min_bct_ == 0) 
+    alpha0_min_ = 0.0; 
+  else 
+    alpha0_min_ = alpha0_lc_; 
+
+  alpha0_max_ = gPI/2.0; 
 
   ireader.read("Emin", &Emin_);
   ireader.read("Emax", &Emax_);

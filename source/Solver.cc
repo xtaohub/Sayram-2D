@@ -22,13 +22,27 @@ Solver::Solver(const Parameters& paras_in, const Mesh& m_in, const D& d_in, cons
     M_.resize(nx*ny,nx*ny);
 
     f_.resize(nx,ny);
+    tau_.resize(nx, ny); 
     R_.resize(nx*ny);
 
     alpha_osf_.resize({nx, ny, m.nnbrs()});
     vertex_f_.resize({nx+1, ny+1});
 
-    init();
+    init(); 
+
   }
+
+double Solver::bounce_period(double a0, double p) const{
+  double T0 = 1.3802;
+  double T1 = 0.7405;
+  double y; 
+  double Ty; 
+
+  y = std::sin(a0); 
+  Ty = T0 - 0.5 * (T0 - T1) * (y + sqrt(y));
+
+  return 4*paras.L() * gRE * ((gE0 + p2e(p, gE0)) / (gC * gC)) / p * Ty / (3e8 * 3600 * 24); 
+}
 
 void Solver::init(){
   double a0;
@@ -37,8 +51,15 @@ void Solver::init(){
   for (std::size_t i = 0; i < m.nx(); i++){
     a0 = m.x(i);
     for (std::size_t j = 0; j < m.ny(); j++){
-      p = m.y(j);
+      p = m.p(j);
       f_(i,j) = bcs.init_f(a0, p);
+
+      if (a0 < paras.alpha0_lc()) {
+        tau_(i,j) = bounce_period(a0, p) / 4.0;  
+      }
+      else {
+        tau_(i,j) = std::numeric_limits<double>::max();
+      }
     }
   }
 
@@ -69,19 +90,21 @@ void Solver::construct_alpha_osf(){
 
   Eigen::Matrix2d Lambda_K;
 
-  double a0, p;
+  double x, y, p, a0;
   Point K;
   Edge edge;  
 
   for (std::size_t i = 0; i < m.nx(); i++){
-    a0 = m.x(i);
+    x = m.x(i);
+    a0 = x; 
     for (std::size_t j = 0; j < m.ny(); j++){
-      p = m.y(j);
+      y = m.y(j);
+      p = m.p(j); 
 
-      Lambda_K << d.Daa(t(), i, j) * G(a0, p), d.Dap(t(), i, j) * G(a0, p), 
-               d.Dap(t(), i, j) * G(a0, p), d.Dpp(t(), i, j) * G(a0, p);
+      Lambda_K << d.Daa(t(), i, j) * G(a0, p), d.Day(t(), i, j) * G(a0, p), 
+               d.Day(t(), i, j) * G(a0, p), d.Dyy(t(), i, j) * G(a0, p);
 
-      K  << a0, p;
+      K  << x, y;
 
       for (size_t inbr=0; inbr<m.nnbrs(); ++inbr){
         m.get_nbr_edg(i, j, inbr, &edge);  
@@ -157,9 +180,15 @@ void Solver::assemble(){ // obtain M and R
 
   // row: i == 0 
   for (std::size_t j=0; j<m.ny(); ++j) {
-    coeff_add_inner(0,j,m.inbr_ip()); 
-    coeff_add_dirbc(0,j,m.inbr_im());  
+    coeff_add_inner(0,j,m.inbr_ip());
   }
+
+  if (paras.alpha0_min_bct() != 0) { // Dirichilet bc at alpha0 = alpha0_lc
+    for (std::size_t j=0; j<m.ny(); ++j) {
+      coeff_add_dirbc(0,j,m.inbr_im()); 
+    }
+  }
+
   for (std::size_t j=1; j<m.ny(); ++j) coeff_add_inner(0,j,m.inbr_jm());
   for (std::size_t j=0; j<m.ny()-1; ++j) coeff_add_inner(0,j,m.inbr_jp());
 
@@ -189,16 +218,16 @@ void Solver::assemble(){ // obtain M and R
   for (std::size_t i=1; i<m.nx(); ++i) coeff_add_inner(i,m.ny()-1,m.inbr_im());
   for (std::size_t i=0; i<m.nx()-1; ++i) coeff_add_inner(i,m.ny()-1,m.inbr_ip());
 
-  double a, p;
+  double a0, p;
   long ii;
   double Uii;
 
   for (std::size_t i=0; i<m.nx(); ++i) {
-    a = m.x(i);
+    a0 = m.x(i);
     for (std::size_t j=0; j<m.ny(); ++j) {
-      p = m.y(j);
+      p = m.p(j);
       ii = m.ind2to1(i,j);
-      Uii = G(a, p) * m.area_dt();
+      Uii = G(a0, p) * m.area_dt();
       M_coeffs_.push_back(T(ii, ii, Uii));
       R_(ii) += Uii * f_(i,j);
     }
@@ -217,7 +246,14 @@ void Solver::update() {
   solver.analyzePattern(M_);
   solver.factorize(M_);
   f_.reshaped() = solver.solve(R_);
-  
+
+  if (paras.alpha0_min_bct() == 0) {
+    for (std::size_t i=0; i<m.nx(); ++i)
+      for (std::size_t j=0; j<m.ny(); ++j) {
+        f_(i,j) *= exp(-m.dt()/tau_(i,j)); 
+      }
+  }
+
   t_ += m.dt(); 
   construct_alpha_osf();
   update_vertex_f();
@@ -229,15 +265,26 @@ void Solver::update_vertex_f(){
       vertex_f_(i,j) = (f_(i-1,j-1) + f_(i-1,j) + f_(i,j-1) + f_(i,j)) / 4.0; 
     }
 
-  double a0, p0;
+  double a0;
 
   // i == 0 and m.nx() boundary
   for (std::size_t j = 1; j<m.ny(); ++j){
-    p0 = m.yO() + j*m.dy();
-    vertex_f_(0, j) = bcs.alpha0_lc(t(), p0);
     vertex_f_(m.nx(), j) = vertex_f_(m.nx()-1,j);
   }
 
+  if (paras.alpha0_min_bct() == 0) {
+    for (std::size_t j = 1; j<m.ny(); ++j){
+      vertex_f_(0,j) = vertex_f_(1,j); 
+    }
+  }
+  else {
+    double y, p; 
+    for (std::size_t j = 1; j<m.ny(); ++j){
+      y = m.yO() + j*m.dy();
+      p = std::exp(y); 
+      vertex_f_(0,j) = bcs.alpha0_lc(t(), p);
+    }
+  }
   // j == 0  and j == m.ny() boundary
   for (std::size_t i = 0; i <= m.nx(); ++i) {
     a0 = m.xO() + i*m.dx(); 

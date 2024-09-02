@@ -14,8 +14,8 @@
 #include "common.h"
 #include "Parameters.h" 
 #include <vector>
-#include <xtensor/xtensor.hpp>
-#include <xtensor/xio.hpp>
+#include "xtensor/xtensor.hpp"
+#include "xtensor/xio.hpp"
 
 struct Ind{
   int i; 
@@ -31,23 +31,26 @@ struct Edge{
 
 class Mesh {
   public:
-    Mesh(const Parameters& p): x_(p.nalpha0()), y_(p.nE()) {
+    Mesh(const Parameters& paras): x_(paras.nalpha0()), y_(paras.nE()), p_(paras.nE()) {
 
-        nx_ = p.nalpha0(); 
-        ny_ = p.nE();
-        dt_ = p.dt(); 
+        nx_ = paras.nalpha0(); 
+        ny_ = paras.nE();
+        dt_ = paras.dt(); 
 
-        xO_ = p.alpha0_lc(); 
-        yO_ = p.pmin();
+        xO_ = paras.alpha0_min(); 
+        p0_ = paras.pmin(); 
+        yO_ = std::log(p0_);
 
-        dx_ = (p.alpha0_max() - p.alpha0_lc()) / p.nalpha0(); 
-        dy_ = (p.pmax() - p.pmin()) / p.nE(); 
+        dx_ = (paras.alpha0_max() - paras.alpha0_min()) / paras.nalpha0(); 
+        dy_ = (std::log(paras.pmax()) - std::log(paras.pmin())) / paras.nE(); 
 
         x_(0) = xO() + dx()/2.0; 
         y_(0) = yO() + dy()/2.0; 
 
         for (std::size_t i=1; i<nx(); ++i) x_(i) = x_(0) + i*dx(); 
         for (std::size_t j=1; j<ny(); ++j) y_(j) = y_(0) + j*dy(); 
+
+        for (std::size_t j=0; j<ny(); ++j) p_(j) = std::exp(y_(j)); 
 
         nbr_inds.resize({nx(), ny(), 4});
         edges.resize({nx(), ny(), 4});
@@ -66,11 +69,17 @@ class Mesh {
 
     const Eigen::VectorXd& x() const { return x_; }
     const Eigen::VectorXd& y() const { return y_; }
+    const Eigen::VectorXd& p() const { return p_; }
 
     double x(int i) const { return x_(i); }
     double y(int j) const { return y_(j); }
+    double p(int j) const { return p_(j); }
+
     double xO() const { return xO_; }
     double yO() const { return yO_; }
+
+    double p0() const { return p0_; }
+
     std::size_t nx() const { return nx_; }
     std::size_t ny() const { return ny_; }
     double dx() const { return dx_; }
@@ -121,8 +130,12 @@ class Mesh {
     double xO_; 
     double yO_; 
 
+    double p0_; 
+
     Eigen::VectorXd x_; 
     Eigen::VectorXd y_; 
+
+    Eigen::VectorXd p_; 
 
     Eigen::Vector4i rinbr_; 
 
