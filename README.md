@@ -1,6 +1,6 @@
 # fvm2d
 
-fvm2d is a C++ program that uses a positivity-preserving finite volume method to solve the 2D radiation belt diffusion equation with a structured mesh. It solves the 2D Fokker-Planck equation in ${(\alpha, p)}$ coordinates and allows for the adjustment of parameters to modify the mesh, range, or time step.
+fvm2d is a C++ program that uses a positivity-preserving finite volume method to solve the 2D radiation belt diffusion equation with a structured mesh. It solves the 2D Fokker-Planck equation in ${(\alpha, \log(p))}$ coordinates and allows for the adjustment of parameters to modify the mesh, range, or time step.
 
 ## Install
 
