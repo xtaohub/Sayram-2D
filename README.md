@@ -88,7 +88,7 @@ $$
 
 In this case, the input diffusion coefficients and initial conditions of f are both changed. For initial f, see **BCs.h**. For D, you need to modify **p.ini** so that **alpha0_min_D = 0** instead of 1. Do not expect agreement for this case, due to the change to the initial f.
 
--- The input D was provided by Dr. Jay Albert, and all three D's have dimension [p^2]/[t]. To use this kind of D, we processed D accordingly (see **D.cc**) before providing it to the main solver. Depending on your D, you might need to modify the **D.h** and **D.cc** class.
+-- The input D's are the same as the ones used by Albert and Young (2005) GRL, and all three D's have dimension [p^2]/[t]. To use this kind of D, we processed D accordingly (see **D.cc**) before providing it to the main solver. Depending on your D, you might need to modify the **D.h** and **D.cc** class.
 
 ## Contributing to fvm2d
 
