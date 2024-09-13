@@ -1,6 +1,8 @@
 # fvm2d
 
-fvm2d is a C++ program that uses a positivity-preserving finite volume method to solve the 2D radiation belt diffusion equation with a structured mesh. It solves the 2D Fokker-Planck equation in ${(\alpha, \log(p))}$ coordinates and allows for the adjustment of parameters to modify the mesh, range, or time step.
+fvm2d is a C++ program that uses a positivity-preserving finite volume method to solve the 2D radiation belt diffusion equation with a full diffusion matrix. It solves the 2D Fokker-Planck equation in ${(\alpha, \log(p))}$ coordinates and allows for the adjustment of parameters to modify the mesh, range, or time step.
+
+With slight modification, the code can be used to solve any Fokker-Planck type equation that can be written in the conservative form.
 
 ## Install
 
@@ -12,7 +14,7 @@ One easy approach would be to simply add these libraries to the ```source``` fol
 
 ## Changes to the Makefile
 
-If you put the above open source libraries to the ```source``` folder, then you could comment 
+If you put the above open source libraries to the ```source``` folder, then you could comment out the following line in the Makefile
 
 ```
 LOCAL_INCLUDE = /Users/xtao/local/include
@@ -26,7 +28,7 @@ to
 CCFLAGS = -Wall -Wno-class-memaccess -O2 
 ```
 
-If you put the libraries in a foler whose path is PATH, then you need to modify "LOCAL_INCLUDE" accordingly. 
+If you put the libraries in a folder whose path is PATH, then you need to modify "LOCAL_INCLUDE" accordingly. 
 
 ## Compile
 
@@ -96,10 +98,8 @@ If you have any suggestions, please contact Peng Peng at pp140594 "AT" mail.ustc
 
 ## License
 
-Copyright (c) 2024 Xin Tao 
+The code is open source under the MIT license. If you find it useful or base your research on it, we would appreciate it if you could cite the following paper:
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+Peng, P., Tao, X., Peng, Z., Jiang, Y., Gao, Z., Yang, D., et al. (2024). Modeling radiation belt dynamics using a positivity-preserving finite volume method on general meshes. Journal of Geophysical Research: Space Physics, 129, e2024JA032919. https://doi.org/10.1029/2024JA032919
 
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
