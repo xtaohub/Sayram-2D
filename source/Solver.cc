@@ -161,9 +161,13 @@ void Solver::coeff_add_dirbc(int i, int j, int inbr) {
 
   double aK = alpha_osf_(i,j,inbr).A * fA + alpha_osf_(i,j,inbr).B * fB; 
 
+  double B_sigma = - aK;
+  double B_sigma_p = bsigma_plus(B_sigma);
+  double B_sigma_n = bsigma_minus(B_sigma);
+
   long ii = m.ind2to1(i,j);
-  R_(ii) += aK; 
-  M_coeffs_.push_back(T(ii, ii, (alpha_osf_(i,j,inbr).A + alpha_osf_(i,j,inbr).B)));
+  R_(ii) += B_sigma_n; 
+  M_coeffs_.push_back(T(ii, ii, (alpha_osf_(i,j,inbr).A + alpha_osf_(i,j,inbr).B + B_sigma_p / (f_(i, j) + 1e-15))));
 }
 
 
@@ -172,9 +176,9 @@ void Solver::assemble(){ // obtain M and R
   // inner cells
   for (std::size_t i=1; i<m.nx()-1; ++i){
     for (std::size_t j=1; j<m.ny()-1; ++j){
-
-      for (size_t inbr = 0; inbr < m.nnbrs(); ++inbr) 
+      for (size_t inbr = 0; inbr < m.nnbrs(); ++inbr){
         coeff_add_inner(i, j, inbr);
+      } 
     }
   }
 
