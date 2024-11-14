@@ -145,7 +145,6 @@ void Solver::coeff_add_inner(int i, int j, int inbr){
   long ii = m.ind2to1(i,j), jj = m.ind2to1(ind.i, ind.j); 
   M_coeffs_.push_back(T(ii, ii, A_K));
   M_coeffs_.push_back(T(ii, jj, -A_L));
-
 }
 
 void Solver::coeff_add_dirbc(int i, int j, int inbr) {  
@@ -193,16 +192,16 @@ void Solver::assemble(){ // obtain M and R
     }
   }
 
-  for (std::size_t j=1; j<m.ny(); ++j) coeff_add_inner(0,j,m.inbr_jm());
-  for (std::size_t j=0; j<m.ny()-1; ++j) coeff_add_inner(0,j,m.inbr_jp());
+  for (std::size_t j=1; j<m.ny()-1; ++j) coeff_add_inner(0,j,m.inbr_jm());
+  for (std::size_t j=1; j<m.ny()-1; ++j) coeff_add_inner(0,j,m.inbr_jp());
 
   // row i == nx-1 alpha = 90 
   for (std::size_t j=0; j<m.ny(); ++j) {
     coeff_add_inner(m.nx()-1,j,m.inbr_im()); 
     // nothing special for alpha=90 for inbr=inbr_ip()
   }
-  for (std::size_t j=1; j<m.ny(); ++j) coeff_add_inner(m.nx()-1,j,m.inbr_jm());
-  for (std::size_t j=0; j<m.ny()-1; ++j) coeff_add_inner(m.nx()-1,j,m.inbr_jp());
+  for (std::size_t j=1; j<m.ny()-1; ++j) coeff_add_inner(m.nx()-1,j,m.inbr_jm());
+  for (std::size_t j=1; j<m.ny()-1; ++j) coeff_add_inner(m.nx()-1,j,m.inbr_jp());
 
   // col j = 0
   for (std::size_t i=0; i<m.nx(); ++i) {
@@ -210,8 +209,8 @@ void Solver::assemble(){ // obtain M and R
     coeff_add_dirbc(i,0,m.inbr_jm()); 
   }
 
-  for (std::size_t i=1; i<m.nx(); ++i) coeff_add_inner(i,0,m.inbr_im());
-  for (std::size_t i=0; i<m.nx()-1; ++i) coeff_add_inner(i,0,m.inbr_ip());
+  for (std::size_t i=1; i<m.nx()-1; ++i) coeff_add_inner(i,0,m.inbr_im());
+  for (std::size_t i=1; i<m.nx()-1; ++i) coeff_add_inner(i,0,m.inbr_ip());
 
   // col j == ny-1
   for (std::size_t i=0; i<m.nx(); ++i) {
@@ -219,8 +218,8 @@ void Solver::assemble(){ // obtain M and R
     coeff_add_dirbc(i,m.ny()-1,m.inbr_jp()); 
   }
 
-  for (std::size_t i=1; i<m.nx(); ++i) coeff_add_inner(i,m.ny()-1,m.inbr_im());
-  for (std::size_t i=0; i<m.nx()-1; ++i) coeff_add_inner(i,m.ny()-1,m.inbr_ip());
+  for (std::size_t i=1; i<m.nx()-1; ++i) coeff_add_inner(i,m.ny()-1,m.inbr_im());
+  for (std::size_t i=1; i<m.nx()-1; ++i) coeff_add_inner(i,m.ny()-1,m.inbr_ip());
 
   double a0, p;
   long ii;
