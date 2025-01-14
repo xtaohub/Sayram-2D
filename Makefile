@@ -2,7 +2,11 @@
 # This Makefile used be used in the parent folder of source ("../")
 
 CC = g++
-LOCAL_INCLUDE = /Users/xtao/local/include
+LOCAL_INCLUDE = /Users/xtao/local/include # change to your own include path
+
+HDF5_INCLUDE = /usr/include/hdf5/serial
+HDF5_LIB = /usr/lib/x86_64-linux-gnu/hdf5/serial
+
 SRC_DIR := source
 BUILD_DIR = build
 
@@ -11,12 +15,11 @@ SRCS := $(shell find $(SRC_DIR)/* -name \*.cc)
 OBJS := $(addprefix $(BUILD_DIR)/, $(SRCS:.cc=.o))
 DEPS := $(addprefix $(BUILD_DIR)/, $(SRCS:.cc=.d))
 
-CCFLAGS = -Wall -Wno-class-memaccess -O2 -I$(LOCAL_INCLUDE) 
+CCFLAGS = -O2 -fopenmp -I$(LOCAL_INCLUDE) -I$(HDF5_INCLUDE)
 CCFLAGS += $(DIRS:%=-I%)
 CCFLAGS += 
 
-# LDFLAGS = -L$(HDF5_LIB) -lhdf5
-LDFLAGS = 
+LDFLAGS = -L$(HDF5_LIB) 
 
 executable= fvm2d
 
@@ -34,7 +37,7 @@ all:  $(executable)
 
 # link objs
 $(executable):$(OBJS) 
-	$(CC) $(LDFLAGS) $(OBJS) -o $@
+	$(CC) $(LDFLAGS) $(OBJS) -lhdf5 -fopenmp -o $@
 
 # dependences 
 $(BUILD_DIR)/%.d: %.cc
