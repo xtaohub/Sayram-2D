@@ -2,7 +2,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import configparser
 import sys
+import h5py
 from scipy.interpolate import interpn
+from matplotlib.lines import Line2D
+
+
+gE0 = 0.511875
+
 
 def fname_base(run_id):
     return '../output/' + run_id + '/' + run_id
@@ -18,11 +24,9 @@ def parse_ini(run_id):
     try:
         paras['E_MIN'] = float(config.get('basic', 'Emin'))  # MeV
         paras['E_MAX'] = float(config.get('basic', 'Emax'))  # MeV
-        paras['nx'] = int(config.get('basic', 'nalpha'))
-        paras['ny'] = int(config.get('basic', 'nE'))
-        paras['L'] = float(config.get('basic', 'L'))
-        paras['ALPHA_LC'] = np.rad2deg(np.arcsin((paras['L']**5*(4*paras['L']-3))**(-1.0/4)))
-        paras['ALPHA_MAX']=90
+        paras['nalpha0'] = int(config.get('basic', 'nalpha0'))
+        paras['nE'] = int(config.get('basic', 'nE'))
+        # paras['ALPHA_MAX']=90
     except Exception as e:
         print("section_name or option_name wrong, check the input file.")
         sys.exit(1)
@@ -61,40 +65,45 @@ def p2e(p, E0=0.511875, cv=1):
 def e2p(E, E0=0.511875, cv=1):
     return np.sqrt(E * (E + 2 * E0)) / cv 
 
-def read_xy(run_id):
-    xfname = fname_base(run_id) + '_a0.dat'
-    yfname = fname_base(run_id) + '_E.dat'
-    
-    alphav = np.loadtxt(xfname)
-    ev = np.loadtxt(yfname)
+def read_xy(data):
+    alphav = data['alpha0'][:]
+    logEN = data['logEN'][:]
 
-    return alphav, ev
+    return alphav, logEN
 
-def f1d(fmat, alphav, logev, loge):
-    points = (alphav, logev)
+def f1d(fmat, alphav, ev, e):
+    points = (alphav, ev)
     xi = np.zeros((alphav.size, 2))
     xi[:,0] = alphav[:]
-    xi[:,1] = loge 
+    xi[:,1] = e 
 
     return interpn(points, fmat, xi)
 
 if __name__ == '__main__':
 
-    run_id = 'albert_young'
-    alphav, ev = read_xy(run_id)
-    logev = np.log(ev)
+    run_id = 'AlbertYoung'
+    paras = parse_ini(run_id)
+    
+    data = h5py.File(fname_base(run_id) + '_data.h5', 'r')
+    alphav, logEN = read_xy(data)
 
-    fnamed01 = fname_base(run_id) + '1'   
-    fnamed10 = fname_base(run_id) + '10'
+    
+    f01_2d = data['f/1'][:]
+    f10_2d = data['f/10'][:]
+    
+    f0501 = f1d(f01_2d, alphav, logEN + np.log(gE0), np.log(0.5)) * e2p(0.5)**2
+    f0510 = f1d(f10_2d, alphav, logEN + np.log(gE0), np.log(0.5)) * e2p(0.5)**2
+    
+    zero_ = np.array([0])
+    
+    f0501 = np.concatenate((zero_, f0501))
+    f0510 = np.concatenate((zero_, f0510))
 
-    f01 = np.loadtxt(fnamed01)
-    f10 = np.loadtxt(fnamed10)
-
-    f0501 = f1d(f01, alphav, logev, np.log(0.5)) * e2p(0.5)**2
-    f0510 = f1d(f10, alphav, logev, np.log(0.5)) * e2p(0.5)**2
-
-    f2001 = f1d(f01, alphav, logev, np.log(2.0)) * e2p(2.0)**2
-    f2010 = f1d(f10, alphav, logev, np.log(2.0)) * e2p(2.0)**2
+    f2001 = f1d(f01_2d, alphav, logEN + np.log(gE0), np.log(2.0)) * e2p(2.0)**2
+    f2010 = f1d(f10_2d, alphav, logEN + np.log(gE0), np.log(2.0)) * e2p(2.0)**2
+    
+    f2001 = np.concatenate((zero_, f2001))
+    f2010 = np.concatenate((zero_, f2010))
 
     ay_alphav, ay_logev = ay_coord()
     ay_01, ay_10 = read_ay()
@@ -105,28 +114,47 @@ if __name__ == '__main__':
 
     f2001_ay = f1d(ay_01, ay_alphav, ay_logev, np.log(2.0))
     f2010_ay = f1d(ay_10, ay_alphav, ay_logev, np.log(2.0))
+    
+    alphalc_ = np.array([5])
+    alphav = np.concatenate((alphalc_, alphav))
 
-    plt.close()
-    fig,axes = plt.subplots(1, 2, figsize = (9, 4))
+    fig = plt.figure(figsize=(6, 3))
+    ax1 = fig.add_subplot(1, 2, 1)
 
-    axes[0].plot(ay_alphav, f0500_ay, color='k')
-    axes[0].plot(ay_alphav, f0501_ay, color='C0')
-    axes[0].plot(ay_alphav, f0510_ay, color='C1')
-    axes[0].plot(alphav, f0501, ls = '--', color='C0')
-    axes[0].plot(alphav, f0510, ls = '--', color='C1')
+    l1, = plt.semilogy(ay_alphav, f0500_ay, color="black", label='T = 0.0day')
+    l2, = plt.semilogy(ay_alphav, f0501_ay, "x", color="C0", label='T = 0.1day', markevery=2, markeredgewidth=2)
+    l3, = plt.semilogy(ay_alphav, f0510_ay, "x", color="C1", label='T = 1.0day', markevery=2, markeredgewidth=2)
 
-    axes[0].set(yscale='log', ylim=(1e-5, 1e1))
-    # axes[0].set(yscale='log')
+    l4, = plt.semilogy(alphav, f0501, color="C0", label='T = 0.1day')
+    l5, = plt.semilogy(alphav, f0510, color="C1", label='T = 1.0day')
 
-    axes[1].plot(ay_alphav, f2000_ay, color='k')
-    axes[1].plot(ay_alphav, f2001_ay)
-    axes[1].plot(ay_alphav, f2010_ay)
+    plt.title("0.5 MeV")
+    plt.xlabel(r'$\alpha_0$ $(^\mathrm{o})$')
+    plt.ylabel(r'flux (arbitrary units)')
+    plt.legend(handles=[l1, l4, l5],
+               labels=['T = 0.0 day', 'T = 0.1 day', 'T = 1.0 day'], loc='best')
+    plt.xlim(0, 90)
+    plt.ylim(1e-3, 1)
 
-    axes[1].plot(alphav, f2001, ls = '--', color='C0')
-    axes[1].plot(alphav, f2010, ls = '--', color='C1')
+    ax2 = fig.add_subplot(1, 2, 2)
 
-    axes[1].set(yscale='log', ylim=(1e-10, 1e-2))
-    # axes[1].set(yscale='log')
-   
+    l1, = plt.semilogy(ay_alphav, f2000_ay, color="black", label='T = 0.0 day')
+    l2, = plt.semilogy(ay_alphav, f2001_ay, "x", color="C0", label='layer method', markevery=2, markeredgewidth=2)
+    l3, = plt.semilogy(ay_alphav, f2010_ay, "x", color="C1", label='T = 1.0day', markevery=2, markeredgewidth=2)
+    l4, = plt.semilogy(alphav, f2001, color="C0", label='3DPPFV')
+    l5, = plt.semilogy(alphav, f2010, color="C1", label='1d')
+
+    plt.title("2 MeV")
+    plt.xlabel(r'$\alpha_0$ $(^\mathrm{o})$')
+    plt.ylabel(r'flux (arbitrary units)')
+
+    proxy_lines = [Line2D([0], [0], linestyle='none', marker='x', color='black', markevery=2, markeredgewidth=2),
+                   Line2D([0], [0], color='black')]
+
+    plt.legend(proxy_lines, ['Albert and Young', 'Sayram'], loc='best')
+    plt.xlim(0, 90)
+    plt.ylim(1e-10, 1e-2)
+
+    plt.tight_layout()
     plt.show()
 
