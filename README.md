@@ -1,6 +1,6 @@
 # fvm2d
 
-fvm2d is a C++ program that uses a positivity-preserving finite volume method to solve the 2D radiation belt diffusion equation with a full diffusion matrix. It solves the 2D Fokker-Planck equation in ${(\alpha, \log(p))}$ coordinates and allows for the adjustment of parameters to modify the mesh, range, or time step.
+fvm2d is a C++ program that uses a positivity-preserving finite volume method to solve the 2D radiation belt diffusion equation with a full diffusion matrix. It solves the 2D Fokker-Planck equation in ${(\alpha, \log(E))}$ coordinates and allows for the adjustment of parameters to modify the mesh, range, or time step.
 
 With slight modification, the code can be used to solve any Fokker-Planck type equation that can be written in the conservative form.
 
@@ -8,27 +8,22 @@ With slight modification, the code can be used to solve any Fokker-Planck type e
 
 fvm2d involves several open source C++ packages, so you need to install or add them to your environment before compiling or running the program. The packages are: 
 
-[Eigen](https://eigen.tuxfamily.org), [xtensor](https://github.com/xtensor-stack/xtensor), [xtl](https://github.com/xtensor-stack/xtl).
+[Eigen](https://eigen.tuxfamily.org), [xtensor](https://github.com/xtensor-stack/xtensor), [xtl](https://github.com/xtensor-stack/xtl), [hdf5](https://github.com/HDFGroup/hdf5)
 
-One easy approach would be to simply add these libraries to the ```source``` folder of fvm2d. 
+The first three libraries are header only, so one easy approach would be to simply add them to the ```source``` folder of fvm2d.  However, you need to setup the hdf5 library before using fvm2d, because fvm2d uses HDF5 for input of D and output by default. 
 
 ## Changes to the Makefile
-
-If you put the above open source libraries to the ```source``` folder, then you could comment out the following line in the Makefile
-
+There is a section in the Makefile, marked by ```# ------------``` that you could change according to the setup of your coding environment.
 ```
+# -----------------
+CC = g++
 LOCAL_INCLUDE = /Users/xtao/local/include
+HDF5_INCLUDE = /opt/local/include
+HDF5_LIB = /opt/local/lib
+OPENMP =
+OPT = -O2
+# -----------------
 ```
-and change 
-```
-CCFLAGS = -Wall -Wno-class-memaccess -O2 -I$(LOCAL_INCLUDE)
-```
-to 
-```
-CCFLAGS = -Wall -Wno-class-memaccess -O2 
-```
-
-If you put the libraries in a folder whose path is PATH, then you need to modify "LOCAL_INCLUDE" accordingly. 
 
 ## Compile
 
@@ -49,7 +44,7 @@ then you can run it as
 ./fvm2d
 ```
 
-The default input parameter file is "p.ini". 
+The default input parameter file is "p.ini", which deals with the case in the paper by Albert and Young, GRL, 2005. 
 
 ## Introduction
 
@@ -59,13 +54,13 @@ $$
 \frac{\partial f}{\partial t} = \sum_{i,j}\frac{1}{G}\frac{\partial}{\partial Q_i}(GD_{Q_iQ_j}\frac{\partial f}{\partial Q_j}),
 $$
 
-which can be used to describe the relativistic electron flux in Earth’s outer radiation belt. And the mathematical tool employed is Positivity-Preserving Finite Volume (PPFV) method developed by [Gao and Wu](http://epubs.siam.org/doi/10.1137/140972470), which preserves the positivity of solution and does not impose restrictions on the time step according to the CFL condition.
+which can be used to describe the relativistic electron flux evolution in Earth’s outer radiation belt due to local wave particle interactions. And the mathematical tool employed is Positivity-Preserving Finite Volume (PPFV) method developed by [Gao and Wu](http://epubs.siam.org/doi/10.1137/140972470), which preserves the positivity of solution and does not impose restrictions on the time step according to the CFL condition.
 
 As for the construction of the code, the main computational and solving components are located in the **source** folder. Here we read the parameters from **p.ini** (default) and diffusion coefficients from **D** folder, construct mesh, solve the equation and finally output the files to the **output** folder. Additionally, the **plot** folder contains Python scripts that plot your results. Currently, the **cmp_ay.py** is a function that compares the default output with previous results of Albert and Young (2005) GRL results. 
 
 ## Parameter
 
-As mentioned in part Introduction, the diffusion coefficients are stored in **D** folder, you can add your diffusion coefficients to the folder and make the appropriate changes in **p.ini** (default), or create a new ini file (for example **new.ini**) in the same path to adjust parameters such as the reference path, mesh dense, solving domain range and time step. Detailed information can be found in the defalut **p.ini**. If you choose to create a new ini file, the running command will be as follows:
+If you have a new configuration, called new.ini, about your case, then you can run the code as
 
 ```C++
 ./fvm2d new.ini
@@ -73,7 +68,7 @@ As mentioned in part Introduction, the diffusion coefficients are stored in **D*
 
 to use "new.ini" as the input parameter file.
 
-For time dependent diffusion coefficients, boundary conditions, you will need to modify the corresponding source code.
+For time dependent diffusion coefficients, boundary conditions, you will need to modify the corresponding source code, see the ***Equation*** class and ***Cases*** folder.
 
 ## THINGS TO NOTE:
 -- The default version of the fvm2d is to compare the fvm2d results with that of Albert and Young, GRL, 2005. The corresponding is that 
@@ -88,9 +83,7 @@ $$
 \left.\frac{\partial f}{\partial \alpha_0}\right|_{\alpha_0 = 0} = 0.
 $$
 
-In this case, the input diffusion coefficients and initial conditions of f are both changed. For initial f, see **BCs.h**. For D, you need to modify **p.ini** so that **alpha0_min_D = 0** instead of 1. Do not expect agreement for this case, due to the change to the initial f.
-
--- The input D's are the same as the ones used by Albert and Young (2005) GRL, and all three D's have dimension [p^2]/[t]. To use this kind of D, we processed D accordingly (see **D.cc**) before providing it to the main solver. Depending on your D, you might need to modify the **D.h** and **D.cc** class.
+-- The input D's are the same as the ones used by Albert and Young (2005) GRL, and all three D's have dimension [p^2]/[t]. 
 
 ## Contributing to fvm2d
 
