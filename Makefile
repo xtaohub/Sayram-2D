@@ -1,8 +1,15 @@
 # Compiler information; this makefile is based on the one for Smilie project
 # This Makefile used be used in the parent folder of source ("../")
-
+#
+# -----------------
 CC = g++
 LOCAL_INCLUDE = /Users/xtao/local/include
+HDF5_INCLUDE = /opt/local/include
+HDF5_LIB = /opt/local/lib
+OPENMP =
+OPT = -O2
+# -----------------
+
 SRC_DIR := source
 BUILD_DIR = build
 
@@ -11,12 +18,11 @@ SRCS := $(shell find $(SRC_DIR)/* -name \*.cc)
 OBJS := $(addprefix $(BUILD_DIR)/, $(SRCS:.cc=.o))
 DEPS := $(addprefix $(BUILD_DIR)/, $(SRCS:.cc=.d))
 
-CCFLAGS = -Wall -Wno-class-memaccess -O2 -I$(LOCAL_INCLUDE) 
+CCFLAGS = $(OPT) $(OPENMP) -I$(HDF5_INCLUDE) -I$(LOCAL_INCLUDE)
 CCFLAGS += $(DIRS:%=-I%)
-CCFLAGS += 
+CCFLAGS +=
 
-# LDFLAGS = -L$(HDF5_LIB) -lhdf5
-LDFLAGS = 
+LDFLAGS = -L$(HDF5_LIB) -lhdf5
 
 executable= fvm2d
 
@@ -34,7 +40,7 @@ all:  $(executable)
 
 # link objs
 $(executable):$(OBJS) 
-	$(CC) $(LDFLAGS) $(OBJS) -o $@
+	$(CC) $(LDFLAGS) $(OBJS) -lhdf5 -fopenmp -o $@
 
 # dependences 
 $(BUILD_DIR)/%.d: %.cc
