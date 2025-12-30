@@ -120,14 +120,14 @@ make
 Run the code with the default input parameter file p.ini:
 
 ```bash
-./Sayram-2D
+./sayram-2d
 ```
 The default input parameter file is "p.ini", which deals with the case in the paper by Albert and Young, GRL, 2005. 
 
 To use a custom configuration file (e.g., new.ini), run:
 
 ```bash
-./Sayram-2D new.ini
+./sayram-2d new.ini
 ```
 
 ## Boundary Conditions and Extensions
