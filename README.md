@@ -1,8 +1,8 @@
 # Sayram-2D
 
-**Sayram-2D** is a C++ program within the **Sayram numerical framework**, which implements a **positivity-preserving finite-volume method (PPFV)** for solving **general two-dimensional diffusion equations with a full diffusion tensor**. The framework is designed for equations written in conservative form and guarantees non-negativity of the solution without imposing CFL-type time-step restrictions.
+**Sayram-2D** is a C++ program within the **Sayram numerical framework**, designed to solve the **two-dimensional radiation belt diffusion equation** using a **positivity-preserving finite-volume method (PPFV)**. The solver supports a full diffusion tensor, is formulated in conservative form, and guarantees non-negativity of the solution without imposing CFL-type time-step restrictions.
 
-A primary application of Sayram-2D is the numerical modeling of **radiation belt dynamics**, where it is used to solve the two-dimensional Fokker–Planck equation in **($\alpha_0$, $\log E$)** coordinates.
+While Sayram-2D is specifically developed for modeling **radiation belt dynamics**, the underlying numerical method is general. With minor modifications, the code can also be applied to **other two-dimensional diffusion equations** written in conservative form.
 
 > **Note**  
 > This code was previously released under the repository name **`fvm2d`**.  
@@ -13,11 +13,11 @@ A primary application of Sayram-2D is the numerical modeling of **radiation belt
 
 ## Overview
 
-In its current public implementation, Sayram-2D is configured to solve the two-dimensional Fokker–Planck equation for radiation belt electron dynamics. The equation is formulated in **($\alpha_0$, $\log E$)** coordinates, where $\alpha_0$ denotes the equatorial pitch angle and $E$ the particle kinetic energy.
+In its current public implementation, Sayram-2D solves the two-dimensional Fokker–Planck equation governing radiation belt electron dynamics. The equation is formulated in **($\alpha_0$, $\log E$)** coordinates, where $\alpha_0$ is the equatorial pitch angle and $E$ is the particle kinetic energy.
 
-The code advances the phase-space density on a structured finite-volume mesh using a full diffusion tensor, including cross-diffusion terms. This enables stable and accurate treatment of pitch-angle diffusion, energy diffusion, and their coupling arising from local wave–particle interactions.
+The code advances the phase-space density on a structured finite-volume mesh using a full diffusion tensor, including cross-diffusion terms. This allows stable and accurate treatment of pitch-angle diffusion, energy diffusion, and their coupling arising from local wave–particle interactions.
 
-While the present application targets radiation belt physics, the underlying numerical infrastructure is general and can be adapted to **any other two-dimensional diffusion problems** written in conservative form.
+Although the present implementation targets radiation belt applications, the numerical infrastructure is sufficiently general that, with slight modifications, it can be adapted to solve **other two-dimensional diffusion problems** written in conservative form.
 
 Key features:
 
