@@ -11,92 +11,129 @@
 #ifndef MESH_H_
 #define MESH_H_
 
+#include <array>
+#include <cstddef>
 #include <vector>
-#include "common.h"
-#include "Parameters.h" 
+
 #include "Edge.h"
+#include "Grid2D.h"
+
+#include "Parameters.h" 
 
 struct Ind{
   std::size_t i;
   std::size_t j;
 }; 
 
+struct NbrInd {  // neighor index. avoid underflow of i-1 in build_connectivity_
+  std::ptrdiff_t i;
+  std::ptrdiff_t j;
+  bool valid;
+};
+
 class Mesh {
   public:
+
+    Mesh(const Grid2D& grid, double dt);
+
+    // Legacy
     Mesh(const Parameters& p); 
 
-    const Eigen::VectorXd& x() const { return x_; }
-    const Eigen::VectorXd& y() const { return y_; }
+    // Geometry (cell centers)
+    const std::vector<double>& x() const { return x_; }
+    const std::vector<double>& y() const { return y_; }
 
-    double x(int i) const { return x_(i); }
-    double y(int j) const { return y_(j); }
-
-    double xO() const { return xO_; }
-    double yO() const { return yO_; }
+    double x(std::size_t i) const { return x_[i]; }
+    double y(std::size_t j) const { return y_[j]; }
 
     std::size_t nx() const { return nx_; }
     std::size_t ny() const { return ny_; }
 
-    double dx() const { return dx_; }
-    double dy() const { return dy_; }
+    // Canonical edges
+    double x_edge(std::size_t i) const { return x_edges_[i]; }  // i in [0, nx]
+    double y_edge(std::size_t j) const { return y_edges_[j]; }  // j in [0, ny]
+
+    // Nonuniform-safe widths
+    double dx(std::size_t i) const { return dx_cell_[i]; }      // i in [0, nx-1]
+    double dy(std::size_t j) const { return dy_cell_[j]; }      // j in [0, ny-1]
+    
+    // Center-to-face distances (useful for BCs)
+    double dx_w(std::size_t i) const { return x_[i] - x_edges_[i]; }
+    double dx_e(std::size_t i) const { return x_edges_[i + 1] - x_[i]; }
+    double dy_s(std::size_t j) const { return y_[j] - y_edges_[j]; }
+    double dy_n(std::size_t j) const { return y_edges_[j + 1] - y_[j]; }
+
     double dt() const { return dt_; }
 
-    double cell_area() const { return dx() * dy(); }
-    double cell_area_dt() const { return cell_area() / dt();}
-
-    void indO(const Point& A, Ind* indp) const { 
-      // calculate the i,j coordinate relative to the Origin
-      // Note: not the cell index.
-      // This function is useful to calculate fA and fB from interpolation
-      indp->i = round((A(0) - xO()) / dx());
-      indp->j = round((A(1) - yO()) / dy()); 
-      
+    double cell_area_dt(std::size_t i, std::size_t j) const {
+      return dx(i) * dy(j) / dt();
     }
 
-    std::size_t flatten_index(const Ind& ind) const { // map 2d indices to 1
-      return ind.j*nx() + ind.i;
+    std::size_t flatten_cell_index(const Ind& ind) const {
+      return ind.j * nx() + ind.i;
     }
 
-    std::size_t nnbrs() const { return 4; } // each cell has 4 nbrs
-
+    // Neighbor conventions
     // define the neighbor # of 4 adjacent cells
     // im -- (i-1, j, k); jp -- (i, j+1, k)
     // ip -- (i+1, j, k); jm -- (i, j-1, k)
+    std::size_t nnbrs() const { return 4; } // each cell has 4 nbrs
+
     int inbr_im() const { return 0; }
     int inbr_jp() const { return 1; }
     int inbr_ip() const { return 2; }
     int inbr_jm() const { return 3; }
 
-    int rinbr(int inbr) const { return rinbr_(inbr); }                                    
+    int rinbr(int inbr) const {
+      return rinbr_[static_cast<std::size_t>(inbr)];
+    }
 
-    void get_nbr_ind(const Ind& ind, int inbr, Ind* nbr_indp) const {
-      *nbr_indp = nbr_inds(ind.i,ind.j,inbr); 
+    bool get_nbr_ind(const Ind& ind, int inbr, Ind* nbr_indp) const {
+      const NbrInd& n = nbr_inds_[idx_(ind.i, ind.j, inbr)];
+      if (!n.valid) return false;
+
+      nbr_indp->i = static_cast<std::size_t>(n.i);
+      nbr_indp->j = static_cast<std::size_t>(n.j);
+      return true;
     }
 
     void get_nbr_edge(const Ind& ind, int inbr, Edge* edgep) const {
-      *edgep = edges(ind.i,ind.j,inbr); 
+      *edgep = edges_[idx_(ind.i, ind.j, inbr)];
     }
 
   private:
-    std::size_t nx_; 
-    std::size_t ny_; 
-    double dx_;
-    double dy_;
-    double dt_; 
 
-    // coordinate origin: corresponds to i-0.5, j-0.5
-    double xO_; 
-    double yO_;
+    std::size_t nx_{0};
+    std::size_t ny_{0};
+    double dt_{0.0};
+  
+    // Canonical edges
+    std::vector<double> x_edges_;  // size nx+1
+    std::vector<double> y_edges_;  // size ny+1
 
-    Eigen::VectorXd x_; 
-    Eigen::VectorXd y_;
+    // Derived geometry
+    std::vector<double> dx_cell_;  // size nx
+    std::vector<double> dy_cell_;  // size ny
+    std::vector<double> x_;        // size nx
+    std::vector<double> y_;        // size ny
+  
+    // Reverse neighbor mapping: im<->ip, jp<->jm
+    std::array<int, 4> rinbr_{{2, 3, 0, 1}};
 
-    Eigen::Matrix<int, 4, 1> rinbr_; 
+    // Connectivity (flattened): size nx*ny*4
+    std::vector<NbrInd> nbr_inds_;
+    std::vector<Edge> edges_;
 
-    xt::xtensor<Ind,3> nbr_inds;
-    xt::xtensor<Edge,3> edges;
+    void build_geometry_from_edges_();
+    void build_connectivity_();
 
-    void build_connectivity();
+    std::size_t cell_id_(std::size_t i, std::size_t j) const {
+      return j * nx_ + i;
+    }
+
+    std::size_t idx_(std::size_t i, std::size_t j, int inbr) const {
+      return 4 * cell_id_(i, j) + static_cast<std::size_t>(inbr);
+    }
 };
 
 #endif /* MESH_H */

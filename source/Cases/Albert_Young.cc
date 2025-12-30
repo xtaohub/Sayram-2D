@@ -50,14 +50,18 @@ void Albert_Young::apply_bcs(Xtensor2d* vertex_fp) const {
 
   // i == 0 and m.nx() boundary condition case
   for (std::size_t j = 0; j<m.ny()+1; ++j){
-    y = m.yO() + j*m.dy();
+
+    const double y = m.y_edge(j);
+
     vertex_f(0, j) = xmin(y);
     vertex_f(m.nx(), j) = vertex_f(m.nx()-1, j);
   }
 
   // j == 0  and j == m.ny() boundary
   for (std::size_t i = 0; i<m.nx()+1; ++i){
-    x = m.xO() + i*m.dx(); 
+
+    const double x = m.x_edge(i);
+
     vertex_f(i, 0) = ymin(x); 
     vertex_f(i, m.ny()) = ymax(x);  
   }

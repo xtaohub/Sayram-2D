@@ -118,7 +118,7 @@ if __name__ == '__main__':
     alphalc_ = np.array([5])
     alphav = np.concatenate((alphalc_, alphav))
 
-    fig = plt.figure(figsize=(20, 8))
+    fig = plt.figure(figsize=(6, 3))
     ax1 = fig.add_subplot(1, 2, 1)
 
     l1, = plt.semilogy(ay_alphav, f0500_ay, color="black", label='T = 0.0day')
@@ -151,7 +151,7 @@ if __name__ == '__main__':
     proxy_lines = [Line2D([0], [0], linestyle='none', marker='x', color='black', markevery=2, markeredgewidth=2),
                    Line2D([0], [0], color='black')]
 
-    plt.legend(proxy_lines, ['Albert and Young', 'Sayram'], loc='best')
+    plt.legend(proxy_lines, ['Albert and Young', 'Sayram-2D'], loc='best')
     plt.xlim(0, 90)
     plt.ylim(1e-10, 1e-2)
 

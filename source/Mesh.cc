@@ -8,88 +8,176 @@
  */
 
 #include "Mesh.h"
+// #include "Edge.h"
 
-Mesh::Mesh(const Parameters& p): x_(p.nalpha0()), y_(p.nE()) {
+#include <algorithm>
+#include <cmath>
+#include <stdexcept>
 
-  nx_ = p.nalpha0(); 
-  ny_ = p.nE(); 
 
-  dt_ = p.dt(); 
+namespace {
 
-  xO_ = p.alpha0_min(); 
-  yO_ = p.logEmin();
+Grid2D make_uniform_grid_from_parameters_(const Parameters& p) {
+  std::vector<double> xe(p.nalpha0() + 1);
+  std::vector<double> ye(p.nE() + 1);
 
-  dx_ = (p.alpha0_max() - p.alpha0_min()) / p.nalpha0(); 
-  dy_ = (p.logEmax() - p.logEmin()) / p.nE(); 
+  const double dx =
+      (p.alpha0_max() - p.alpha0_min()) / static_cast<double>(p.nalpha0());
+  const double dy =
+      (p.logEmax() - p.logEmin()) / static_cast<double>(p.nE());
 
-  x_(0) = xO() + dx()/2.0; 
-  y_(0) = yO() + dy()/2.0; 
+  for (std::size_t i = 0; i <= p.nalpha0(); ++i) {
+    xe[i] = p.alpha0_min() + dx * static_cast<double>(i);
+  }
+  for (std::size_t j = 0; j <= p.nE(); ++j) {
+    ye[j] = p.logEmin() + dy * static_cast<double>(j);
+  }
 
-  for (std::size_t i=1; i<nx(); ++i) x_(i) = x_(0) + i*dx(); 
-  for (std::size_t j=1; j<ny(); ++j) y_(j) = y_(0) + j*dy(); 
-
-  nbr_inds.resize({nx(), ny(), nnbrs()});
-  edges.resize({nx(), ny(), nnbrs()});
-
-  build_connectivity(); 
-
-  // The reverse inbr number.
-  // For example, if the current cell is K, its 0th neighbor is L.
-  // Then, for cell L, K is its 2th neighbor.
-  rinbr_(0) = 2; 
-  rinbr_(1) = 3; 
-  rinbr_(2) = 0; 
-  rinbr_(3) = 1; 
+  return Grid2D(std::move(xe), std::move(ye));
 }
 
-void Mesh::build_connectivity() {
+}  // namespace
 
-  int inbr; 
 
-  Point A, B; 
-  Vector2 dr; 
+Mesh::Mesh(const Grid2D& grid, double dt)
+  : nx_(grid.nx()),
+    ny_(grid.ny()),
+    dt_(dt),
+    x_edges_(grid.x_edges),
+    y_edges_(grid.y_edges),
+    dx_cell_(nx_),
+    dy_cell_(ny_),
+    x_(nx_),
+    y_(ny_) {
 
-  for (std::size_t i=0; i<nx(); ++i) {
-    for (std::size_t j=0; j<ny(); ++j) {
-      // nbr 0
-      inbr = 0; 
-      nbr_inds(i,j,inbr).i = i-1;
-      nbr_inds(i,j,inbr).j = j; 
+  build_geometry_from_edges_();
 
-      A = {xO() + i*dx(), yO() + (j+1)*dy()}; 
-      B = {xO() + i*dx(), yO() + j*dy()}; 
+  nbr_inds_.resize(nx_ * ny_ * nnbrs());
+  edges_.resize(nx_ * ny_ * nnbrs());
 
-      edges(i,j,inbr).set_vs_dir({A,B}, XNEG); 
+  build_connectivity_();
+}
 
-      // nbr 1
-      inbr = 1;
-      nbr_inds(i,j,inbr).i = i;
-      nbr_inds(i,j,inbr).j = j+1;
+Mesh::Mesh(const Parameters& p)
+  : Mesh(make_uniform_grid_from_parameters_(p), p.dt()) {}
 
-      B = A;
-      A = {xO() + (i+1)*dx(), yO() + (j+1)*dy()}; 
+void Mesh::build_geometry_from_edges_() {
+  if (x_edges_.size() != nx_ + 1) {
+    throw std::runtime_error("Mesh: x_edges size mismatch.");
+  }
+  if (y_edges_.size() != ny_ + 1) {
+    throw std::runtime_error("Mesh: y_edges size mismatch.");
+  }
 
-      edges(i,j,inbr).set_vs_dir({A,B}, YPOS); 
+  for (std::size_t i = 0; i < nx_; ++i) {
+    const double xl = x_edges_[i];
+    const double xr = x_edges_[i + 1];
+    const double dx = xr - xl;
+    if (!(dx > 0.0)) {
+      throw std::runtime_error("Mesh: non-positive dx at i=" + std::to_string(i));
+    }
+    dx_cell_[i] = dx;
+    x_[i] = 0.5 * (xl + xr);
+  }
 
-      // nbr 2
-      inbr = 2; 
-      nbr_inds(i,j,inbr).i = i+1;
-      nbr_inds(i,j,inbr).j = j;
+  for (std::size_t j = 0; j < ny_; ++j) {
+    const double yb = y_edges_[j];
+    const double yt = y_edges_[j + 1];
+    const double dy = yt - yb;
+    if (!(dy > 0.0)) {
+      throw std::runtime_error("Mesh: non-positive dy at j=" + std::to_string(j));
+    }
+    dy_cell_[j] = dy;
+    y_[j] = 0.5 * (yb + yt);
+  }
+}
 
-      B = A;
-      A = {xO() + (i+1)*dx(), yO() + j*dy()}; 
+void Mesh::build_connectivity_() {
+  // Neighbor ordering:
+  // 0: im (west), 1: jp (north), 2: ip (east), 3: jm (south)
+  //
+  
+  auto valid = [](std::ptrdiff_t ii, std::ptrdiff_t jj) -> NbrInd {
+    return NbrInd{ii, jj, true};
+  };
+  auto invalid = []() -> NbrInd {
+    return NbrInd{-1, -1, false};
+  };
 
-      edges(i,j,inbr).set_vs_dir({A,B}, XPOS); 
+  for (std::size_t i = 0; i < nx_; ++i) {
+    for (std::size_t j = 0; j < ny_; ++j) {
 
-      // nbr 3
-      inbr = 3;
-      nbr_inds(i,j,inbr).i = i;
-      nbr_inds(i,j,inbr).j = j-1;
+      // nbr 0: im (west), XNEG
+      {
+        const int inbr = 0;
 
-      B = A;
-      A = {xO() + i*dx(), yO() + j*dy()}; 
+        if (i == 0) {
+          nbr_inds_[idx_(i, j, inbr)] = invalid();
+        } else {
+          nbr_inds_[idx_(i, j, inbr)] =
+              valid(static_cast<std::ptrdiff_t>(i) - 1,
+                    static_cast<std::ptrdiff_t>(j));
+        }
 
-      edges(i,j,inbr).set_vs_dir({A,B}, YNEG); 
+        const Point A = {x_edge(i), y_edge(j + 1)};
+        const Point B = {x_edge(i), y_edge(j)};
+        edges_[idx_(i, j, inbr)].set({A, B}, Direction::XNEG,
+                                    {{{i, j + 1}, {i, j}}});
+      }
+
+      // nbr 1: jp (north), YPOS
+      {
+        const int inbr = 1;
+
+        if (j + 1 >= ny_) {
+          nbr_inds_[idx_(i, j, inbr)] = invalid();
+        } else {
+          nbr_inds_[idx_(i, j, inbr)] =
+              valid(static_cast<std::ptrdiff_t>(i),
+                    static_cast<std::ptrdiff_t>(j) + 1);
+        }
+
+        const Point B = {x_edge(i),     y_edge(j + 1)};
+        const Point A = {x_edge(i + 1), y_edge(j + 1)};
+        edges_[idx_(i, j, inbr)].set({A, B}, Direction::YPOS,
+                                    {{{i + 1, j + 1}, {i, j + 1}}});
+      }
+
+      // nbr 2: ip (east), XPOS
+      {
+        const int inbr = 2;
+
+        if (i + 1 >= nx_) {
+          nbr_inds_[idx_(i, j, inbr)] = invalid();
+        } else {
+          nbr_inds_[idx_(i, j, inbr)] =
+              valid(static_cast<std::ptrdiff_t>(i) + 1,
+                    static_cast<std::ptrdiff_t>(j));
+        }
+
+        const Point B = {x_edge(i + 1), y_edge(j + 1)};
+        const Point A = {x_edge(i + 1), y_edge(j)};
+        edges_[idx_(i, j, inbr)].set({A, B}, Direction::XPOS,
+                                    {{{i + 1, j}, {i + 1, j + 1}}});
+      }
+
+      // nbr 3: jm (south), YNEG
+      {
+        const int inbr = 3;
+
+        if (j == 0) {
+          nbr_inds_[idx_(i, j, inbr)] = invalid();
+        } else {
+          nbr_inds_[idx_(i, j, inbr)] =
+              valid(static_cast<std::ptrdiff_t>(i),
+                    static_cast<std::ptrdiff_t>(j) - 1);
+        }
+
+        const Point B = {x_edge(i + 1), y_edge(j)};
+        const Point A = {x_edge(i),     y_edge(j)};
+        edges_[idx_(i, j, inbr)].set({A, B}, Direction::YNEG,
+                                    {{{i, j}, {i + 1, j}}});
+      }
     }
   }
 }

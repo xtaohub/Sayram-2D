@@ -2,9 +2,9 @@
  * File:        Solver.h
  * Author:      Xin Tao <xtao@ustc.edu.cn>
  *              Peng Peng <pp140594@mail.ustc.edu.cn>
- * Date:        01/13/2025 
- * 
- * Copyright (c) Xin Tao 
+ * Date:        01/13/2025
+ *
+ * Copyright (c) Xin Tao
  *
  */
 
@@ -26,53 +26,53 @@ class Solver {
     double f(const Ind& ind) const { return f_(ind.i, ind.j); }
 
   private:
-    const Parameters& paras; 
+    const Parameters& paras;
     const Mesh& m;
 
-    Equation& eq; 
+    Equation& eq;
 
-    std::size_t istep_; // used to calcualte time = istep_ * dt() 
+    std::size_t istep_; // used to calcualte time = istep_ * dt()
 
     // M f = R
     Eigen::BiCGSTAB<SpMat> iterSolver;
 
     SpMat M_;
-    std::vector<T> M_coeffs_; 
+    std::vector<T> M_coeffs_;
 
     Xtensor2d f_;
     Eigen::VectorXd R_;
     Eigen::VectorXd ftmp_; // used to store results from the Eigen Solver.
 
-    xt::xtensor<Eigen::Matrix2d, 2> Lambda_;  // Lambda_(i,j) would be the Lambda Matrix at cell (i,j) 
+    xt::xtensor<Eigen::Matrix2d, 2> Lambda_;  // Lambda_(i,j) would be the Lambda Matrix at cell (i,j)
     const Eigen::Matrix2d& Lambda(int i, int j) const { return Lambda_(i,j); }
     const Eigen::Matrix2d& Lambda(const Ind& ind) const { return Lambda_(ind.i,ind.j); }
-    void update_Lambda();                                            
+    void update_Lambda();
 
     //
     // f at vertices to build a lookup table
-    // 
-    Xtensor2d vertex_f_; 
+    //
+    Xtensor2d vertex_f_;
 
     double vertex_f(int i, int j) const { return vertex_f_(i,j); }
     double vertex_f(const Ind& ind) const { return vertex_f_(ind.i, ind.j); }
-    void update_vertex_f(); 
+    void update_vertex_f();
 
     void assemble();
 
     // to calculate coefficients alpha_sigma_i and a_sigma_i
-    void a_sigma_i_func(const Ind& ind, int inbr, Vector2* a_sigma_i_p, double* a_sigmap);  
-                                                                                                                      
-    // update coefficients in M for cell Ind, and its neighbor. 
-    // note that coefficients for both cell Ind and its neighbor are updated. 
-    void update_coeff_inner_pair(const Ind& ind, int inbr);  
+    void a_sigma_func(const Ind& ind, int inbr, Vector2* a_sigma_i_p, double* a_sigmap);
 
-    // Here: the inbr neighbor is a Dirichlet boundary face.
-    void update_coeff_dirbc(const Ind& ind, int inbr); 
+    // update coefficients in M for cell Ind, and its neighbor.
+    // note that coefficients for both cell Ind and its neighbor are updated.
+    void update_coeff_inner_pair(const Ind& ind, int inbr);
+
+    // Here: the inbr neighbor is a Dirichlet boundary.
+    void update_coeff_dirbc(const Ind& ind, int inbr);
 
     void calculate_mu(double a_sigma_K, double a_sigma_L, double* mu_Kp, double* mu_Lp){
-      double denom = std::abs(a_sigma_K) + std::abs(a_sigma_L) + 2*gEPS; 
-      (*mu_Kp) = (std::abs(a_sigma_L)+gEPS)/denom; 
-      (*mu_Lp) = 1 - (*mu_Kp); 
+      double denom = std::abs(a_sigma_K) + std::abs(a_sigma_L) + 2*gEPS;
+      (*mu_Kp) = (std::abs(a_sigma_L)+gEPS)/denom;
+      (*mu_Lp) = 1 - (*mu_Kp);
     }
 
     void init();

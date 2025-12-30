@@ -12,51 +12,51 @@
 #define EDGE_H_
 
 #include "common.h"
+#include <array>
+#include <cstddef>
 
-enum Direction {XPOS, XNEG, YPOS, YNEG}; 
+// Cartesian face normal direction
+enum class Direction { XPOS, XNEG, YPOS, YNEG };
 
-typedef std::array<Point, 2> Edge_Vertices;
+using Edge_Vertices = std::array<Point, 2>;
+
+struct VtxInd { std::size_t i, j; };  // vertex index on (x_edges, y_edges)
 
 class Edge{
   public:
-    static const int NT = 2; // number of points for each edge. 
-    const Point& v(int i) const { return vs_[i]; } // vertices
-    int v_size() const { return vs_.size(); }                                                   
+    static constexpr int NT = 2;  // number of points for each edge. 
+
+    Edge() : vs_{}, length_(0.0), n_(0.0, 0.0), dir_(Direction::XPOS) {}
+
+    const Point& v(std::size_t i) const { return vs_[i]; } // vertices
+    const VtxInd& vind(std::size_t k) const { return vinds_[k]; }
+
+    std::size_t v_size() const { return vs_.size(); }
+
     double length() const { return length_; }
     const Vector2& n() const { return n_; } // normal vector, depending on the edge direction
     Direction dir() const { return dir_; }
 
+    void set(const Edge_Vertices& vs, Direction dir, const std::array<VtxInd,2>& vinds) {
+      vs_ = vs;
+      vinds_ = vinds;
+      length_ = (vs_[1] - vs_[0]).norm();
+      dir_ = dir;
 
-    void set_vs_dir(const Edge_Vertices& vs, Direction dir) {
-      vs_ = vs; 
-      length_ = (vs_[1] - vs_[0]).norm(); 
-      dir_ = dir; 
-
-      switch (dir) {
-        case XPOS: // Edge perpendicular to positive x-axis
-          n_ = {1, 0};
-          break;
-
-        case XNEG:
-          n_ = {-1, 0};
-          break; 
-
-        case YPOS: // Edge perpendicular to y-axis
-          n_ = {0, 1};
-          break;
-
-        case YNEG:
-          n_ = {0, -1};
-          break;
-
-        default: // incorrect dir
-          n_ = {0, 0}; 
+      switch (dir_) {
+        case Direction::XPOS: n_ = Vector2( 1.0,  0.0); break;
+        case Direction::XNEG: n_ = Vector2(-1.0,  0.0); break;
+        case Direction::YPOS: n_ = Vector2( 0.0,  1.0); break;
+        case Direction::YNEG: n_ = Vector2( 0.0, -1.0); break;
+        default:              n_ = Vector2( 0.0,  0.0); break;  // defensive
       }
     }
 
   private:
 
     Edge_Vertices vs_; 
+    std::array<VtxInd,2> vinds_;
+
     double length_; 
     Vector2 n_; // the unit normal vector
     Direction dir_; 
