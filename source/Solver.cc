@@ -108,7 +108,14 @@ void Solver::update_coeff_inner_pair(const Ind& ind, int inbr){ // add coefficie
   a_sigma_func(ind, inbr, &a_sigma_i_K, &a_sigma_K);
 
   // calculate A_L
-  m.get_nbr_ind(ind, inbr, &nbr_ind);
+  
+  /*m.get_nbr_ind(ind, inbr, &nbr_ind);*/
+
+  const bool has = m.get_nbr_ind(ind, inbr, &nbr_ind);
+  if (!has) {
+    throw std::runtime_error("update_coeff_inner_pair called on boundary face.");
+  }
+
   rinb = m.rinbr(inbr);
   a_sigma_func(nbr_ind, rinb, &a_sigma_i_L, &a_sigma_L);
 
@@ -160,35 +167,22 @@ void Solver::assemble(){ // obtain M and R
 
   std::size_t i, j;
 
-  // i direction
-  // i==0: dirichlet boundary condition
 
-  i = 0;
-  for (j=0; j<m.ny(); ++j)
-      update_coeff_dirbc({i,j}, m.inbr_im());
-
+  // 1) Interior face pairs (branch-free)
+  //    west faces for i>=1
   for (i=1; i<m.nx(); ++i)
     for (j=0; j<m.ny(); ++j)
-          update_coeff_inner_pair({i,j}, m.inbr_im());
+      apply_inner_face_pair({i, j}, Face::IM);
+  
+  //    south faces for j>=1
+  for (i = 0; i < m.nx(); ++i) {
+    for (j = 1; j < m.ny(); ++j) {
+      apply_inner_face_pair({i, j}, Face::JM);
+    }
+  }
 
-// i==m.nx()-1;
-// put the handling of the boundary conditions at i==nx-1 here.
-// it's neumann type (df/dx=0) in our case, so do nothing.
-
-  // j direction
-  // j == 0: handle dirbc
-  j = 0;
-  for (i=0; i<m.nx(); ++i)
-    update_coeff_dirbc({i,j}, m.inbr_jm());
-
-  for (i=0; i<m.nx(); ++i)
-    for (j=1; j<m.ny(); ++j)
-      update_coeff_inner_pair({i,j}, m.inbr_jm());
-
-  // j == ny-1: handle dirbc
-  j = m.ny()-1;
-  for (i=0; i<m.nx(); ++i)
-    update_coeff_dirbc({i,j}, m.inbr_jp());
+  // 2) Boundary faces (still hard-coded policy, but isolated)
+  apply_boundary_faces_();
 
   long K;
   double UKK;
@@ -203,6 +197,28 @@ void Solver::assemble(){ // obtain M and R
   }
 
   M_.setFromTriplets(M_coeffs_.begin(), M_coeffs_.end());
+}
+
+void Solver::apply_boundary_faces_() {
+  // Left boundary: Dirichlet on IM
+  for (std::size_t j = 0; j < m.ny(); ++j) {
+    apply_dirichlet_face({0, j}, Face::IM);
+  }
+
+  // Bottom boundary: Dirichlet on JM
+  for (std::size_t i = 0; i < m.nx(); ++i) {
+    apply_dirichlet_face({i, 0}, Face::JM);
+  }
+
+  // Top boundary: Dirichlet on JP
+  for (std::size_t i = 0; i < m.nx(); ++i) {
+    apply_dirichlet_face({i, m.ny() - 1}, Face::JP);
+  }
+
+  // Right boundary: Neumann on IP (currently do nothing)
+  for (std::size_t j = 0; j < m.ny(); ++j) {
+    apply_neumann_face({m.nx() - 1, j}, Face::IP);
+  }
 }
 
 
@@ -228,6 +244,12 @@ void Solver::update() {
 }
 
 void Solver::update_vertex_f(){
+  reconstruct_vertex_f_interior_();
+  apply_vertex_bcs_();
+}
+
+
+void Solver::reconstruct_vertex_f_interior_() {
 
   for (std::size_t i=1; i<m.nx(); ++i){
     for (std::size_t j=1; j<m.ny(); ++j){
@@ -254,6 +276,8 @@ void Solver::update_vertex_f(){
     }
   }
 
-  eq.apply_bcs(&vertex_f_);
+}
 
+void Solver::apply_vertex_bcs_() {
+  eq.apply_bcs(&vertex_f_);
 }

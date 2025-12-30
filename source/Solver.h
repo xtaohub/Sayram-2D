@@ -16,6 +16,8 @@
 #include "Equation.h"
 #include "Parameters.h"
 
+enum class Face { IM, IP, JM, JP };
+
 class Solver {
   public:
     Solver(const Parameters& paras_in, const Mesh& m_in, Equation* eqp);
@@ -57,6 +59,8 @@ class Solver {
     double vertex_f(const Ind& ind) const { return vertex_f_(ind.i, ind.j); }
     void update_vertex_f();
 
+
+
     void assemble();
 
     // to calculate coefficients alpha_sigma_i and a_sigma_i
@@ -76,6 +80,47 @@ class Solver {
     }
 
     void init();
+
+    int face_to_inbr(Face face) const {
+      switch (face) {
+        case Face::IM: return m.inbr_im();
+        case Face::IP: return m.inbr_ip();
+        case Face::JM: return m.inbr_jm();
+        case Face::JP: return m.inbr_jp();
+      }
+      return m.inbr_im(); // defensive
+    }
+
+    Face opposite_face(Face face) const {
+      switch (face) {
+        case Face::IM: return Face::IP;
+        case Face::IP: return Face::IM;
+        case Face::JM: return Face::JP;
+        case Face::JP: return Face::JM;
+      }
+      return Face::IM;
+
+    };
+
+    void apply_inner_face_pair(const Ind& cell, Face face) {
+      update_coeff_inner_pair(cell, face_to_inbr(face));
+    }
+
+    void apply_dirichlet_face(const Ind& cell, Face face) {
+      update_coeff_dirbc(cell, face_to_inbr(face));
+    }
+
+    // Placeholder for later (currently does nothing)
+    void apply_neumann_face(const Ind& cell, Face face) {
+      (void)cell;
+      (void)face;
+      // TODO: implement when BC is modularized
+    }
+
+    void apply_boundary_faces_(); 
+
+    void reconstruct_vertex_f_interior_();
+    void apply_vertex_bcs_(); // currently eq.apply_bcs(&vertex_f_)
 
 };
 

@@ -2,7 +2,7 @@
 # This Makefile used be used in the parent folder of source ("../")
 #
 # -----------------
-CC = g++
+CC = /opt/local/bin/g++-mp-15
 LOCAL_INCLUDE = /Users/xtao/local/include
 HDF5_INCLUDE = /opt/local/include
 HDF5_LIB = /opt/local/lib
