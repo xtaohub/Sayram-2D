@@ -14,27 +14,19 @@
 #include "Equation.h"
 #include "Albert_Young_IO.h"
 #include "utils.h"
-
+#include "Mesh.h"
 
 class Albert_Young:public Equation{
   public:
     Albert_Young(const Parameters& paras_in, const Mesh& m_in);
 
-    double init_f(const Ind& ind) const; 
-    void apply_bcs(Xtensor2d* vertex_fp) const; 
-    void update(double t);  // where we update G, D, and Bcs.
+    BCType bc_type(BoundaryID side) const override;
+    double init_f(const Ind& ind) const override; 
+    void update(double t) override;  // where we update G, D, and Bcs.
 
-    double xmin(double logE) const{
-      return 0.0;
-    }
-
-    double ymin(double a0) const{
-      return calculate_init_f(a0, paras.logEmin()); 
-    }
-
-    double ymax(double a0) const{
-      return 0.0;
-    }
+    virtual bool dirichlet_vertex_value(BoundaryID side,
+                                        std::size_t i, std::size_t j, double t,
+                                        double* out_value) const override;
 
   private:
     const Parameters& paras; 
@@ -55,6 +47,19 @@ class Albert_Young:public Equation{
     void init(); 
     void locate(double alpha0, double logE, Loc* locp);
     void constructD(const Parameters& par, const Albert_Young_IO& io);
+
+    double xmin(double logE) const{
+      return 0.0;
+    }
+
+    double ymin(double a0) const{
+      return calculate_init_f(a0, paras.logEmin()); 
+    }
+
+    double ymax(double a0) const{
+      return 0.0;
+    }
+
 }; 
 
 

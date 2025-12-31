@@ -1,6 +1,6 @@
 build/
 output/
-fvm2d
+sayram-2d
 .DS_Store
 source/.DS_Store
 .cache/

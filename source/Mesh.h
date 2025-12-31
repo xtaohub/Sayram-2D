@@ -18,8 +18,6 @@
 #include "Edge.h"
 #include "Grid2D.h"
 
-#include "Parameters.h" 
-
 struct Ind{
   std::size_t i;
   std::size_t j;
@@ -35,9 +33,6 @@ class Mesh {
   public:
 
     Mesh(const Grid2D& grid, double dt);
-
-    // Legacy
-    Mesh(const Parameters& p); 
 
     // Geometry (cell centers)
     const std::vector<double>& x() const { return x_; }

@@ -16,12 +16,79 @@
 #include "Solver.h"
 #include <ctime>
 
+
+static std::vector<double> make_tanh_edges(double a, double b,
+                                           std::size_t n_cells,
+                                           double beta) {
+  if (n_cells < 1) throw std::runtime_error("make_tanh_edges: n_cells < 1");
+  if (!(b > a)) throw std::runtime_error("make_tanh_edges: b <= a");
+  if (!(beta > 0.0)) throw std::runtime_error("make_tanh_edges: beta must be > 0");
+
+  std::vector<double> e(n_cells + 1);
+
+  const double t0 = std::tanh(-beta);
+  const double t1 = std::tanh(beta);
+  const double denom = (t1 - t0);
+
+  for (std::size_t k = 0; k <= n_cells; ++k) {
+    const double s = static_cast<double>(k) / static_cast<double>(n_cells); // [0,1]
+    const double xi = -beta + 2.0 * beta * s; // [-beta, +beta]
+    const double g = (std::tanh(xi) - t0) / denom; // [0,1]
+    e[k] = a + (b - a) * g;
+  }
+
+  // Ensure strict monotonicity (defensive against extreme beta + fp issues)
+  for (std::size_t k = 0; k + 1 < e.size(); ++k) {
+    if (!(e[k + 1] > e[k])) {
+      throw std::runtime_error("make_tanh_edges: non-increasing edges; reduce beta");
+    }
+  }
+  return e;
+}
+
+static Grid2D make_nonuniform(const Parameters& p) {
+  // You can tune these:
+  // beta ~ 1-2: mild clustering
+  // beta ~ 3-5: strong clustering
+  const double beta_x = 3.0;  // cluster near alpha0 boundaries
+  const double beta_y = 2.0;  // cluster near logE boundaries
+
+  auto xe = make_tanh_edges(p.alpha0_min(), p.alpha0_max(), p.nalpha0(), beta_x);
+  auto ye = make_tanh_edges(p.logEmin(),    p.logEmax(),    p.nE(),      beta_y);
+
+  return Grid2D(std::move(xe), std::move(ye));
+}
+
+static Grid2D make_uniform(const Parameters& p) {
+  std::vector<double> xe(p.nalpha0() + 1);
+  std::vector<double> ye(p.nE() + 1);
+
+  const double dx =
+      (p.alpha0_max() - p.alpha0_min()) / static_cast<double>(p.nalpha0());
+  const double dy =
+      (p.logEmax() - p.logEmin()) / static_cast<double>(p.nE());
+
+  for (std::size_t i = 0; i <= p.nalpha0(); ++i) {
+    xe[i] = p.alpha0_min() + dx * static_cast<double>(i);
+  }
+  for (std::size_t j = 0; j <= p.nE(); ++j) {
+    ye[j] = p.logEmin() + dy * static_cast<double>(j);
+  }
+
+  return Grid2D(std::move(xe), std::move(ye));
+}
+
 int main(int argc, char** argv) {
 
   Parameters paras(argc,argv);
 
+  // Nonuniform grid test
+  Grid2D grid = make_nonuniform(paras);
+
+  /*Grid2D grid = make_uniform(paras);*/
+
   // Create mesh
-  Mesh m(paras);
+  Mesh m(grid, paras.dt());
 
   // Create Equation object
   Albert_Young eq(paras, m);

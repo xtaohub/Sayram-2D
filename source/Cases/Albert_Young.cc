@@ -39,34 +39,57 @@ void Albert_Young::init(){
   }
 }
 
+BCType Albert_Young::bc_type(BoundaryID side) const {
+  switch (side) {
+    case BoundaryID::XMIN:
+      return BCType::Dirichlet;
 
-void Albert_Young::update(double t) {}
+    case BoundaryID::YMIN:
+      return BCType::Dirichlet;
 
+    case BoundaryID::YMAX:
+      return BCType::Dirichlet;
 
-void Albert_Young::apply_bcs(Xtensor2d* vertex_fp) const { 
-  Xtensor2d& vertex_f = *vertex_fp;  
+    case BoundaryID::XMAX:
+      return BCType::ZeroFlux;
 
-  double x, y;
-
-  // i == 0 and m.nx() boundary condition case
-  for (std::size_t j = 0; j<m.ny()+1; ++j){
-
-    const double y = m.y_edge(j);
-
-    vertex_f(0, j) = xmin(y);
-    vertex_f(m.nx(), j) = vertex_f(m.nx()-1, j);
-  }
-
-  // j == 0  and j == m.ny() boundary
-  for (std::size_t i = 0; i<m.nx()+1; ++i){
-
-    const double x = m.x_edge(i);
-
-    vertex_f(i, 0) = ymin(x); 
-    vertex_f(i, m.ny()) = ymax(x);  
+    default:
+      throw std::runtime_error("Albert_Young::bc_type: unknown BoundaryID");
   }
 }
 
+
+void Albert_Young::update(double t) {}
+
+bool Albert_Young::dirichlet_vertex_value(BoundaryID side,
+                                          std::size_t i, std::size_t j, double t,
+                                          double* out_value) const {
+  (void)t;  // remove if time-dependent
+  //
+  const double x = m.x_edge(i);
+  const double y = m.y_edge(j);
+
+  switch (side) {
+    case BoundaryID::XMIN:
+      *out_value = xmin(y);
+      return true;
+
+    case BoundaryID::YMIN:
+      *out_value = ymin(x);
+      return true;
+
+    case BoundaryID::YMAX:
+      *out_value = ymax(x);
+      return true;
+
+    case BoundaryID::XMAX:
+      // right boundary zeroflux in Albert_Young
+      return false;
+
+    default:
+      throw std::runtime_error("Albert_Young::dirichlet_value: unknown BoundaryID");
+  }
+}
 
 void Albert_Young::locate(double alpha0, double logE, Loc* locp){
     std::size_t i0, j0;

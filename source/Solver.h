@@ -11,12 +11,11 @@
 #ifndef SOLVER_H
 #define SOLVER_H
 
+#include "BCTypes.h"
 #include "common.h"
 #include "Mesh.h"
 #include "Equation.h"
 #include "Parameters.h"
-
-enum class Face { IM, IP, JM, JP };
 
 class Solver {
   public:
@@ -51,24 +50,18 @@ class Solver {
     void update_Lambda();
 
     //
-    // f at vertices to build a lookup table
+    // build a lookup table for f at vertices. 
     //
     Xtensor2d vertex_f_;
 
-    double vertex_f(int i, int j) const { return vertex_f_(i,j); }
+    double vertex_f(std::size_t i, std::size_t j) const { return vertex_f_(i,j); }
     double vertex_f(const Ind& ind) const { return vertex_f_(ind.i, ind.j); }
     void update_vertex_f();
-
-
 
     void assemble();
 
     // to calculate coefficients alpha_sigma_i and a_sigma_i
     void a_sigma_func(const Ind& ind, int inbr, Vector2* a_sigma_i_p, double* a_sigmap);
-
-    // update coefficients in M for cell Ind, and its neighbor.
-    // note that coefficients for both cell Ind and its neighbor are updated.
-    void update_coeff_inner_pair(const Ind& ind, int inbr);
 
     // Here: the inbr neighbor is a Dirichlet boundary.
     void update_coeff_dirbc(const Ind& ind, int inbr);
@@ -81,46 +74,16 @@ class Solver {
 
     void init();
 
-    int face_to_inbr(Face face) const {
-      switch (face) {
-        case Face::IM: return m.inbr_im();
-        case Face::IP: return m.inbr_ip();
-        case Face::JM: return m.inbr_jm();
-        case Face::JP: return m.inbr_jp();
-      }
-      return m.inbr_im(); // defensive
-    }
+    // update coefficients in M for cell, and its neighbor: inbr 
+    // note that coefficients for both cell Ind and its neighbor are updated.
+    void apply_inner_face_pair(const Ind& cell, int inbr);
 
-    Face opposite_face(Face face) const {
-      switch (face) {
-        case Face::IM: return Face::IP;
-        case Face::IP: return Face::IM;
-        case Face::JM: return Face::JP;
-        case Face::JP: return Face::JM;
-      }
-      return Face::IM;
+    void apply_dirichlet_face(const Ind& cell, int inbr); 
 
-    };
+    void apply_boundary_faces(); 
 
-    void apply_inner_face_pair(const Ind& cell, Face face) {
-      update_coeff_inner_pair(cell, face_to_inbr(face));
-    }
-
-    void apply_dirichlet_face(const Ind& cell, Face face) {
-      update_coeff_dirbc(cell, face_to_inbr(face));
-    }
-
-    // Placeholder for later (currently does nothing)
-    void apply_neumann_face(const Ind& cell, Face face) {
-      (void)cell;
-      (void)face;
-      // TODO: implement when BC is modularized
-    }
-
-    void apply_boundary_faces_(); 
-
-    void reconstruct_vertex_f_interior_();
-    void apply_vertex_bcs_(); // currently eq.apply_bcs(&vertex_f_)
+    void fill_vertex_from_cells();
+    void fill_vertex_from_bcs(); 
 
 };
 

@@ -14,31 +14,6 @@
 #include <cmath>
 #include <stdexcept>
 
-
-namespace {
-
-Grid2D make_uniform_grid_from_parameters_(const Parameters& p) {
-  std::vector<double> xe(p.nalpha0() + 1);
-  std::vector<double> ye(p.nE() + 1);
-
-  const double dx =
-      (p.alpha0_max() - p.alpha0_min()) / static_cast<double>(p.nalpha0());
-  const double dy =
-      (p.logEmax() - p.logEmin()) / static_cast<double>(p.nE());
-
-  for (std::size_t i = 0; i <= p.nalpha0(); ++i) {
-    xe[i] = p.alpha0_min() + dx * static_cast<double>(i);
-  }
-  for (std::size_t j = 0; j <= p.nE(); ++j) {
-    ye[j] = p.logEmin() + dy * static_cast<double>(j);
-  }
-
-  return Grid2D(std::move(xe), std::move(ye));
-}
-
-}  // namespace
-
-
 Mesh::Mesh(const Grid2D& grid, double dt)
   : nx_(grid.nx()),
     ny_(grid.ny()),
@@ -57,9 +32,6 @@ Mesh::Mesh(const Grid2D& grid, double dt)
 
   build_connectivity_();
 }
-
-Mesh::Mesh(const Parameters& p)
-  : Mesh(make_uniform_grid_from_parameters_(p), p.dt()) {}
 
 void Mesh::build_geometry_from_edges_() {
   if (x_edges_.size() != nx_ + 1) {

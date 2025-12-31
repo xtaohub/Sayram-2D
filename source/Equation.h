@@ -15,6 +15,8 @@
 #include "utils.h"
 #include "Mesh.h"
 #include "Parameters.h"
+#include "BCTypes.h"
+#include <cstddef>
 
 //
 // Definitions of the Equation are given here
@@ -41,10 +43,20 @@ class Equation{
     double Dyy(const Ind& ind) const { return Dyy_(ind.i, ind.j); } 
     double Dxy(const Ind& ind) const { return Dxy_(ind.i, ind.j); } 
 
+    virtual BCType bc_type(BoundaryID side) const = 0;
+
     // pure virtual functions to be defined by the CASE of interest. 
     virtual double init_f(const Ind& ind) const = 0;
-    virtual void apply_bcs(Xtensor2d* vertex_fp) const = 0; 
+
     virtual void update(double t) = 0;
+
+    // Dirichlet value at a boundary vertex on side
+    virtual bool dirichlet_vertex_value(BoundaryID side,
+                                        std::size_t i, std::size_t j, double t,
+                                        double* out_value) const {
+      (void)side; (void)i; (void)j; (void)t; (void)out_value;
+      return false;
+    }
 
   protected:
     Xtensor2d G_; 
