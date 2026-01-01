@@ -60,9 +60,14 @@ class Mesh {
 
     double dt() const { return dt_; }
 
-    double cell_area_dt(std::size_t i, std::size_t j) const {
-      return dx(i) * dy(j) / dt();
+    // double cell_area_dt(std::size_t i, std::size_t j) const {
+    //   return dx(i) * dy(j) / dt();
+    // }
+
+    double cell_area_dt(const Ind& ind) const {
+      return dx(ind.i) * dy(ind.j) / dt();
     }
+
 
     std::size_t flatten_cell_index(const Ind& ind) const {
       return ind.j * nx() + ind.i;

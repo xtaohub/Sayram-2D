@@ -11,8 +11,8 @@
 #include "Solver.h"
 #include "BCTypes.h"
 
-Solver::Solver(const Parameters& paras_in, const Mesh& m_in, Equation* eqp)
-  : paras(paras_in), m(m_in), eq(*eqp){
+Solver::Solver(const Mesh& m_in, Equation* eqp)
+  : m(m_in), eq(*eqp){
 
     std::size_t nx = m.nx();
     std::size_t ny = m.ny();
@@ -183,7 +183,7 @@ void Solver::assemble(){ // obtain M and R
   for (std::size_t i=0; i<m.nx(); ++i) {
     for (std::size_t j=0; j<m.ny(); ++j) {
       K = m.flatten_cell_index({i,j});
-      UKK = eq.G({i,j}) * m.cell_area_dt(i,j);
+      UKK = eq.G({i,j}) * m.cell_area_dt({i,j}) + eq.inv_tau({i,j});
       M_coeffs_.push_back(T(K, K, UKK));
       R_(K) += UKK * f_(i,j);
     }

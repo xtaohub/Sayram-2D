@@ -48,6 +48,7 @@ class Albert_Young:public Equation{
     void locate(double alpha0, double logE, Loc* locp);
     void constructD(const Parameters& par, const Albert_Young_IO& io);
 
+   // boundary conditions
     double xmin(double logE) const{
       return 0.0;
     }

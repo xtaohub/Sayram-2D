@@ -83,9 +83,9 @@ int main(int argc, char** argv) {
   Parameters paras(argc,argv);
 
   // Nonuniform grid test
-  Grid2D grid = make_nonuniform(paras);
+  // Grid2D grid = make_nonuniform(paras);
 
-  /*Grid2D grid = make_uniform(paras);*/
+  Grid2D grid = make_uniform(paras);
 
   // Create mesh
   Mesh m(grid, paras.dt());
@@ -93,7 +93,7 @@ int main(int argc, char** argv) {
   // Create Equation object
   Albert_Young eq(paras, m);
 
-  Solver solver(paras, m, &eq);
+  Solver solver(m, &eq);
 
   std::string filename;
   std::ofstream out;
@@ -101,7 +101,6 @@ int main(int argc, char** argv) {
   // Create output H5 file
   filename = paras.output_path() + "/" + paras.run_id() + "_data.h5";
   HighFive::File file(filename, HighFive::File::Overwrite);
-
 
   Eigen::Map<const Eigen::VectorXd> x_eig(m.x().data(), m.x().size());
   Eigen::Map<const Eigen::VectorXd> y_eig(m.y().data(), m.y().size());

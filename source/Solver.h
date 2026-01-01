@@ -11,15 +11,13 @@
 #ifndef SOLVER_H
 #define SOLVER_H
 
-#include "BCTypes.h"
 #include "common.h"
 #include "Mesh.h"
 #include "Equation.h"
-#include "Parameters.h"
 
 class Solver {
   public:
-    Solver(const Parameters& paras_in, const Mesh& m_in, Equation* eqp);
+    Solver(const Mesh& m_in, Equation* eqp);
 
     void update();
     double t() const { return istep_ * m.dt(); }
@@ -27,7 +25,6 @@ class Solver {
     double f(const Ind& ind) const { return f_(ind.i, ind.j); }
 
   private:
-    const Parameters& paras;
     const Mesh& m;
 
     Equation& eq;
