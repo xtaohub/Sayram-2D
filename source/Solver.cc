@@ -183,8 +183,10 @@ void Solver::assemble(){ // obtain M and R
   for (std::size_t i=0; i<m.nx(); ++i) {
     for (std::size_t j=0; j<m.ny(); ++j) {
       K = m.flatten_cell_index({i,j});
-      UKK = eq.G({i,j}) * m.cell_area_dt({i,j}) * (1 + m.dt() * eq.inv_tau({i,j}));
-      M_coeffs_.push_back(T(K, K, UKK));
+      UKK = eq.G({i,j}) * m.cell_area_dt({i,j});
+
+      M_coeffs_.push_back(T(K, K, UKK * (1 + m.dt() * eq.inv_tau({i,j}))));
+
       R_(K) += UKK * f_(i,j);
     }
   }
