@@ -1,7 +1,8 @@
 /*
  * fin:        main.cc
  * Author:      Xin Tao <xtao@ustc.edu.cn>
- *      
+ *              Peng Peng <pp140594@mail.ustc.edu.cn>
+ *
  * Date:        05/12/2024
  *
  * Copyright (c) Xin Tao
@@ -83,9 +84,9 @@ int main(int argc, char** argv) {
   Parameters paras(argc,argv);
 
   // Nonuniform grid test
-  // Grid2D grid = make_nonuniform(paras);
+  Grid2D grid = make_nonuniform(paras);
 
-  Grid2D grid = make_uniform(paras);
+  // Grid2D grid = make_uniform(paras);
 
   // Create mesh
   Mesh m(grid, paras.dt());

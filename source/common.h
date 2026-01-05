@@ -19,7 +19,7 @@
 #include "xtensor/xio.hpp"
 #include "xtensor-io/xhighfive.hpp"
 
-typedef Eigen::SparseMatrix<double> SpMat;
+typedef Eigen::SparseMatrix<double, Eigen::ColMajor> SpMat;
 typedef Eigen::Triplet<double> T;
 typedef Eigen::Vector2d Vector2;
 typedef Eigen::Vector2d Point; 

@@ -32,8 +32,7 @@ class Solver {
     std::size_t istep_; // used to calcualte time = istep_ * dt()
 
     // M f = R
-    Eigen::BiCGSTAB<SpMat> iterSolver;
-    // Eigen::SparseLU<SpMat, Eigen::COLAMDOrdering<int>> LUsolver;
+    Eigen::SparseLU<SpMat, Eigen::COLAMDOrdering<int>> eig_solver;
 
     SpMat M_;
     std::vector<T> M_coeffs_;

@@ -42,8 +42,6 @@ void Albert_Young_LC::init(){
   double L = 4.5;
   double alpha0lc = asin(pow(pow(L,5)*(4*L-3), -0.25));
 
-  std::cout << alpha0lc / gD2R << std::endl;
-
   for (std::size_t i = 0; i < m.nx(); i++) {
     double alpha0 = m.x(i);
     if(alpha0 < alpha0lc){

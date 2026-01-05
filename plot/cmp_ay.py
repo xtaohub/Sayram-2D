@@ -87,7 +87,7 @@ if __name__ == '__main__':
 
     data = h5py.File(fname_base(run_id) + '_data.h5', 'r')
     alphav, logEN = read_xy(data)
-    
+
     f01_2d = data['f/1'][:]
     f10_2d = data['f/10'][:]
 

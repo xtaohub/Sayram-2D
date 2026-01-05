@@ -35,8 +35,6 @@ Solver::Solver(const Mesh& m_in, Equation* eqp)
 
 void Solver::init(){
 
-  iterSolver.setTolerance(1e-8);
-
   for (std::size_t i = 0; i < m.nx(); i++){
     for (std::size_t j = 0; j < m.ny(); j++){
       f_(i,j) = eq.init_f({i,j});
@@ -45,6 +43,15 @@ void Solver::init(){
 
   update_Lambda();
   update_vertex_f();
+
+  // One-time symbolic analysis for SparseLU (pattern only).
+  // Assumes the sparsity pattern will not change over time steps.
+  R_.setZero();
+  M_coeffs_.clear();
+  assemble();
+
+  M_.makeCompressed();
+  eig_solver.analyzePattern(M_);
 }
 
 void Solver::update_Lambda(){
@@ -266,12 +273,9 @@ void Solver::update() {
 
   assemble();
 
-  // LUsolver.analyzePattern(M_);
-  // LUsolver.factorize(M_);
-  // ftmp_ = LUsolver.solve(R_);
-
-  iterSolver.compute(M_);
-  ftmp_ = iterSolver.solve(R_);
+  M_.makeCompressed();
+  eig_solver.factorize(M_);
+  ftmp_ = eig_solver.solve(R_);
  
   for (std::size_t i=0; i<m.nx(); ++i){
     for (std::size_t j=0; j<m.ny(); ++j) {

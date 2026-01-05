@@ -88,7 +88,7 @@ Edit the following section in the `Makefile` according to your system setup:
 
 ```makefile
 # -----------------
-CC = g++
+CC = clang++
 LOCAL_INCLUDE = /Users/xtao/local/include
 HDF5_INCLUDE = /opt/local/include
 HDF5_LIB = /opt/local/lib
@@ -144,11 +144,11 @@ $$
 \left.\frac{\partial f}{\partial \alpha_0}\right|_{\alpha_0 = 0} = 0.
 $$
 
-can be implemented by modifying the corresponding source files.
+can be implemented by modifying the corresponding source files. An example is given in the case: Albert_Young_LC.
 
 -- The input diffusion coefficients follow those of Albert and Young (2005, *GRL*), and all three coefficients have units of [p^2]/[t]. 
 
--- An additional loss (or source) term of the form $f/\tau$ can be incorporated by including it directly in the coefficient matrix (thanks to Mr. Bernhard Haas, GFZ).
+-- An additional loss (or source) term of the form $f/\tau$ has been incorporated by including it directly in the coefficient matrix (thanks to Mr. Bernhard Haas, GFZ).
 
 -- Time-dependent diffusion coefficients or boundary conditions can be incorporated by extending the **Equation** class and the **Cases** directory.
 
