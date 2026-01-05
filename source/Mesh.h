@@ -51,12 +51,6 @@ class Mesh {
     // Nonuniform-safe widths
     double dx(std::size_t i) const { return dx_cell_[i]; }      // i in [0, nx-1]
     double dy(std::size_t j) const { return dy_cell_[j]; }      // j in [0, ny-1]
-    
-    // Center-to-face distances (useful for BCs)
-    double dx_w(std::size_t i) const { return x_[i] - x_edges_[i]; }
-    double dx_e(std::size_t i) const { return x_edges_[i + 1] - x_[i]; }
-    double dy_s(std::size_t j) const { return y_[j] - y_edges_[j]; }
-    double dy_n(std::size_t j) const { return y_edges_[j + 1] - y_[j]; }
 
     double dt() const { return dt_; }
 

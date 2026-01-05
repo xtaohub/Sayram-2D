@@ -1,7 +1,7 @@
 /*
  * fin:        main.cc
  * Author:      Xin Tao <xtao@ustc.edu.cn>
- *              Peng Peng <pp140594@mail.ustc.edu.cn>
+ *      
  * Date:        05/12/2024
  *
  * Copyright (c) Xin Tao
@@ -12,7 +12,7 @@
 #include <iostream>
 #include "Parameters.h"
 #include "Mesh.h"
-#include "Albert_Young.h"
+#include "Albert_Young_LC.h"
 #include "Solver.h"
 #include <ctime>
 
@@ -91,7 +91,7 @@ int main(int argc, char** argv) {
   Mesh m(grid, paras.dt());
 
   // Create Equation object
-  Albert_Young eq(paras, m);
+  Albert_Young_LC eq(paras, m);
 
   Solver solver(m, &eq);
 

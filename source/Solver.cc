@@ -266,9 +266,13 @@ void Solver::update() {
 
   assemble();
 
+  // LUsolver.analyzePattern(M_);
+  // LUsolver.factorize(M_);
+  // ftmp_ = LUsolver.solve(R_);
+
   iterSolver.compute(M_);
   ftmp_ = iterSolver.solve(R_);
-
+ 
   for (std::size_t i=0; i<m.nx(); ++i){
     for (std::size_t j=0; j<m.ny(); ++j) {
       f_(i,j) = ftmp_(m.flatten_cell_index({i, j}));

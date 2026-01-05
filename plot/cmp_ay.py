@@ -24,9 +24,10 @@ def parse_ini(run_id):
     try:
         paras['E_MIN'] = float(config.get('basic', 'Emin'))  # MeV
         paras['E_MAX'] = float(config.get('basic', 'Emax'))  # MeV
+        paras['alpha0_MIN'] = float(config.get('basic', 'alpha0min'))  # MeV
+        paras['alpha0_MAX'] = float(config.get('basic', 'alpha0max'))  # MeV
         paras['nalpha0'] = int(config.get('basic', 'nalpha0'))
         paras['nE'] = int(config.get('basic', 'nE'))
-        # paras['ALPHA_MAX']=90
     except Exception as e:
         print("section_name or option_name wrong, check the input file.")
         sys.exit(1)
@@ -81,27 +82,26 @@ def f1d(fmat, alphav, ev, e):
 
 if __name__ == '__main__':
 
-    run_id = 'AlbertYoung'
+    run_id = 'AlbertYoungLC'
     paras = parse_ini(run_id)
-    
+
     data = h5py.File(fname_base(run_id) + '_data.h5', 'r')
     alphav, logEN = read_xy(data)
-
     
     f01_2d = data['f/1'][:]
     f10_2d = data['f/10'][:]
-    
+
     f0501 = f1d(f01_2d, alphav, logEN + np.log(gE0), np.log(0.5)) * e2p(0.5)**2
     f0510 = f1d(f10_2d, alphav, logEN + np.log(gE0), np.log(0.5)) * e2p(0.5)**2
-    
+
     zero_ = np.array([0])
-    
+
     f0501 = np.concatenate((zero_, f0501))
     f0510 = np.concatenate((zero_, f0510))
 
     f2001 = f1d(f01_2d, alphav, logEN + np.log(gE0), np.log(2.0)) * e2p(2.0)**2
     f2010 = f1d(f10_2d, alphav, logEN + np.log(gE0), np.log(2.0)) * e2p(2.0)**2
-    
+
     f2001 = np.concatenate((zero_, f2001))
     f2010 = np.concatenate((zero_, f2010))
 
@@ -114,7 +114,7 @@ if __name__ == '__main__':
 
     f2001_ay = f1d(ay_01, ay_alphav, ay_logev, np.log(2.0))
     f2010_ay = f1d(ay_10, ay_alphav, ay_logev, np.log(2.0))
-    
+
     alphalc_ = np.array([5])
     alphav = np.concatenate((alphalc_, alphav))
 

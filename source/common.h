@@ -13,6 +13,7 @@
 #include "Eigen/Dense"
 #include "Eigen/Sparse" 
 #include "Eigen/Core"
+#include "Eigen/SparseLU"
 #include "xtensor/xarray.hpp"
 #include "xtensor/xtensor.hpp"
 #include "xtensor/xio.hpp"
@@ -40,6 +41,7 @@ const double gD2R = gPI / 180.0; // convert degree to radian
 const double gC = 1;
 const double gE0 = 0.511875; // MeV
 const double gME = gE0 / (gC * gC); 
+const double gRE = 6371000;
 
 using namespace std;  //bad practice, used here for convenience
 

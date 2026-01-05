@@ -33,6 +33,7 @@ class Solver {
 
     // M f = R
     Eigen::BiCGSTAB<SpMat> iterSolver;
+    // Eigen::SparseLU<SpMat, Eigen::COLAMDOrdering<int>> LUsolver;
 
     SpMat M_;
     std::vector<T> M_coeffs_;
@@ -59,9 +60,6 @@ class Solver {
 
     // to calculate coefficients alpha_sigma_i and a_sigma_i
     void a_sigma_func(const Ind& ind, int inbr, Vector2* a_sigma_i_p, double* a_sigmap);
-
-    // Here: the inbr neighbor is a Dirichlet boundary.
-    void update_coeff_dirbc(const Ind& ind, int inbr);
 
     void calculate_mu(double a_sigma_K, double a_sigma_L, double* mu_Kp, double* mu_Lp){
       double denom = std::abs(a_sigma_K) + std::abs(a_sigma_L) + 2*gEPS;
