@@ -51,7 +51,7 @@ void Solver::init(){
   assemble();
 
   M_.makeCompressed();
-  eig_solver.analyzePattern(M_);
+  eigen_solver.analyzePattern(M_);
 }
 
 void Solver::update_Lambda(){
@@ -274,8 +274,8 @@ void Solver::update() {
   assemble();
 
   M_.makeCompressed();
-  eig_solver.factorize(M_);
-  ftmp_ = eig_solver.solve(R_);
+  eigen_solver.factorize(M_);
+  ftmp_ = eigen_solver.solve(R_);
  
   for (std::size_t i=0; i<m.nx(); ++i){
     for (std::size_t j=0; j<m.ny(); ++j) {

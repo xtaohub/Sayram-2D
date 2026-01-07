@@ -132,25 +132,49 @@ To use a custom configuration file (e.g., new.ini), run:
 
 ## Boundary Conditions and Extensions
 
--- The default configuration reproduces the test case of Albert and Young (2005, GRL), with the boundary condition
+- **Default configuration**  
+  The default setup reproduces the test case of Albert and Young (2005, *GRL*), with the boundary condition
+  $$
+  f(\alpha_0 = \alpha_{0,\text{LC}}) = 0 .
+  $$
 
-$$
-f(\alpha_0 = \alpha_{0,\text{LC}}) = 0.
-$$
+- **Alternative boundary condition**  
+  An alternative condition,
+  $$
+  \left.\frac{\partial f}{\partial \alpha_0}\right|_{\alpha_0 = 0} = 0 ,
+  $$
+  can be implemented by modifying the corresponding source files. An example implementation is provided in the case **Albert_Young_LC**.
 
--- An alternative boundary condition,
+  To simulate this case, make the following changes:
 
-$$
-\left.\frac{\partial f}{\partial \alpha_0}\right|_{\alpha_0 = 0} = 0.
-$$
+  1. In `main.cc`, replace
+     ```cpp
+     #include "Albert_Young.h"
+     ...
 
-can be implemented by modifying the corresponding source files. An example is given in the case: Albert_Young_LC.
+     Albert_Young eq(paras, m);
+     ```
+     with
+     ```cpp
+     #include "Albert_Young_LC.h"
+     ...
 
--- The input diffusion coefficients follow those of Albert and Young (2005, *GRL*), and all three coefficients have units of [p^2]/[t]. 
+     Albert_Young_LC eq(paras, m);
+     ```
 
--- An additional loss (or source) term of the form $f/\tau$ has been incorporated by including it directly in the coefficient matrix (thanks to Mr. Bernhard Haas, GFZ).
+  2. Run the code using
+     ```bash
+     ./sayram-2d p_AlbertYoungLC.ini
+     ```
 
--- Time-dependent diffusion coefficients or boundary conditions can be incorporated by extending the **Equation** class and the **Cases** directory.
+- **Diffusion coefficients**  
+  The input diffusion coefficients follow those of Albert and Young (2005, *GRL*). All three coefficients have units of \([p^2]/[t]\).
+
+- **Additional loss or source term**  
+  An additional loss (or source) term of the form \(f/\tau\) is incorporated directly into the coefficient matrix (with thanks to Mr. Bernhard Haas, GFZ).
+
+- **Extensions**  
+  Time-dependent diffusion coefficients or boundary conditions can be implemented by extending the **Equation** class and adding new cases under the **Cases** directory.
 
 ## Contributing
 
